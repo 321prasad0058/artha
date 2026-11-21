@@ -1,0 +1,432 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<title>Artha film</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Noto+Sans+Devanagari:wght@400;600&family=Noto+Sans+Telugu:wght@400;600&family=Noto+Sans+Tamil:wght@400;600&family=IBM+Plex+Mono:wght@400;500&display=block">
+<style>
+/* The Artha film: 1920×1080, dark cinematic ground with one living orb; real app footage in device frames.
+   Every animation is on one paused GSAP timeline keyed to the narration, so each frame renders exactly. */
+:root{ --bg:#0b0d12; --bg2:#121521; --card:#161a26; --line:#262b3b; --ink:#eef0f6; --ink2:#c3c8d6; --dim:#7d8499;
+  --accent:#8ea2ff; --accent2:#5b74ff; --violet:#b48bff; --cyan:#5fd3ff; --amber:#f0b45a; --green:#5fd39a; --red:#ff7a6b;
+  --font:'Instrument Sans','Noto Sans Devanagari','Noto Sans Telugu','Noto Sans Tamil',sans-serif; --mono:'IBM Plex Mono',monospace; }
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:1920px;height:1080px;overflow:hidden;background:var(--bg);color:var(--ink);font-family:var(--font);-webkit-font-smoothing:antialiased}
+#stage{position:relative;width:1920px;height:1080px;overflow:hidden;background:radial-gradient(1200px 800px at 50% 40%,#151a2e 0%,var(--bg) 60%)}
+#orb{position:absolute;left:0;top:0;width:640px;height:640px;transform-origin:50% 50%;z-index:1}
+.vignette{position:absolute;inset:0;background:radial-gradient(ellipse at center,transparent 55%,rgba(0,0,0,.55));z-index:2;pointer-events:none}
+.scene{position:absolute;inset:0;z-index:3;visibility:hidden;opacity:0}
+.chrome{position:absolute;z-index:6}
+#chapter{left:64px;top:48px;font-family:var(--mono);font-size:18px;letter-spacing:.06em;color:var(--accent);display:flex;gap:14px;align-items:center}
+#chapter::before{content:"";width:36px;height:2px;background:var(--accent)}
+#brand{right:64px;top:42px;font-size:26px;font-weight:700;letter-spacing:-.02em;display:flex;align-items:center;gap:12px}
+#brand i{width:14px;height:14px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#c9d3ff,#5b74ff 60%,#3343c9)}
+#progress{left:0;bottom:0;height:4px;background:linear-gradient(90deg,var(--accent2),var(--cyan));width:0}
+#cap{left:50%;bottom:46px;transform:translateX(-50%);max-width:1640px;text-align:center;font-size:32px;line-height:1.35;font-weight:500;padding:12px 26px;border-radius:16px;background:rgba(8,10,16,.72);color:#fff;backdrop-filter:blur(6px)}
+#cap:empty{display:none}
+.tag{position:absolute;font-family:var(--mono);font-size:17px;color:var(--dim);letter-spacing:.04em}
+h1,h2,h3{font-weight:600;letter-spacing:-.035em;line-height:1.05}
+.big{font-size:104px}
+.mid{font-size:64px}
+.center{position:absolute;left:0;right:0;text-align:center}
+.muted{color:var(--ink2)} .dimc{color:var(--dim)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:28px}
+.chip{display:inline-flex;align-items:center;gap:8px;padding:6px 16px;border-radius:999px;font-size:22px;font-weight:600;background:#1d2234;color:var(--ink2);border:1px solid var(--line)}
+.chip.a{background:rgba(142,162,255,.14);color:var(--accent);border-color:transparent}
+.chip.am{background:rgba(240,180,90,.14);color:var(--amber);border-color:transparent}
+.chip.g{background:rgba(95,211,154,.14);color:var(--green);border-color:transparent}
+.chip.r{background:rgba(255,122,107,.14);color:var(--red);border-color:transparent}
+/* hook */
+.bubble{position:absolute;display:flex;align-items:center;gap:14px;padding:14px 22px 14px 14px;border-radius:999px;background:rgba(142,162,255,.12);border:1px solid rgba(142,162,255,.25);font-size:28px;color:var(--ink)}
+.bubble b{width:40px;height:40px;border-radius:50%;background:var(--accent2);display:grid;place-items:center;font-size:16px}
+.wave{display:flex;align-items:center;gap:4px;height:36px}
+.wave i{display:block;width:5px;border-radius:3px;background:var(--accent)}
+.quote{font-size:58px;line-height:1.2;letter-spacing:-.03em;max-width:1400px;margin:0 auto}
+/* problem */
+.player{position:absolute;left:240px;right:240px;top:230px;padding:40px 48px;display:grid;gap:28px}
+.player .row{display:flex;align-items:center;gap:22px}
+.play{width:72px;height:72px;border-radius:50%;background:var(--accent2);display:grid;place-items:center;flex:none}
+.play svg{width:28px;height:28px;fill:#fff}
+.bigwave{flex:1;display:flex;align-items:center;gap:6px;height:80px}
+.bigwave i{flex:1;border-radius:4px;background:var(--accent);opacity:.85}
+.said{font-size:58px;line-height:1.45;letter-spacing:-.01em}
+.w{display:inline-block;position:relative;opacity:0}
+.w .q{position:absolute;left:50%;top:-58px;transform:translateX(-50%);white-space:nowrap;font-size:22px;font-weight:700;padding:4px 14px;border-radius:999px;opacity:0}
+.w .q.p{background:rgba(142,162,255,.18);color:var(--accent)} .w .q.t{background:rgba(240,180,90,.18);color:var(--amber)} .w .q.j{background:rgba(180,139,255,.18);color:var(--violet)}
+.base{position:absolute;left:240px;right:240px;top:690px;padding:28px 36px;border:2px dashed #3a4157;border-radius:24px;display:flex;align-items:center;gap:28px;opacity:0}
+.base h4{font-family:var(--mono);font-size:18px;color:var(--dim);letter-spacing:.08em;font-weight:500}
+.base p{font-size:30px}
+.x{display:flex;gap:14px;margin-left:auto}
+/* people */
+.people{position:absolute;left:150px;right:150px;top:180px;display:grid;grid-template-columns:1fr 1fr;gap:28px}
+.pc{padding:30px 34px;display:grid;gap:16px;opacity:0}
+.pc .h{display:flex;gap:20px;align-items:center}
+.av{width:76px;height:76px;border-radius:50%;display:grid;place-items:center;font-size:26px;font-weight:700;background:linear-gradient(135deg,#3b4cff,#8a63ff);flex:none}
+.pc h3{font-size:40px}
+.pc .h small{font-size:22px;color:var(--ink2)}
+.pc .tangle{font-size:24px;color:var(--amber)}
+.pc .note{font-size:28px;padding:14px 20px;border-radius:18px;background:rgba(142,162,255,.1)}
+.hints{position:absolute;left:0;right:0;top:470px;text-align:center;font-size:110px;font-weight:700;letter-spacing:-.045em;opacity:0}
+/* where */
+.path{position:absolute;left:180px;right:180px;top:300px;display:grid;grid-template-columns:repeat(3,1fr);gap:30px}
+.step{padding:36px;display:grid;gap:14px;opacity:.35}
+.step .k{font-family:var(--mono);font-size:20px;color:var(--dim);letter-spacing:.08em}
+.step h3{font-size:50px}
+.step p{font-size:26px;color:var(--ink2)}
+.layer{position:absolute;left:180px;right:180px;top:640px;padding:30px 40px;border-radius:26px;background:linear-gradient(90deg,rgba(91,116,255,.28),rgba(180,139,255,.22));border:1px solid rgba(142,162,255,.5);display:flex;align-items:center;gap:26px;opacity:0}
+.layer b{font-size:46px} .layer span{font-size:28px;color:var(--ink2)}
+.word{position:absolute;left:0;right:0;top:640px;text-align:center;opacity:0}
+.word h1{font-size:150px;letter-spacing:-.05em}
+.word p{font-size:44px;color:var(--ink2);margin-top:14px}
+/* demo */
+.frame{position:absolute;border-radius:22px;overflow:hidden;background:#000;box-shadow:0 40px 120px -40px rgba(0,0,0,.9),0 0 0 1px rgba(255,255,255,.08)}
+.frame video{display:block;width:100%;height:100%;object-fit:cover}
+.desk{left:100px;top:150px;width:992px;height:756px}
+.desk video{position:absolute;left:-218px;top:0;width:1210px!important;height:756px!important;object-fit:fill}
+.desk::before{content:"";position:absolute;left:0;right:0;top:0;height:0}
+.phone{left:330px;top:120px;width:380px;height:800px;border-radius:50px;border:10px solid #1d2130}
+.phone video{object-fit:cover;object-position:top}
+.side{position:absolute;right:100px;top:190px;width:640px;display:grid;gap:22px}
+.call{padding:22px 26px;border-radius:22px;background:var(--card);border:1px solid var(--line);font-size:28px;line-height:1.35;opacity:0}
+.call small{display:block;font-family:var(--mono);font-size:16px;color:var(--dim);letter-spacing:.06em;margin-bottom:6px}
+.call b{color:var(--accent)}
+.call .am{color:var(--amber)} .call .g{color:var(--green)} .call .r{color:var(--red)}
+.phone-side{right:220px;width:720px;top:220px}
+.speed{position:absolute;font-family:var(--mono);font-size:18px;padding:6px 14px;border-radius:999px;background:rgba(0,0,0,.6);color:#fff;opacity:0}
+.real{position:absolute;left:100px;top:118px;font-family:var(--mono);font-size:17px;color:var(--dim)}
+/* how */
+.pipe{position:absolute;left:120px;right:120px;top:250px;display:grid;grid-template-columns:repeat(6,1fr);gap:20px}
+.st{padding:26px 24px;display:grid;gap:12px;align-content:start;opacity:.25;min-height:300px}
+.st .k{display:flex;justify-content:space-between;font-family:var(--mono);font-size:18px;color:var(--dim)}
+.st h3{font-size:36px}
+.st p{font-size:22px;color:var(--ink2);line-height:1.35}
+.st .eg{font-size:22px;color:var(--accent);border-top:1px solid var(--line);padding-top:12px}
+.st.ai .k span{color:var(--accent)}
+.kb{position:absolute;left:120px;right:120px;top:600px;display:flex;justify-content:center;gap:22px;opacity:0}
+/* proof */
+.bars{position:absolute;left:240px;right:240px;top:260px;display:grid;gap:44px}
+.bar{display:grid;grid-template-columns:420px 1fr 150px;align-items:center;gap:30px}
+.bar .l{font-size:36px;font-weight:600}
+.bar .l small{display:block;font-size:22px;color:var(--dim);font-weight:400}
+.bar .t{height:44px;border-radius:12px;background:#1a1f2e;overflow:hidden}
+.bar .f{height:100%;width:0;border-radius:12px;background:#3a4157}
+.bar.artha .f{background:linear-gradient(90deg,var(--accent2),var(--violet),var(--cyan))}
+.bar .n{font-size:64px;font-weight:700;letter-spacing:-.04em;text-align:right}
+.bar.artha .n{color:var(--accent)}
+.foot{position:absolute;left:240px;right:240px;top:760px;font-family:var(--mono);font-size:20px;color:var(--dim);opacity:0}
+/* close */
+.close h1{font-size:170px;letter-spacing:-.055em}
+</style></head>
+<body><div id="stage">
+  <canvas id="orb" width="1280" height="1280"></canvas>
+  <div class="vignette"></div>
+
+  <!-- 1 HOOK -->
+  <section class="scene" id="s-hook">
+    <div class="bubble" id="b1" style="left:170px;top:250px"><b>▶</b><span class="wave">${w}</span>Anna ko bol do…</div>
+    <div class="bubble" id="b2" style="right:170px;top:330px"><b>▶</b>అమ్మకి చెప్పు…</div>
+    <div class="bubble" id="b3" style="left:260px;top:720px"><b>▶</b>செல்விக்கு சொல்லு…</div>
+    <div class="bubble" id="b4" style="right:240px;top:760px"><b>▶</b>शर्मा जी का खाता…</div>
+    <h1 class="center big" id="h1" style="top:440px">India runs on voice notes.</h1>
+    <div class="center" id="q1" style="top:390px;opacity:0"><p class="quote">“Over a billion Indians have never typed a search into Gemini or ChatGPT intentionally.”</p><p style="font-size:28px;color:var(--ink2);margin-top:26px">Keshav Reddy, founder, Equal AI</p></div>
+    <h1 class="center big" id="h3" style="top:820px;opacity:0;font-size:84px">Voice is the way in.</h1>
+  </section>
+
+  <!-- 2 PROBLEM -->
+  <section class="scene" id="s-problem">
+    <div class="card player" id="player">
+      <div class="row"><span class="play"><svg viewBox="0 0 24 24"><path d="M7 4.5v15l13-7.5z"/></svg></span><div class="bigwave" id="bigwave"></div><span class="chip">Aditya · Hinglish · 0:04</span></div>
+      <p class="said" id="said"></p>
+    </div>
+    <div class="base" id="base"><div><h4>BASE MODEL’S ANSWER</h4><p id="baseOut"></p></div><div class="x"><span class="chip r">✕ Which Mehta?</span><span class="chip r">✕ No call</span><span class="chip r">✕ Nothing done</span></div></div>
+  </section>
+
+  <!-- 3 PEOPLE -->
+  <section class="scene" id="s-people">
+    <h2 class="center mid" id="ph" style="top:120px;font-size:52px;opacity:0">Built for four people</h2>
+    <div class="people" id="people"></div>
+    <div class="hints" id="hints">They speak in hints.</div>
+  </section>
+
+  <!-- 4 WHERE -->
+  <section class="scene" id="s-where">
+    <div class="path">
+      <div class="card step" id="st1"><span class="k">TODAY</span><h3>AI Calls</h3><p>Equal answers and makes calls for you.</p></div>
+      <div class="card step" id="st2"><span class="k">NEXT</span><h3>AI Messaging</h3><p>Voice notes turned into actions.</p></div>
+      <div class="card step" id="st3"><span class="k">THEN</span><h3>AI Experts</h3><p>Doctor, credit advisor, travel agent.</p></div>
+    </div>
+    <div class="layer" id="layer"><b>Artha</b><span>the layer that understands what people mean: who, when, how much, and what to do</span></div>
+    <div class="word" id="word"><h1>Artha</h1><p>बस इशारा काफ़ी है · A hint is enough</p></div>
+  </section>
+
+  <!-- 5 DEMOS -->
+  <section class="scene" id="s-demo1">
+    <div class="frame desk"><video id="v-mehta" src="build/rec/mehta.mp4" muted preload="auto"></video></div>
+    <span class="speed" id="sp-mehta" style="left:130px;top:170px">⏩ 2× while it thinks</span>
+    <div class="side">
+      <div class="call" id="c11"><small>WHO</small>Mehta ji → <b>Dr. Mehta’s Clinic</b>, his doctor</div>
+      <div class="call" id="c12"><small>WHEN</small>parso shaam → <span class="am">Mon 23 Nov, 6 PM</span></div>
+      <div class="call" id="c13"><small>WHAT</small>“shift karwa do” → <b>call the clinic</b></div>
+      <div class="call" id="c14"><small>HABIT</small>Remind <span class="g">1 hour before</span>, carry reports</div>
+    </div>
+    <span class="real">Real app, recorded 21 Nov · synthetic test voice</span>
+  </section>
+  <section class="scene" id="s-demo2">
+    <div class="frame desk"><video id="v-rahul" src="build/rec/rahul.mp4" muted preload="auto"></video></div>
+    <span class="speed" id="sp-rahul" style="left:130px;top:170px">⏩ sped up</span>
+    <div class="side">
+      <div class="call" id="c21"><small>TWO RAHULS</small>Rahul Verma, office · Rahul Kulkarni, cousin</div>
+      <div class="call" id="c22"><small>TOPIC</small>“meeting” → work → <b>Rahul Verma</b></div>
+      <div class="call" id="c23"><small>NO QUESTIONS</small>⇄ Kulkarni is <b>one tap away</b>. Pick him once and Artha remembers.</div>
+    </div>
+    <span class="real">Real app · typed note</span>
+  </section>
+  <section class="scene" id="s-demo3">
+    <div class="frame phone"><video id="v-telugu" src="build/rec/telugu.mp4" muted preload="auto"></video></div>
+    <span class="speed" id="sp-telugu" style="left:330px;top:140px">⏩ 2×</span>
+    <div class="side phone-side">
+      <div class="call" id="c31"><small>HE SAID, IN TELUGU</small>అమ్మకి చెప్పు, రేపు మధ్యాహ్నం లంచ్‌కి వస్తాను</div>
+      <div class="call" id="c32"><small>ARTHA WRITES TO AMMA</small><b>in Telugu</b>, and adds <span class="am">Sun 1 PM</span> to his calendar</div>
+      <div class="call" id="c33"><small>AND SAYS OUT LOUD</small><span id="replyTxt"></span></div>
+    </div>
+    <span class="real" style="left:330px;top:84px">Real app · synthetic test voice</span>
+  </section>
+  <section class="scene" id="s-demo4">
+    <div class="frame desk"><video id="v-imran" src="build/rec/imran.mp4" muted preload="auto"></video></div>
+    <span class="speed" id="sp-imran" style="left:130px;top:170px">⏩ 2×</span>
+    <div class="side">
+      <div class="call" id="c41"><small>IMRAN SAID</small>“Sharma ji ke khate mein dhai hazaar aur likh do”</div>
+      <div class="call" id="c42"><small>CODE, NOT GUESSWORK</small>dhai hazaar → <span class="g">₹2,500</span></div>
+      <div class="call" id="c43"><small>WHICH SHARMA</small>khata → <b>Sharma ji, the customer</b>, not Sharma Traders</div>
+    </div>
+    <span class="real">Real app · synthetic test voice</span>
+  </section>
+  <section class="scene" id="s-demo5">
+    <div class="frame phone"><video id="v-otp" src="build/rec/otp.mp4" muted preload="auto"></video></div>
+    <div class="side phone-side">
+      <div class="call" id="c51"><small>A “PENSION OFFICE” CALLER</small>asked Meenakshi for her OTP</div>
+      <div class="call" id="c52"><small>BLOCKED IN CODE</small><span class="r">OTP + digits found</span> before any AI ran</div>
+      <div class="call" id="c53"><small>NEVER SHARED</small>Digits hidden from every model and log</div>
+    </div>
+    <span class="real" style="left:330px;top:84px">Real app · Tamil · synthetic test voice</span>
+  </section>
+
+  <!-- 6 HOW -->
+  <section class="scene" id="s-how">
+    <h2 class="center" id="howh" style="top:130px;font-size:56px;opacity:0">AI where it helps. Code where it must be exact.</h2>
+    <div class="pipe">
+      <div class="card st ai" id="p1"><span class="k">01<span>AI</span></span><h3>Hear</h3><p>Speech, hinted with your contacts’ names</p><span class="eg">metha → Mehta</span></div>
+      <div class="card st" id="p2"><span class="k">02<span>CODE</span></span><h3>Meaning</h3><p>Dates, times and money made exact</p><span class="eg">परसों → Mon</span></div>
+      <div class="card st" id="p3"><span class="k">03<span>CODE</span></span><h3>Who</h3><p>Personal knowledge base: sound, topic, recent talk</p><span class="eg">Ammaki → Amma</span></div>
+      <div class="card st ai" id="p4"><span class="k">04<span>AI</span></span><h3>Plan</h3><p>Picks only real contacts; writes in their language</p><span class="eg">Call the clinic</span></div>
+      <div class="card st" id="p5"><span class="k">05<span>CODE</span></span><h3>Rules</h3><p>OTPs blocked first; money waits for you</p><span class="eg">OTP → never</span></div>
+      <div class="card st" id="p6"><span class="k">06<span>CODE</span></span><h3>Learn</h3><p>Your corrections become memory</p><span class="eg">Rahul at work = Verma</span></div>
+    </div>
+    <div class="kb" id="kb"><span class="chip am">परसों → Mon 23 Nov</span><span class="chip g">ढाई सौ → ₹250</span><span class="chip am">రేపు మధ్యాహ్నం → Sun 1 PM</span><span class="chip a">“meeting” → Rahul Verma</span></div>
+  </section>
+
+  <!-- 7 PROOF -->
+  <section class="scene" id="s-proof">
+    <h2 class="center" id="prh" style="top:130px;font-size:56px;opacity:0">Same recordings. Whole note right.</h2>
+    <div class="bars">
+      <div class="bar" id="bb"><span class="l">Base model<small>no context</small></span><div class="t"><div class="f"></div></div><span class="n">0%</span></div>
+      <div class="bar" id="bc"><span class="l">+ pasted context<small>whole profile in the prompt</small></span><div class="t"><div class="f"></div></div><span class="n">0%</span></div>
+      <div class="bar artha" id="ba"><span class="l">Artha<small>the full pipeline</small></span><div class="t"><div class="f"></div></div><span class="n">0%</span></div>
+    </div>
+    <p class="foot" id="pfoot">29 recordings · 7 languages · 4 people · answers written before running · synthetic test voices</p>
+  </section>
+
+  <!-- 8 CLOSE -->
+  <section class="scene close" id="s-close">
+    <div class="path" style="top:220px">
+      <div class="card step" id="cs1" style="opacity:1"><span class="k">TODAY</span><h3>Calls</h3></div>
+      <div class="card step" id="cs2" style="opacity:1"><span class="k">NEXT</span><h3>Messaging</h3></div>
+      <div class="card step" id="cs3" style="opacity:1"><span class="k">THEN</span><h3>Experts</h3></div>
+    </div>
+    <div class="center" id="fin" style="top:560px;opacity:0"><h1>Artha</h1><p style="font-size:44px;color:var(--ink2);margin-top:6px">बस इशारा काफ़ी है · A hint is enough</p><p style="font-size:24px;color:var(--dim);margin-top:34px;font-family:var(--mono)">Built solo at Builders 2026 · OpenAI × Equal AI · Prasad Alai</p></div>
+  </section>
+
+  <div class="chrome" id="chapter"></div>
+  <div class="chrome" id="brand"><i></i>Artha</div>
+  <div class="chrome" id="cap"></div>
+  <div class="chrome" id="progress"></div>
+</div>
+
+<script src="/node_modules/gsap/dist/gsap.min.js"></script>
+<script type="module">
+import * as THREE from '/node_modules/three/build/three.module.js';
+const TL = await (await fetch('build/timeline.json')).json();
+const DATA = await (await fetch('/docs/artha-story/data.json')).json();
+const MARKS = await (await fetch('build/rec/marks.json')).json();
+await document.fonts.ready;
+const $ = s => document.querySelector(s);
+const T = id => (TL.lines.find(l => l.id === id) ?? TL.clips.find(c => c.id === id)).start;
+const E = id => (TL.lines.find(l => l.id === id) ?? TL.clips.find(c => c.id === id)).end;
+const SC = id => TL.scenes.find(s => s.id === id);
+
+/* ---------- static content ---------- */
+const waveHTML = n => Array.from({ length: n }, (_, i) => `<i style="height:${10 + Math.round(26 * Math.abs(Math.sin(i * 1.7) * Math.cos(i * .6)))}px"></i>`).join('');
+$('#b1').innerHTML = `<b>▶</b><span class="wave">${waveHTML(9)}</span>Anna ko bol do…`;
+['#b2', '#b3', '#b4'].forEach(s => { const el = $(s); el.innerHTML = el.innerHTML.replace('</b>', `</b><span class="wave">${waveHTML(9)}</span>`); });
+$('#bigwave').innerHTML = Array.from({ length: 64 }, () => '<i style="height:10%"></i>').join('');
+const words = [['मेहता जी', 'p', 'Who?'], ['वाला'], ['अपॉइंटमेंट'], ['परसों', 't', 'When?'], ['शाम', 't', 'What time?'], ['को'], ['शिफ्ट करवा दो।', 'j', 'Do what?']];
+$('#said').innerHTML = words.map(([w, c, q]) => `<span class="w">${w}${q ? `<span class="q ${c}">${q}</span>` : ''}</span>`).join(' ');
+const a2 = DATA.notes.find(n => n.id === 'a2');
+$('#baseOut').textContent = a2.base.actions.map(a => `${a.type} → ${a.contact_name || a.contact_id}${a.when_label ? ' · ' + a.when_label : ''}`).join(' ; ') || 'no action';
+const a6 = DATA.notes.find(n => n.id === 'a6').artha;
+$('#replyTxt').textContent = `“${a6.reply_speech || a6.reply}”`;
+const P = [
+  ['AR', 'Aditya, 29', 'Hyderabad · Hinglish, Telugu', 'Rahul = Verma (office) or Kulkarni (cousin)?', 'राहुल को बोल दो, कल की मीटिंग चार बजे'],
+  ['SP', 'Sunita, 54', 'Pune · Marathi', '“Tai” = Mangal (house help) or Vaishali (sister)?', 'मंगल ताईला सांग, उद्या कामाला येऊ नका'],
+  ['IQ', 'Imran, 38', 'Lucknow · Hindi, Urdu', '“Sharma” = customer or supplier?', 'शर्मा जी के खाते में ढाई हज़ार लिख दो'],
+  ['MS', 'Meenakshi, 67', 'Chennai · Tamil, English', 'Dr. Ramesh or Auto Ramesh? And weekly OTP scams.', 'செல்விக்கு சொல்லு, நாளைக்கு வர வேண்டாம்'],
+];
+$('#people').innerHTML = P.map((p, i) => `<div class="card pc" id="pc${i}"><div class="h"><span class="av">${p[0]}</span><div><h3>${p[1]}</h3><small>${p[2]}</small></div></div><span class="tangle">${p[3]}</span><span class="note">“${p[4]}”</span></div>`).join('');
+
+/* ---------- orb ---------- */
+const canvas = $('#orb');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, preserveDrawingBuffer: true });
+renderer.setPixelRatio(1); renderer.setSize(1280, 1280, false);
+canvas.style.width = '640px'; canvas.style.height = '640px';
+const scene3 = new THREE.Scene(); const cam = new THREE.PerspectiveCamera(32, 1, .1, 100); cam.position.z = 4.2;
+const NOISE = `vec3 mod289(vec3 x){return x-floor(x*(1.0/289.0))*289.0;}vec4 mod289(vec4 x){return x-floor(x*(1.0/289.0))*289.0;}vec4 permute(vec4 x){return mod289(((x*34.0)+1.0)*x);}vec4 taylorInvSqrt(vec4 r){return 1.79284291400159-0.85373472095314*r;}
+float snoise(vec3 v){const vec2 C=vec2(1.0/6.0,1.0/3.0);const vec4 D=vec4(0.0,0.5,1.0,2.0);vec3 i=floor(v+dot(v,C.yyy));vec3 x0=v-i+dot(i,C.xxx);vec3 g=step(x0.yzx,x0.xyz);vec3 l=1.0-g;vec3 i1=min(g.xyz,l.zxy);vec3 i2=max(g.xyz,l.zxy);vec3 x1=x0-i1+C.xxx;vec3 x2=x0-i2+C.yyy;vec3 x3=x0-D.yyy;i=mod289(i);vec4 p=permute(permute(permute(i.z+vec4(0.0,i1.z,i2.z,1.0))+i.y+vec4(0.0,i1.y,i2.y,1.0))+i.x+vec4(0.0,i1.x,i2.x,1.0));float n_=0.142857142857;vec3 ns=n_*D.wyz-D.xzx;vec4 j=p-49.0*floor(p*ns.z*ns.z);vec4 x_=floor(j*ns.z);vec4 y_=floor(j-7.0*x_);vec4 x=x_*ns.x+ns.yyyy;vec4 y=y_*ns.x+ns.yyyy;vec4 h=1.0-abs(x)-abs(y);vec4 b0=vec4(x.xy,y.xy);vec4 b1=vec4(x.zw,y.zw);vec4 s0=floor(b0)*2.0+1.0;vec4 s1=floor(b1)*2.0+1.0;vec4 sh=-step(h,vec4(0.0));vec4 a0=b0.xzyw+s0.xzyw*sh.xxyy;vec4 a1=b1.xzyw+s1.xzyw*sh.zzww;vec3 p0=vec3(a0.xy,h.x);vec3 p1=vec3(a0.zw,h.y);vec3 p2=vec3(a1.xy,h.z);vec3 p3=vec3(a1.zw,h.w);vec4 norm=taylorInvSqrt(vec4(dot(p0,p0),dot(p1,p1),dot(p2,p2),dot(p3,p3)));p0*=norm.x;p1*=norm.y;p2*=norm.z;p3*=norm.w;vec4 m=max(0.6-vec4(dot(x0,x0),dot(x1,x1),dot(x2,x2),dot(x3,x3)),0.0);m=m*m;return 42.0*dot(m*m,vec4(dot(p0,x0),dot(p1,x1),dot(p2,x2),dot(p3,x3)));}`;
+const U = { uTime: { value: 0 }, uAmp: { value: .08 }, uGlow: { value: .3 } };
+const mesh = new THREE.Mesh(new THREE.IcosahedronGeometry(1, 96), new THREE.ShaderMaterial({ uniforms: U, transparent: true,
+  vertexShader: `uniform float uTime;uniform float uAmp;varying vec3 vN;varying vec3 vP;varying float vNo;${NOISE}void main(){float n=snoise(normal*1.15+vec3(uTime*.6,uTime*.4,uTime*.5));float n2=snoise(normal*2.6-vec3(uTime*.3));vNo=n;vec3 p=position+normal*(n*uAmp+n2*uAmp*.25);vN=normalize(normalMatrix*normal);vec4 mv=modelViewMatrix*vec4(p,1.0);vP=mv.xyz;gl_Position=projectionMatrix*mv;}`,
+  fragmentShader: `uniform float uTime;uniform float uGlow;varying vec3 vN;varying vec3 vP;varying float vNo;void main(){vec3 n=normalize(vN);vec3 v=normalize(-vP);float f=pow(1.0-max(dot(n,v),0.0),2.4);vec3 A=vec3(.21,.31,.95),B=vec3(.58,.40,1.0),C=vec3(.30,.85,1.0);vec3 col=mix(A,B,smoothstep(.05,.95,n.y*.5+.5+vNo*.28+sin(uTime*.7)*.06));col=mix(col,C,smoothstep(.45,1.0,n.x*.5+.5+vNo*.22)*.65);vec3 L=normalize(vec3(-.45,.65,1.0));float s=pow(max(dot(n,normalize(L+v)),0.0),42.0);col=col*(.78+.22*max(dot(n,L),0.0))+s*.55+f*(.5+uGlow*.6)*mix(C,vec3(1.0),.45);gl_FragColor=vec4(col,.97);}` }));
+scene3.add(mesh);
+const orb = { x: 960, y: 540, s: 1.15, a: 1, amp: .08 };
+const placeOrb = () => { canvas.style.transform = `translate(${orb.x - 320}px, ${orb.y - 320}px) scale(${orb.s})`; canvas.style.opacity = orb.a; };
+
+/* ---------- timeline ---------- */
+const tl = gsap.timeline({ paused: true, defaults: { ease: 'power3.out', duration: .7 } });
+for (const s of TL.scenes) {
+  const el = `#s-${s.id}`;
+  tl.set(el, { visibility: 'visible' }, Math.max(0, s.start - .01));
+  tl.fromTo(el, { opacity: 0 }, { opacity: 1, duration: .5, ease: 'power1.out' }, s.start);
+  tl.to(el, { opacity: 0, duration: .45, ease: 'power1.in' }, s.end - .3);
+  tl.set(el, { visibility: 'hidden' }, s.end + .2);
+}
+// HOOK
+tl.set(orb, { x: 960, y: 520, s: 1.05, a: .9 }, 0);
+tl.from('#h1', { y: 40, opacity: 0, duration: 1 }, T('L1'));
+['#b1', '#b2', '#b3', '#b4'].forEach((b, i) => tl.from(b, { opacity: 0, y: 30, scale: .9, duration: .8 }, T('L1') + .25 + i * .22));
+tl.to(['#h1', '#b1', '#b2', '#b3', '#b4'], { opacity: 0, y: -20, duration: .5, ease: 'power1.in' }, T('L2') - .1);
+tl.to(orb, { s: .55, y: 250, a: .55, duration: 1.2, ease: 'power2.inOut' }, T('L2') - .2);
+tl.to('#q1', { opacity: 1, duration: .8 }, T('L2'));
+tl.to('#q1', { opacity: 0, y: -30, duration: .5 }, T('L3') - .1);
+tl.to('#h3', { opacity: 1, y: -20, duration: .8 }, T('L3'));
+tl.to(orb, { s: .85, y: 430, a: 1, amp: .14, duration: 1 }, T('L3'));
+// PROBLEM
+tl.to(orb, { s: .32, x: 1700, y: 160, a: .7, amp: .08, duration: 1.2, ease: 'power2.inOut' }, SC('problem').start);
+tl.from('#player', { opacity: 0, y: 40 }, T('L4'));
+const clip = TL.clips.find(c => c.id === 'C1');
+document.querySelectorAll('#said .w').forEach((w, i) => tl.to(w, { opacity: 1, duration: .25 }, clip.start + (i / 7) * (clip.end - clip.start - .3)));
+document.querySelectorAll('#said .w .q').forEach((q, i) => tl.fromTo(q, { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: .4 }, T('L6') + 1.4 + i * 1.1));
+tl.to('#base', { opacity: 1, y: -10, duration: .7 }, T('L7'));
+// PEOPLE
+tl.to(orb, { s: .2, x: 1780, y: 120, a: .5, duration: 1 }, SC('people').start);
+tl.to('#ph', { opacity: 1, duration: .6 }, T('L8'));
+['L9', 'L10', 'L11', 'L12'].forEach((id, i) => tl.fromTo(`#pc${i}`, { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: .7 }, T(id)));
+tl.to(['#pc0', '#pc1', '#pc2', '#pc3', '#ph'], { opacity: .12, duration: .6 }, T('L13'));
+tl.to('#hints', { opacity: 1, scale: 1.02, duration: .8 }, T('L13') + .2);
+// WHERE
+tl.to(orb, { s: .2, x: 1780, y: 120, a: .5, duration: .2 }, SC('where').start);
+tl.to('#st1', { opacity: 1, duration: .5 }, T('L14'));
+tl.to('#st2', { opacity: 1, duration: .5, borderColor: '#8ea2ff' }, T('L14') + 2.2);
+tl.to('#layer', { opacity: 1, y: -16, duration: .8 }, T('L15'));
+tl.to(['.path', '#layer'], { opacity: 0, duration: .5 }, T('L16') - .2);
+tl.to(orb, { x: 960, y: 400, s: .75, a: 1, amp: .12, duration: 1.1, ease: 'power2.inOut' }, T('L16') - .3);
+tl.to('#word', { opacity: 1, y: -10, duration: .9 }, T('L16') + .1);
+// DEMOS: footage maps (film seconds since scene start → footage seconds)
+const FOOT = [];
+function footage(id, scene, segs) { FOOT.push({ v: document.getElementById(`v-${id}`), sp: document.getElementById(`sp-${id}`), start: SC(scene).start + .15, segs }); }
+const M = MARKS;
+footage('mehta', 'demo1', [[M.mehta.click - .4, M.mehta.result + .1, 2.2]]);
+footage('rahul', 'demo2', [[M.rahul.type - .3, M.rahul.send, 1.6], [M.rahul.send, M.rahul.result + .1, 2.2]]);
+footage('telugu', 'demo3', [[M.telugu.click - .4, M.telugu.result + .1, 2.2]]);
+footage('imran', 'demo4', [[M.imran.click - .4, M.imran.result + .1, 2]]);
+footage('otp', 'demo5', [[M.otp.click - .4, M.otp.result + .1, 1]]);
+const filmToFoot = (f, local) => { let ft = f.segs[0][0], t = local, fast = false;
+  for (const [a, b, sp] of f.segs) { const d = (b - a) / sp; if (t <= d) { return { ft: a + t * sp, fast: sp > 1.05 }; } t -= d; ft = b; }
+  return { ft: ft + t, fast }; };
+const after = (f, footT) => { let t = 0; for (const [a, b, sp] of f.segs) { if (footT <= b) return t + (footT - a) / sp; t += (b - a) / sp; } return t + (footT - f.segs.at(-1)[1]); };
+const F = id => FOOT.find(f => f.v.id === `v-${id}`);
+const at = (id, mark) => F(id).start + after(F(id), M[id][mark]);
+tl.to(orb, { a: 0, duration: .5 }, SC('demo1').start);
+tl.to('#c11', { opacity: 1, x: 0, duration: .5 }, Math.max(T('L18'), at('mehta', 'result')));
+tl.to('#c12', { opacity: 1, duration: .5 }, Math.max(T('L18') + 1.6, at('mehta', 'result') + .6));
+tl.to('#c13', { opacity: 1, duration: .5 }, T('L19'));
+tl.to('#c14', { opacity: 1, duration: .5 }, T('L19') + 2.2);
+tl.to('#c21', { opacity: 1, duration: .5 }, T('L20') + .3);
+tl.to('#c22', { opacity: 1, duration: .5 }, Math.max(T('L21'), at('rahul', 'result')));
+tl.to('#c23', { opacity: 1, duration: .5 }, at('rahul', 'swap') + .2);
+tl.to('#c31', { opacity: 1, duration: .5 }, T('L22') + .2);
+tl.to('#c32', { opacity: 1, duration: .5 }, Math.max(T('L22') + 2.6, at('telugu', 'result')));
+tl.to('#c33', { opacity: 1, duration: .5 }, T('C2'));
+tl.to('#c41', { opacity: 1, duration: .5 }, T('L23') + .2);
+tl.to('#c42', { opacity: 1, duration: .5 }, Math.max(T('L23') + 1.5, at('imran', 'result')));
+tl.to('#c43', { opacity: 1, duration: .5 }, T('L23') + 4.2);
+tl.to('#c51', { opacity: 1, duration: .5 }, T('L24') + .2);
+tl.to('#c52', { opacity: 1, duration: .5 }, at('otp', 'result') + .2);
+tl.to('#c53', { opacity: 1, duration: .5 }, T('L24') + 3.4);
+// HOW
+tl.to(orb, { a: 0, duration: .1 }, SC('how').start);
+tl.to('#howh', { opacity: 1, duration: .6 }, T('L25'));
+tl.to('#p1', { opacity: 1, duration: .5 }, T('L25') + 1);
+tl.to('#p2', { opacity: 1, duration: .5 }, T('L26'));
+tl.to('#kb', { opacity: 1, y: -10, duration: .6 }, T('L26') + .8);
+tl.to('#p3', { opacity: 1, duration: .5 }, T('L27'));
+tl.to('#p4', { opacity: 1, duration: .5 }, T('L28'));
+tl.to('#p5', { opacity: 1, duration: .5 }, T('L28') + 2.4);
+tl.to('#p6', { opacity: 1, duration: .5 }, T('L28') + 3.8);
+// PROOF
+const S = DATA.results.systems; const pct = v => Math.round(v * 100);
+tl.to('#prh', { opacity: 1, duration: .6 }, T('L29'));
+tl.to('#pfoot', { opacity: 1, duration: .6 }, T('L29') + 1.5);
+const grow = (sel, v, t0) => { const o = { n: 0 }; tl.to(`${sel} .f`, { width: `${pct(v)}%`, duration: 1.4, ease: 'power2.out' }, t0); tl.to(o, { n: pct(v), duration: 1.4, ease: 'power2.out', onUpdate: () => { $(`${sel} .n`).textContent = `${Math.round(o.n)}%`; } }, t0); };
+grow('#bb', S.base.whole, T('L30') + .3); grow('#bc', S.base_ctx.whole, T('L30') + 2.6); grow('#ba', S.artha.whole, T('L31'));
+// CLOSE
+tl.fromTo(['#cs1', '#cs2', '#cs3'], { opacity: 0, y: 20 }, { opacity: 1, y: 0, stagger: .9, duration: .6 }, T('L32'));
+tl.to('.close .path', { opacity: 0, duration: .5 }, T('L33') - .3);
+tl.to(orb, { x: 960, y: 300, s: .72, a: 1, amp: .1, duration: 1.4, ease: 'power2.inOut' }, T('L33') - .5);
+tl.to('#fin', { opacity: 1, y: -10, duration: 1 }, T('L33'));
+tl.set({}, {}, TL.total);
+
+/* ---------- per-frame state ---------- */
+const capFor = t => TL.lines.find(l => t >= l.start - .05 && t <= l.end + .15)?.text ?? '';
+const sceneFor = t => TL.scenes.find(s => t >= s.start && t < s.end) ?? TL.scenes.at(-1);
+const bars = [...document.querySelectorAll('#bigwave i')];
+window.__duration = TL.total;
+window.__seek = async t => {
+  tl.seek(t, false);
+  placeOrb();
+  U.uTime.value = t * .22; U.uAmp.value = orb.amp; mesh.rotation.y = t * .08; mesh.rotation.x = Math.sin(t * .07) * .2;
+  renderer.render(scene3, cam);
+  const sc = sceneFor(t);
+  $('#chapter').textContent = sc.label;
+  $('#cap').textContent = capFor(t);
+  $('#progress').style.width = `${(t / TL.total) * 100}%`;
+  // the problem clip: waveform follows playback
+  const playing = t >= clip.start && t <= clip.end;
+  bars.forEach((b, i) => { const h = playing ? 18 + 78 * Math.abs(Math.sin(t * 9 + i * .55) * Math.sin(t * 3.3 + i * .21)) : 10; b.style.height = `${h}%`; });
+  // footage
+  const seeks = [];
+  for (const f of FOOT) {
+    const local = t - f.start;
+    if (local < -.5 || local > 40) continue;
+    const { ft, fast } = filmToFoot(f, Math.max(0, local));
+    const target = Math.min(Math.max(ft, 0), f.v.duration - .05);
+    if (f.sp) f.sp.style.opacity = fast && local >= 0 ? 1 : 0;
+    if (Math.abs(f.v.currentTime - target) > .001) seeks.push(new Promise(r => { f.v.addEventListener('seeked', r, { once: true }); f.v.currentTime = target; }));
+  }
+  await Promise.all(seeks);
+  await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+};
+await Promise.all(FOOT.map(async f => {
+  const blob = await (await fetch(f.v.getAttribute('src'))).blob();
+  await new Promise(r => { f.v.addEventListener('loadeddata', r, { once: true }); f.v.src = URL.createObjectURL(blob); f.v.load(); });
+}));
+await window.__seek(0);
+window.__ready = true;
+</script>
+</body></html>

@@ -10,3 +10,5 @@ data/state/
 dist/
 .lambda/
 eval/results/*.tmp
+film/build/
+film/out/*.mp4

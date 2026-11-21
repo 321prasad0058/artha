@@ -1,0 +1,201 @@
+{
+ "narrator": {
+  "voice": "sage",
+  "instructions": "You are the narrator of a short product film made in Hyderabad. Speak warm, confident Indian English, like a thoughtful documentary narrator. Natural, unhurried but never slow. Pronounce every Hindi, Marathi, Telugu and Tamil word natively."
+ },
+ "beats": [
+  {
+   "scene": "hook",
+   "label": "Voice is the way in",
+   "id": "L1",
+   "text": "India runs on voice notes."
+  },
+  {
+   "id": "L2",
+   "text": "And over a billion Indians have never typed a question to an AI."
+  },
+  {
+   "id": "L3",
+   "text": "For them, voice is the way in.",
+   "gap": 0.6
+  },
+  {
+   "scene": "problem",
+   "label": "The problem",
+   "id": "L4",
+   "text": "Listen to a real one."
+  },
+  {
+   "clip": "a2",
+   "file": "web/public/clips/a2.mp3",
+   "id": "C1",
+   "gap": 0.6
+  },
+  {
+   "id": "L5",
+   "text": "Six seconds. A doctor, a day, a time, and a job to do."
+  },
+  {
+   "id": "L6",
+   "text": "A speech model hears every word. But who is Mehta ji? When is parso? What does shift karwa do mean?",
+   "say": "A speech model hears every word. But who is मेहता जी? When is परसों? What does शिफ्ट करवा दो mean?"
+  },
+  {
+   "id": "L7",
+   "text": "The base model's answer: a vague suggestion. No doctor, no call, nothing done.",
+   "gap": 0.6
+  },
+  {
+   "scene": "people",
+   "label": "Who it is for",
+   "id": "L8",
+   "text": "We built Artha for four people.",
+   "say": "We built अर्थ for four people."
+  },
+  {
+   "id": "L9",
+   "text": "Aditya, in Hyderabad. Two Rahuls in his phone, and a mother who speaks Telugu."
+  },
+  {
+   "id": "L10",
+   "text": "Sunita, in Pune. To her, tai could mean her house help, or her sister.",
+   "say": "सुनीता, in Pune. To her, ताई could mean her house help, or her sister."
+  },
+  {
+   "id": "L11",
+   "text": "Imran, in Lucknow. His customer and his supplier are both called Sharma."
+  },
+  {
+   "id": "L12",
+   "text": "And Meenakshi, in Chennai, who gets a scam call almost every week."
+  },
+  {
+   "id": "L13",
+   "text": "Four languages. One habit. They speak in hints.",
+   "gap": 0.6
+  },
+  {
+   "scene": "where",
+   "label": "Where Artha comes in",
+   "id": "L14",
+   "text": "Equal already answers your calls. Next, it turns voice notes into actions."
+  },
+  {
+   "id": "L15",
+   "text": "That needs a layer that understands what people mean. That's Artha.",
+   "say": "That needs a layer that understands what people mean. That's अर्थ."
+  },
+  {
+   "id": "L16",
+   "text": "Bas ishaara kaafi hai. A hint is enough.",
+   "say": "बस इशारा काफ़ी है। A hint is enough.",
+   "gap": 0.6
+  },
+  {
+   "scene": "demo1",
+   "label": "Live demo · Aditya",
+   "id": "L17",
+   "text": "Aditya sends the same note."
+  },
+  {
+   "id": "L18",
+   "text": "Artha knows Mehta ji is his doctor, and parso shaam is Monday at six.",
+   "say": "अर्थ knows मेहता जी is his doctor, and परसों शाम is Monday at six."
+  },
+  {
+   "id": "L19",
+   "text": "So it offers to call the clinic, with a reminder an hour before. That's his habit.",
+   "gap": 0.6
+  },
+  {
+   "scene": "demo2",
+   "label": "Live demo · Which Rahul?",
+   "id": "L20",
+   "text": "When a name fits two people, Artha doesn't interrogate you.",
+   "say": "When a name fits two people, अर्थ doesn't interrogate you."
+  },
+  {
+   "id": "L21",
+   "text": "Meeting means work, so it picks Rahul Verma, and keeps the cousin one tap away.",
+   "gap": 0.6
+  },
+  {
+   "scene": "demo3",
+   "label": "Live demo · Telugu",
+   "id": "L22",
+   "text": "He tells his mother he'll come for lunch. Artha writes to her in Telugu, and answers him out loud.",
+   "say": "He tells his mother he'll come for lunch. अर्थ writes to her in Telugu, and answers him out loud."
+  },
+  {
+   "clip": "reply",
+   "file": "film/build/reply-a6.mp3",
+   "id": "C2",
+   "gap": 0.6
+  },
+  {
+   "scene": "demo4",
+   "label": "Live demo · Imran",
+   "id": "L23",
+   "text": "For Imran, dhai hazaar likh do means two thousand five hundred rupees on Sharma ji's account. The customer, not the supplier.",
+   "say": "For Imran, ढाई हज़ार लिख दो means two thousand five hundred rupees on शर्मा जी's account. The customer, not the supplier.",
+   "gap": 0.6
+  },
+  {
+   "scene": "demo5",
+   "label": "Live demo · Meenakshi",
+   "id": "L24",
+   "text": "And when a caller asks Meenakshi for her OTP, Artha stops it before any AI sees the digits.",
+   "gap": 0.6,
+   "say": "And when a caller asks Meenakshi for her OTP, अर्थ stops it before any AI sees the digits."
+  },
+  {
+   "scene": "how",
+   "label": "How it works",
+   "id": "L25",
+   "text": "Here's how. Speech recognition, hinted with your contacts' names."
+  },
+  {
+   "id": "L26",
+   "text": "Code that turns parso, dhai sau and repu madhyanam into exact dates and amounts.",
+   "say": "Code that turns parso, dhai sau, and repu madhyanam into exact dates and amounts."
+  },
+  {
+   "id": "L27",
+   "text": "A personal knowledge base that pulls up only the people and facts that matter."
+  },
+  {
+   "id": "L28",
+   "text": "One model call that can only pick real contacts. And rules, in code, for money and OTPs.",
+   "gap": 0.6
+  },
+  {
+   "scene": "proof",
+   "label": "Proof",
+   "id": "L29",
+   "text": "We tested twenty-nine recordings in seven languages, with every answer written first."
+  },
+  {
+   "id": "L30",
+   "text": "The base model got seventeen percent completely right. With the whole profile pasted in, seventy-nine."
+  },
+  {
+   "id": "L31",
+   "text": "Artha got ninety-seven.",
+   "gap": 1,
+   "say": "अर्थ got ninety-seven."
+  },
+  {
+   "scene": "close",
+   "label": "Artha",
+   "id": "L32",
+   "text": "Calls today. Messaging next. Experts after. Artha gives each of them the meaning behind the words.",
+   "say": "Calls today. Messaging next. Experts after. अर्थ gives each of them the meaning behind the words."
+  },
+  {
+   "id": "L33",
+   "text": "Artha. Bas ishaara kaafi hai.",
+   "say": "अर्थ। बस इशारा काफ़ी है।",
+   "gap": 2.2
+  }
+ ]
+}
