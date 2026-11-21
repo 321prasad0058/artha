@@ -6,7 +6,7 @@ const b = await puppeteer.launch({ executablePath: '/Applications/Google Chrome.
 const pg = await b.newPage();
 pg.on('pageerror', e => console.log('PAGE ERROR', e.message));
 await fetch(`${B}/api/reset`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ p: 'rohan' }) });
-await pg.goto(`${B}/?p=rohan`, { waitUntil: 'networkidle0' });
+await pg.goto(`${B}/?p=rohan&debug=1`, { waitUntil: 'networkidle0' });
 const wait = ms => new Promise(r => setTimeout(r, ms));
 const done = async n => {
   await pg.waitForFunction(k => { const x = document.querySelectorAll('.note')[k - 1]; return x && /Cards/.test(x.querySelector('.times')?.textContent ?? ''); }, { timeout: 60000 }, n);

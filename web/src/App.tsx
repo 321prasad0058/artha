@@ -37,6 +37,7 @@ type Run = {
   compare?: { loading: boolean; baseHeard?: string; base?: Result; ctx?: Result; error?: string };
 };
 let seq = 0;
+const SHOW_TIMES = typeof location !== 'undefined' && new URLSearchParams(location.search).has('debug');
 const nonLatin = (s: string) => /[ऀ-෿]/.test(s);
 const first = (n?: string) => n?.split(' ')[0] ?? '';
 const fmtTime = (iso: string) => { const d = new Date(iso); return d.toDateString() === new Date().toDateString() ? d.toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit' }) : d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }); };
@@ -472,7 +473,7 @@ function Note({ run, persona, onAct, onSkip, onAll, onChoose, onCompare, onRepla
   useLayoutEffect(() => { if (pointsRef.current) gsap.from(pointsRef.current.children, { x: -6, opacity: 0, duration: .35, stagger: .05, ease: 'power2.out' }); }, [res?.reply_points?.length]);
   const ledgerIdx = res?.actions.flatMap((a, i) => (a.type === 'ledger' ? [i] : [])) ?? [];
   const safeLeft = res?.actions.filter((a, i) => ['message', 'calendar', 'reminder', 'ledger'].includes(a.type) && !run.done[i]).length ?? 0;
-  const T = run.times ?? {};
+  const T = SHOW_TIMES ? run.times ?? {} : {};   // timings are for us (?debug=1), not for the person using Artha
   const timeline = ([['Heard', T.heard], ['You said', T.gist], ['Voice', T.voice], ['Cards', T.cards]] as const).filter(([, v]) => v != null) as [string, number][];
   const contact = (id: string) => persona?.contacts.find(x => x.id === id);
 
