@@ -1,0 +1,619 @@
+<title>Artha</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Noto+Sans+Devanagari:wght@400;600&family=Noto+Sans+Telugu:wght@400;600&family=Noto+Sans+Tamil:wght@400;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a story told top to bottom (problem → people → product → mechanism → live demo → proof → finale plan),
+   in Artha's own app language: paper ground, ink type, one voice-blue accent, soft-tint chips for what was understood. */
+:root{
+  --bg:#f5f3ee; --bg-2:#ebe8e1; --surface:#ffffff; --surface-2:#faf9f6;
+  --ink:#15171b; --ink-2:#2d3036; --muted:#5d6168; --dim:#8c8f95; --line:#e4e0d7; --line-2:#d3cec3; --on-ink:#ffffff;
+  --accent:#2c46c2; --accent-soft:#e8ecfb;
+  --green:#1d7a45; --green-soft:#e4f3e9; --amber:#94570a; --amber-soft:#fbf0de; --red:#b3392d; --red-soft:#fbe8e5;
+  --violet:#6c3fa3; --violet-soft:#f1eaf9; --teal:#0b6b62; --teal-soft:#e0f2ef;
+  --halo:rgba(76,92,255,.22);
+  --shadow-sm:0 1px 2px rgba(21,23,27,.06);
+  --shadow-md:0 1px 2px rgba(21,23,27,.05),0 14px 34px -18px rgba(21,23,27,.28);
+  --font:'Instrument Sans','Noto Sans Devanagari','Noto Sans Telugu','Noto Sans Tamil','Helvetica Neue',Arial,system-ui,sans-serif;
+  --mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0f1013; --bg-2:#181a1e; --surface:#1a1c20; --surface-2:#1f2226;
+  --ink:#eeede8; --ink-2:#d6d5cf; --muted:#a4a7ad; --dim:#7b7e84; --line:#2a2d33; --line-2:#3a3e45; --on-ink:#101114;
+  --accent:#93a6ff; --accent-soft:#232a4c; --green:#62c890; --green-soft:#15301f; --amber:#e3a94f; --amber-soft:#3a2b13;
+  --red:#f27f72; --red-soft:#3d1d19; --violet:#c49df1; --violet-soft:#2d2141; --teal:#5cc9bb; --teal-soft:#14302c; --halo:rgba(120,140,255,.28);
+  --shadow-md:0 1px 2px rgba(0,0,0,.4),0 14px 34px -18px rgba(0,0,0,.8); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f1013; --bg-2:#181a1e; --surface:#1a1c20; --surface-2:#1f2226;
+  --ink:#eeede8; --ink-2:#d6d5cf; --muted:#a4a7ad; --dim:#7b7e84; --line:#2a2d33; --line-2:#3a3e45; --on-ink:#101114;
+  --accent:#93a6ff; --accent-soft:#232a4c; --green:#62c890; --green-soft:#15301f; --amber:#e3a94f; --amber-soft:#3a2b13;
+  --red:#f27f72; --red-soft:#3d1d19; --violet:#c49df1; --violet-soft:#2d2141; --teal:#5cc9bb; --teal-soft:#14302c; --halo:rgba(120,140,255,.28);
+  --shadow-md:0 1px 2px rgba(0,0,0,.4),0 14px 34px -18px rgba(0,0,0,.8); color-scheme:dark}
+
+*,*::before,*::after{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--font);font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:30;background:var(--bg)}
+h1,h2,h3,h4{margin:0;font-weight:600;letter-spacing:-.025em;line-height:1.08;text-wrap:balance}
+p{margin:0}
+a{color:var(--accent)}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:8px}
+img{display:block;max-width:100%;height:auto}
+.wrap{max-width:1160px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.ico{width:18px;height:18px;flex:none;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.muted{color:var(--muted)} .dim{color:var(--dim)} .mono{font-family:var(--mono);font-size:.86em}
+.chip{display:inline-flex;align-items:center;gap:5px;padding:2px 9px;border-radius:999px;font-size:12px;font-weight:600;border:1px solid var(--line);background:var(--surface-2);color:var(--muted);white-space:nowrap}
+.chip.accent{color:var(--accent);background:var(--accent-soft);border-color:transparent}
+.chip.green{color:var(--green);background:var(--green-soft);border-color:transparent}
+.chip.amber{color:var(--amber);background:var(--amber-soft);border-color:transparent}
+.chip.red{color:var(--red);background:var(--red-soft);border-color:transparent}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:18px}
+.btn{display:inline-flex;align-items:center;gap:8px;height:42px;padding:0 18px;border-radius:999px;font-weight:600;font-size:14.5px;white-space:nowrap}
+.btn-primary{background:var(--ink);color:var(--on-ink)}
+.btn-ghost{border:1px solid var(--line-2);background:var(--surface)}
+.av{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;font-size:14px;font-weight:700;flex:none;background:var(--ink);color:var(--on-ink)}
+
+/* nav */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:color-mix(in srgb,var(--bg) 90%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.top .wrap{display:flex;align-items:center;gap:14px;height:56px}
+.brand{display:flex;align-items:center;gap:9px;font-weight:700;font-size:18px;letter-spacing:-.03em;flex:none}
+.brand i{width:28px;height:28px;border-radius:8px;background:var(--ink);color:var(--on-ink);display:grid;place-items:center;font-style:normal;font-size:15px}
+.nav{display:flex;gap:2px;margin-left:auto;overflow-x:auto;scrollbar-width:none;min-width:0}
+.nav::-webkit-scrollbar{display:none}
+.nav a{flex:none;color:var(--muted);text-decoration:none;font-size:13.5px;font-weight:600;padding:6px 11px;border-radius:999px}
+.nav a:hover{background:var(--bg-2);color:var(--ink)}
+
+section{padding-block:clamp(52px,8vw,96px);border-bottom:1px solid var(--line)}
+.ch{display:grid;gap:12px;margin-bottom:30px;max-width:780px}
+.ch .n{font-family:var(--mono);font-size:12.5px;color:var(--accent);letter-spacing:.04em}
+.ch h2{font-size:clamp(30px,4.2vw,48px);letter-spacing:-.04em}
+.lead{font-size:18px;color:var(--ink-2);max-width:62ch}
+
+/* hero */
+.hero{padding-block:clamp(36px,6vw,72px) clamp(44px,7vw,84px)}
+.hero-grid{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);gap:clamp(20px,4vw,56px);align-items:center}
+.hero .eyebrow{font-size:13.5px;font-weight:600;color:var(--accent)}
+.hero h1{font-size:clamp(46px,7.4vw,92px);letter-spacing:-.05em;margin-top:12px}
+.hero .lead{margin-top:18px}
+.hero .meaning{font-size:15px;color:var(--muted);margin-top:10px}
+.cta{display:flex;flex-wrap:wrap;gap:10px;margin-top:24px}
+.orb-box{position:relative;aspect-ratio:1/1;max-width:420px;width:100%;justify-self:center}
+.orb-box .halo{position:absolute;inset:12%;border-radius:50%;background:radial-gradient(circle,var(--halo),transparent 70%);filter:blur(30px);transform:scale(1.35)}
+.orb-box canvas{position:relative;width:100%!important;height:100%!important;display:block}
+.orb-fallback{position:absolute;inset:18%;border-radius:50%;background:radial-gradient(circle at 35% 30%,#9db0ff,#2c46c2 55%,#1b2a7a)}
+.kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:34px}
+.kpi{padding:16px 18px;display:grid;gap:2px}
+.kpi b{font-size:clamp(34px,4.6vw,52px);letter-spacing:-.05em;color:var(--accent);line-height:1;font-variant-numeric:tabular-nums}
+.kpi span{font-size:13.5px;font-weight:600}
+.kpi small{font-size:12.5px;color:var(--dim)}
+
+/* problem */
+.quote{padding:clamp(18px,3vw,30px);display:grid;gap:16px}
+.quote .said{font-size:clamp(20px,2.8vw,30px);line-height:1.4;letter-spacing:-.02em}
+.vs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.vs > div{border-radius:14px;padding:14px;display:grid;gap:6px;min-width:0}
+.vs .b{background:var(--surface-2);border:1px dashed var(--line-2)}
+.vs .a{background:var(--accent-soft)}
+.vs h4{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--dim)}
+.vs .a h4{color:var(--accent)}
+.gaps{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;margin-top:16px}
+.gap{padding:16px;display:grid;gap:8px;align-content:start;min-width:0}
+.gap h3{font-size:16px}
+.gap .ex{font-size:13.5px;display:grid;gap:4px}
+.gap .ex .x{color:var(--red)} .gap .ex .ok{color:var(--green)}
+.context{margin-top:16px;padding:18px;display:grid;grid-template-columns:auto minmax(0,1fr);gap:16px;align-items:center}
+.loop{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:13.5px;font-weight:600}
+.loop span{padding:5px 11px;border-radius:999px;background:var(--bg-2)}
+
+/* personas */
+.people{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.pcard{padding:20px;display:grid;gap:14px;align-content:start;min-width:0}
+.person-h{display:flex;gap:12px;align-items:center}
+.person-h b{display:block;font-size:18px;letter-spacing:-.02em}
+.person-h small{color:var(--muted);font-size:13px}
+.person p{font-size:14.5px;color:var(--ink-2)}
+.dupes{display:flex;flex-wrap:wrap;gap:6px}
+.dupes span{font-size:12.5px;padding:3px 10px;border-radius:999px;background:var(--amber-soft);color:var(--amber);font-weight:600}
+.pnote{display:flex;gap:10px;align-items:center;padding:10px 12px;border-radius:14px;background:var(--accent-soft)}
+.pnote .txt{font-size:14px;min-width:0}
+.play{width:32px;height:32px;border-radius:50%;background:var(--accent);color:var(--on-ink);display:grid;place-items:center;flex:none}
+.play .ico{width:13px;height:13px;fill:currentColor;stroke:none}
+.play.on{background:var(--ink)}
+.wrong{font-size:13.5px;color:var(--muted)}
+.wrong b{color:var(--red)}
+
+/* built */
+.steps3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.step{display:grid;gap:12px;align-content:start}
+.step .shot{border-radius:22px;overflow:hidden;border:1px solid var(--line);background:var(--surface);box-shadow:var(--shadow-md)}
+.step h3{font-size:19px;display:flex;gap:10px;align-items:center}
+.step h3 i{font-style:normal;width:26px;height:26px;border-radius:50%;background:var(--ink);color:var(--on-ink);display:grid;place-items:center;font-size:13px}
+.step p{font-size:14.5px;color:var(--ink-2)}
+.wide-shot{margin-top:22px;border-radius:18px;overflow:hidden;border:1px solid var(--line);box-shadow:var(--shadow-md)}
+.caption{font-size:13px;color:var(--dim);margin-top:8px}
+
+/* how */
+.pipe{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px}
+.stage{padding:14px;display:grid;gap:6px;align-content:start;min-width:0;position:relative}
+.stage .k{display:flex;justify-content:space-between;align-items:center}
+.stage .k b{font-family:var(--mono);font-size:12px;color:var(--dim)}
+.stage h3{font-size:17px}
+.stage p{font-size:13.5px;color:var(--ink-2)}
+.stage .eg{font-size:12.5px;color:var(--muted);border-top:1px solid var(--line);padding-top:6px;margin-top:2px}
+.two{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr);gap:16px;margin-top:16px}
+.kb{padding:18px;display:grid;gap:12px;min-width:0}
+.kb h3,.ladder h3{font-size:18px}
+.kb-svg{width:100%;height:auto;display:block}
+.kb-svg text{font-family:var(--font);fill:var(--ink)}
+.kb-svg .sm{font-size:11px;fill:var(--muted)}
+.kb-svg .node{fill:var(--surface-2);stroke:var(--line-2)}
+.kb-svg .hot{fill:var(--accent-soft);stroke:var(--accent)}
+.kb-svg .edge{stroke:var(--line-2);stroke-width:1.5;fill:none}
+.kb-svg .edge.hot{stroke:var(--accent);fill:none}
+.ladder{padding:18px;display:grid;gap:10px;align-content:start}
+.rung{display:grid;grid-template-columns:86px minmax(0,1fr);gap:12px;align-items:start;padding:10px 0;border-top:1px solid var(--line)}
+.rung b{font-family:var(--mono);font-size:12.5px}
+.rung span{font-size:14px;color:var(--ink-2)}
+
+/* demo */
+.demo{display:grid;gap:16px}
+.ptabs{display:flex;flex-wrap:wrap;gap:8px}
+.ptab{display:flex;gap:10px;align-items:center;padding:6px 14px 6px 6px;border-radius:999px;border:1px solid var(--line-2);background:var(--surface);text-align:left}
+.ptab .av{width:32px;height:32px;font-size:12px}
+.ptab b{display:block;font-size:14px;line-height:1.1}
+.ptab small{font-size:12px;color:var(--muted)}
+.ptab[aria-pressed="true"]{border-color:var(--ink);box-shadow:var(--shadow-sm)}
+.nlist{display:flex;flex-wrap:wrap;gap:8px}
+.nbtn{display:inline-flex;align-items:center;gap:7px;padding:7px 13px;border-radius:999px;border:1px solid var(--line-2);background:var(--surface);font-size:13.5px;font-weight:600}
+.nbtn .chip{padding:1px 7px;font-size:11px}
+.nbtn[aria-pressed="true"]{background:var(--ink);color:var(--on-ink);border-color:var(--ink)}
+.nbtn[aria-pressed="true"] .chip{background:transparent;color:var(--on-ink);border-color:color-mix(in srgb,var(--on-ink) 40%,transparent)}
+.stagebox{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr);gap:16px}
+.screen{padding:18px;display:grid;gap:14px;align-content:start;min-width:0}
+.me{justify-self:end;display:flex;align-items:center;gap:10px;max-width:92%;padding:8px 14px 8px 8px;border-radius:22px 22px 6px 22px;background:var(--accent-soft)}
+.me .said{font-size:14.5px}
+.lights{display:flex;flex-wrap:wrap;gap:6px}
+.light{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:600;border:1px solid var(--line);color:var(--dim);background:var(--surface);transition:all .3s}
+.light.done{color:var(--green);background:var(--green-soft);border-color:transparent}
+.light.run{color:var(--accent);border-color:var(--accent)}
+.light.stop{color:var(--red);background:var(--red-soft);border-color:transparent}
+.light .ms{font-weight:500;opacity:.8;font-variant-numeric:tabular-nums}
+.understood{font-size:clamp(18px,2.2vw,22px);line-height:1.8;letter-spacing:-.01em}
+.ent{padding:1px 7px 2px;border-radius:8px;font-weight:600;white-space:nowrap}
+.ent sub{font-size:11px;font-weight:600;opacity:.75;vertical-align:baseline;margin-left:5px}
+.ent.person{background:var(--accent-soft);color:var(--accent)}
+.ent.time,.ent.date{background:var(--amber-soft);color:var(--amber)}
+.ent.money{background:var(--green-soft);color:var(--green)}
+.acts{display:grid;gap:10px}
+.act{border:1px solid var(--line);border-radius:16px;padding:13px;display:grid;gap:8px;background:var(--surface)}
+.act-h{display:flex;align-items:center;gap:10px;min-width:0}
+.act-i{width:32px;height:32px;border-radius:10px;display:grid;place-items:center;flex:none;background:var(--bg-2)}
+.act-i.message{background:var(--accent-soft);color:var(--accent)} .act-i.call{background:var(--teal-soft);color:var(--teal)}
+.act-i.reminder,.act-i.calendar{background:var(--amber-soft);color:var(--amber)} .act-i.payment,.act-i.ledger{background:var(--green-soft);color:var(--green)}
+.act-i.suggestion{background:var(--violet-soft);color:var(--violet)}
+.act-t{min-width:0;flex:1;display:grid}
+.act-t b{font-size:14.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.act-t span{font-size:12.5px;color:var(--muted)}
+.act-body{font-size:15px}
+.act-body small{display:block;font-size:12.5px;color:var(--dim);margin-top:3px}
+.act-why{font-size:12.5px;color:var(--muted)}
+.alt{font-size:12.5px;color:var(--muted)}
+.alt b{color:var(--accent)}
+.blocked{display:flex;gap:12px;align-items:center;padding:14px;border:1px solid color-mix(in srgb,var(--red) 40%,var(--line));border-radius:16px;color:var(--red)}
+.blocked b{display:block;color:var(--ink)}
+.blocked span{font-size:13px;color:var(--muted)}
+.reply{font-size:14px;color:var(--muted)}
+.side{display:grid;gap:12px;align-content:start;min-width:0}
+.sys{padding:14px;display:grid;gap:7px;min-width:0}
+.sys h4{display:flex;align-items:center;gap:8px;font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--dim)}
+.sys h4 .v{margin-left:auto}
+.sys .heard{font-size:13.5px;color:var(--ink-2)}
+.sys ul{margin:0;padding-left:16px;display:grid;gap:3px;font-size:13.5px}
+.why{padding:14px;display:grid;gap:8px;min-width:0}
+.cand{display:grid;grid-template-columns:minmax(0,1fr) 42px;gap:3px 10px;align-items:center;font-size:13.5px}
+.meter{grid-column:1/-1;height:5px;border-radius:9px;background:var(--bg-2);overflow:hidden}
+.meter i{display:block;height:100%;background:var(--accent)}
+.cand small{grid-column:1/-1;font-size:12px;color:var(--dim)}
+.loss{padding:12px 14px;border-radius:14px;background:var(--amber-soft);color:var(--amber);font-size:13.5px}
+
+/* evidence */
+.tbl{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:14.5px;min-width:560px}
+th{text-align:left;font-size:12px;color:var(--dim);font-weight:600;text-transform:uppercase;letter-spacing:.05em;padding:11px 12px;border-bottom:1px solid var(--line-2)}
+td{padding:11px 12px;border-bottom:1px solid var(--line);vertical-align:middle}
+td.n,th.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.bar{display:inline-block;width:80px;height:6px;border-radius:9px;background:var(--bg-2);overflow:hidden;vertical-align:middle;margin-left:8px}
+.bar i{display:block;height:100%}
+.best{font-weight:700;color:var(--green)}
+.findings{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:16px}
+.find{padding:16px;display:grid;gap:6px;align-content:start}
+.find h3{font-size:16px}
+.find p{font-size:14px;color:var(--ink-2)}
+
+/* finale */
+.script{display:grid;gap:0}
+.beat{display:grid;grid-template-columns:90px minmax(0,1fr) minmax(0,1fr);gap:16px;padding:14px 0;border-top:1px solid var(--line)}
+.beat .t{font-family:var(--mono);font-weight:500;font-size:13px;color:var(--accent)}
+.beat b{display:block;font-size:15px}
+.beat .do{font-size:14px;color:var(--ink-2)}
+.beat .line{font-size:14px;color:var(--muted);font-style:italic}
+.cols3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:18px}
+.box{padding:18px;display:grid;gap:8px;align-content:start}
+.box h3{font-size:16px}
+.box ul{margin:0;padding-left:18px;display:grid;gap:5px;font-size:14px;color:var(--ink-2)}
+footer{padding-block:28px;color:var(--dim);font-size:13px}
+
+@media (max-width:980px){
+  .hero-grid,.stagebox,.two{grid-template-columns:minmax(0,1fr)}
+  .orb-box{max-width:300px;order:-1}
+  .gaps{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .pipe{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .findings,.cols3{grid-template-columns:minmax(0,1fr)}
+}
+@media (max-width:680px){
+  .kpis,.steps3,.people,.vs{grid-template-columns:minmax(0,1fr)}
+  .gaps,.pipe{grid-template-columns:minmax(0,1fr)}
+  .beat{grid-template-columns:minmax(0,1fr);gap:4px}
+  .context{grid-template-columns:minmax(0,1fr)}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-play" viewBox="0 0 24 24"><path d="M7 4.5v15l13-7.5z"/></symbol>
+  <symbol id="i-pause" viewBox="0 0 24 24"><path d="M7 5h3.5v14H7zM13.5 5H17v14h-3.5z"/></symbol>
+  <symbol id="i-message" viewBox="0 0 24 24"><path d="M4 6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H9l-5 4z"/></symbol>
+  <symbol id="i-call" viewBox="0 0 24 24"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/></symbol>
+  <symbol id="i-reminder" viewBox="0 0 24 24"><path d="M6 16v-5a6 6 0 0 1 12 0v5l2 2H4zM10 21h4"/></symbol>
+  <symbol id="i-calendar" viewBox="0 0 24 24"><path d="M3.5 5h17v15h-17zM3.5 10h17M8 3v4M16 3v4"/></symbol>
+  <symbol id="i-payment" viewBox="0 0 24 24"><path d="M7 5h10M7 9h10M7 5c5 0 7 2 7 4s-2 4-7 4l7 7"/></symbol>
+  <symbol id="i-ledger" viewBox="0 0 24 24"><path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3zM5 17a3 3 0 0 1 3-3h11"/></symbol>
+  <symbol id="i-suggestion" viewBox="0 0 24 24"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+  <symbol id="i-swap" viewBox="0 0 24 24"><path d="M7 4 3 8l4 4M3 8h14M17 20l4-4-4-4M21 16H7"/></symbol>
+</svg>
+
+<header class="top"><div class="wrap">
+  <div class="brand"><i>A</i>Artha</div>
+  <nav class="nav" aria-label="Sections">
+    <a href="#problem">Problem</a><a href="#people">People</a><a href="#built">What we built</a><a href="#how">How it works</a><a href="#demo">Demo</a><a href="#proof">Proof</a><a href="#finale">Finale plan</a>
+  </nav>
+</div></header>
+
+<main>
+<!-- HERO -->
+<section class="hero"><div class="wrap">
+  <div class="hero-grid">
+    <div>
+      <p class="eyebrow">Builders 2026 · OpenAI × Equal AI · Track 2: Voice AI for India</p>
+      <h1>Bas ishaara kaafi hai.</h1>
+      <p class="meaning"><b>Artha</b> means meaning: अर्थ in Hindi and Marathi, అర్థం in Telugu, அர்த்தம் in Tamil.</p>
+      <p class="lead">Indians run their lives on short voice notes: “Anna ko bol do”, “Mehta ji wala appointment parso shift karwa do”. Speech models hear those words but miss the meaning. Artha uses what your phone already knows about your life to work out who and what you mean, and gets it ready to do in one tap.</p>
+      <div class="cta"><a class="btn btn-primary" href="#demo"><svg class="ico" style="width:14px;height:14px;fill:currentColor;stroke:none"><use href="#i-play"/></svg>Watch it work</a><a class="btn btn-ghost" href="#proof">See the numbers</a></div>
+    </div>
+    <div class="orb-box" aria-hidden="true"><div class="halo"></div><div class="orb-fallback" id="orbFallback"></div></div>
+  </div>
+  <div class="kpis" id="kpis"></div>
+</div></section>
+
+<!-- 1 PROBLEM -->
+<section id="problem"><div class="wrap">
+  <div class="ch"><span class="n">01 · THE PROBLEM</span><h2>India speaks in hints. Base models need instructions.</h2>
+    <p class="lead">A voice note is six seconds long, mixes two languages, and leaves most things unsaid. Here is one real recording, run through the same speech model with and without Artha.</p></div>
+  <div class="card quote" id="quote"></div>
+  <div class="gaps" id="gaps"></div>
+  <div class="card context">
+    <div class="loop"><span>Context</span>→<span>Intent</span>→<span>Action</span>→<span>Fulfilment</span>→<span>deeper context</span></div>
+    <p class="muted" style="font-size:14.5px">This is Equal’s own loop (slide 5 of the kickoff deck), and “voice notes to actions” is Equal’s next product, after AI calls. Artha is the missing middle: turning a few spoken words plus personal context into the right intent.</p>
+  </div>
+</div></section>
+
+<!-- 2 PEOPLE -->
+<section id="people"><div class="wrap">
+  <div class="ch"><span class="n">02 · WHO IT IS FOR</span><h2>Four people, four languages, the same frustration.</h2>
+    <p class="lead">Each was built to be hard on purpose: people with the same name, nicknames that fit two people, and family and suppliers who prefer different languages. Play the note each of them would send.</p></div>
+  <div class="people" id="peopleGrid"></div>
+</div></section>
+
+<!-- 3 BUILT -->
+<section id="built"><div class="wrap">
+  <div class="ch"><span class="n">03 · WHAT WE BUILT</span><h2>Speak. Artha understands. You tap once.</h2>
+    <p class="lead">A messaging assistant where the voice note is the interface. These are screenshots of the working app, not mock-ups.</p></div>
+  <div class="steps3">
+    <div class="step"><div class="shot"><img src="shots/phone-empty.png" alt="Artha on a phone: a glowing orb with the line Bas ishaara kaafi hai" loading="lazy"></div><h3><i>1</i>Hold the orb and speak</h3><p>Any mix of Hindi, Marathi, Telugu, Tamil, Urdu and English. The orb reacts to your voice while you speak.</p></div>
+    <div class="step"><div class="shot"><img src="shots/phone-note.png" alt="A Telugu note understood: Amma, tomorrow, afternoon highlighted, with a ready message in Telugu" loading="lazy"></div><h3><i>2</i>See what it understood</h3><p>Your sentence in its own script, with the people, dates and amounts it understood highlighted, and actions ready to go.</p></div>
+    <div class="step"><div class="shot"><img src="shots/phone-chat.png" alt="The Telugu message delivered in Amma's chat thread" loading="lazy"></div><h3><i>3</i>Tap once. It’s done.</h3><p>The message lands in the right chat, in that person’s language. Calls, reminders, payments and credit entries work the same way.</p></div>
+  </div>
+  <div class="wide-shot"><img src="shots/desk-note.png" alt="Artha on desktop: chats on the left, the understood note and actions in the middle, what Artha knows on the right" loading="lazy"></div>
+  <p class="caption">Desktop: chats on the left, the note in the middle, and everything Artha knows about this person on the right. Every fact keeps track of where it came from.</p>
+</div></section>
+
+<!-- 4 HOW -->
+<section id="how"><div class="wrap">
+  <div class="ch"><span class="n">04 · HOW IT WORKS</span><h2>AI where it helps. Code where it must be exact.</h2>
+    <p class="lead">Six stages. Each one is a separate module with its own tests, so the Equal team can read exactly what happens to a note.</p></div>
+  <div class="pipe" id="pipe"></div>
+  <div class="two">
+    <div class="card kb">
+      <h3>A personal knowledge base, built for retrieval</h3>
+      <p class="muted" style="font-size:14.5px">People are tagged by what they are to you. Facts are linked to the person they’re about. Your corrections become rules. For each note, code pulls only what’s relevant, so the AI chooses from a short, explained list and never from the whole address book.</p>
+      <svg class="kb-svg" viewBox="0 0 640 300" role="img" aria-label="Diagram: a note about a meeting retrieves Rahul Verma over Rahul Kulkarni using topic, recent talk and a past correction">
+        <rect class="hot" x="10" y="122" width="150" height="56" rx="14"/>
+        <text x="85" y="146" text-anchor="middle" font-size="13" font-weight="600">“Rahul ko bol do,</text>
+        <text x="85" y="164" text-anchor="middle" font-size="13" font-weight="600">meeting 4 baje”</text>
+        <rect class="node" x="220" y="20" width="170" height="44" rx="12"/><text x="236" y="40" font-size="12.5" font-weight="600">Topic: work</text><text class="sm" x="236" y="55">from the word “meeting”</text>
+        <rect class="node" x="220" y="80" width="170" height="44" rx="12"/><text x="236" y="100" font-size="12.5" font-weight="600">Sound match: “Rahul”</text><text class="sm" x="236" y="115">2 people</text>
+        <rect class="node" x="220" y="140" width="170" height="44" rx="12"/><text x="236" y="160" font-size="12.5" font-weight="600">Recent talk</text><text class="sm" x="236" y="175">“sync on the Q4 review”</text>
+        <rect class="node" x="220" y="200" width="170" height="44" rx="12"/><text x="236" y="220" font-size="12.5" font-weight="600">Your corrections</text><text class="sm" x="236" y="235">“Rahul” at work = Verma</text>
+        <path class="edge hot" d="M160 150 C 190 150, 190 42, 220 42"/>
+        <path class="edge hot" d="M160 150 C 190 150, 190 102, 220 102"/>
+        <path class="edge hot" d="M160 150 C 190 150, 190 162, 220 162"/>
+        <path class="edge" d="M160 150 C 190 150, 190 222, 220 222"/>
+        <rect class="hot" x="450" y="70" width="180" height="62" rx="14"/><text x="466" y="94" font-size="14" font-weight="700">Rahul Verma</text><text class="sm" x="466" y="112">Office · 92%</text><text class="sm" x="466" y="125">fits topic, talked yesterday</text>
+        <rect class="node" x="450" y="156" width="180" height="56" rx="14"/><text x="466" y="178" font-size="13.5" font-weight="600">Rahul Kulkarni</text><text class="sm" x="466" y="196">Cousin · 80% · offered as ⇄</text>
+        <path class="edge hot" d="M390 42 C 420 42, 420 100, 450 100"/><path class="edge hot" d="M390 102 C 420 102, 420 100, 450 100"/><path class="edge hot" d="M390 162 C 420 162, 420 100, 450 100"/>
+        <path class="edge" d="M390 102 C 420 102, 420 184, 450 184"/>
+        <text class="sm" x="450" y="250">Only this shortlist, with reasons,</text><text class="sm" x="450" y="266">goes to the AI. It can pick only</text><text class="sm" x="450" y="282">saved people.</text>
+      </svg>
+    </div>
+    <div class="card ladder">
+      <h3>Fewer questions</h3>
+      <p class="muted" style="font-size:14.5px">Asking is a tax on the user. Artha acts on its best guess and makes changing it one tap. That tap is remembered.</p>
+      <div class="rung"><b>Clear</b><span>Do it. One tap to send.</span></div>
+      <div class="rung"><b>Close</b><span>Do the best guess, with a small ⇄ for the runner-up. Picking it teaches Artha for next time.</span></div>
+      <div class="rung"><b>True tie</b><span>Ask once, with two big buttons. Only when scores are nearly equal.</span></div>
+      <div class="rung"><b>Money</b><span>Never guesses. Payments always wait for your confirmation.</span></div>
+      <div class="rung"><b>OTP</b><span>Blocked in code before any AI sees it.</span></div>
+      <p class="muted" style="font-size:13.5px">In testing, Artha asked a question on <b id="askedRate">—</b> of notes.</p>
+    </div>
+  </div>
+</div></section>
+
+<!-- 5 DEMO -->
+<section id="demo"><div class="wrap">
+  <div class="ch"><span class="n">05 · THE DEMO</span><h2>Real recordings, real outputs.</h2>
+    <p class="lead">Pick a person, then a note. Everything below was produced by the actual system on <span id="capturedAt">—</span>: the audio, what each system heard, the timings and the actions. Nothing here is scripted.</p></div>
+  <div class="demo">
+    <div class="ptabs" id="ptabs" role="group" aria-label="Choose a person"></div>
+    <div class="nlist" id="nlist" role="group" aria-label="Choose a note"></div>
+    <div class="stagebox">
+      <div class="card screen" id="screen"></div>
+      <div class="side" id="sideDemo"></div>
+    </div>
+  </div>
+</div></section>
+
+<!-- 6 PROOF -->
+<section id="proof"><div class="wrap">
+  <div class="ch"><span class="n">06 · PROOF</span><h2>Same recordings. Three systems. Answers written first.</h2>
+    <p class="lead">Every clip has its correct answer written down before it runs. Each system hears the same audio and starts from a fresh profile. <b>Base + pasted context</b> is the obvious shortcut: the whole profile pasted into the prompt.</p></div>
+  <div class="card tbl"><table id="metrics"></table></div>
+  <div class="findings" id="findings"></div>
+</div></section>
+
+<!-- 7 FINALE -->
+<section id="finale" style="border-bottom:0"><div class="wrap">
+  <div class="ch"><span class="n">07 · THE FINALE</span><h2>Three minutes on stage.</h2>
+    <p class="lead">Lead with a recording the jury can feel, prove it with numbers, end on Equal’s roadmap. Every beat has a fallback.</p></div>
+  <div class="script" id="script"></div>
+  <div class="cols3">
+    <div class="card box"><h3>Built this weekend</h3><ul><li>Transcription with name hints, script → Roman conversion</li><li>Indian dates, times and amounts in 4 languages, with tests</li><li>Knowledge base: tags, linked facts, corrections</li><li>Rules: OTP block, money confirmation</li><li>The app (React, Three.js, GSAP) and the eval</li></ul></div>
+    <div class="card box"><h3>Reused</h3><ul><li>OpenAI: gpt-transcribe, gpt-6-luna, gpt-4o-mini-tts for test voices</li><li>Open source: React, Vite, Three.js, GSAP</li><li>AWS for hosting</li></ul></div>
+    <div class="card box"><h3>Simulated, honestly</h3><ul><li>The four people and their histories are made up</li><li>Messages, calls and payments happen inside the app only</li><li>Test clips are synthetic voices; real recordings are being added</li></ul></div>
+  </div>
+  <div class="cols3">
+    <div class="card box"><h3>Next for Equal: calls</h3><p class="muted" style="font-size:14px">The same harness fixes names and adds actions to call summaries today: “Shankar Rapido”, “DSR Builder”, Call back, Add to calendar.</p></div>
+    <div class="card box"><h3>Next: AI messaging</h3><p class="muted" style="font-size:14px">Voice notes to actions is the product. Artha is the understanding layer it needs.</p></div>
+    <div class="card box"><h3>Then: Experts</h3><p class="muted" style="font-size:14px">The credit advisor or doctor agent starts with your context: who your doctor is, which EMIs are due, who you owe.</p></div>
+  </div>
+</div></section>
+</main>
+<footer><div class="wrap">Artha · Builders 2026, Hyderabad · Built solo by Prasad Alai. The four people in this page are made up; every system output shown is real.</div></footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const ico = (id, st = '') => `<svg class="ico" ${st ? `style="${st}"` : ''}><use href="#i-${id}"/></svg>`;
+const pct = v => v == null ? '—' : `${Math.round(v * 100)}%`;
+let D = null, audio = null, playingBtn = null;
+
+function play(btn, file) {
+  if (audio) { audio.pause(); if (playingBtn) { playingBtn.classList.remove('on'); playingBtn.innerHTML = ico('play'); } }
+  if (playingBtn === btn) { playingBtn = null; return; }
+  audio = new Audio(`clips/${file}`); playingBtn = btn; btn.classList.add('on'); btn.innerHTML = ico('pause');
+  audio.onended = () => { btn.classList.remove('on'); btn.innerHTML = ico('play'); playingBtn = null; };
+  audio.play().catch(() => {});
+}
+document.addEventListener('click', e => { const b = e.target.closest('[data-play]'); if (b) play(b, b.dataset.play); });
+
+function highlight(text, marks) {
+  let out = '', rest = text;
+  const ms = (marks || []).filter(m => m.text && text.includes(m.text)).sort((a, b) => text.indexOf(a.text) - text.indexOf(b.text));
+  for (const m of ms) { const i = rest.indexOf(m.text); if (i < 0) continue; out += esc(rest.slice(0, i)) + `<span class="ent ${m.cls}">${esc(m.text)}<sub>${esc(m.label)}</sub></span>`; rest = rest.slice(i + m.text.length); }
+  return out + esc(rest);
+}
+const note = id => D.notes.find(n => n.id === id);
+const verdict = id => D.results.perCase.find(c => c.id === id)?.whole ?? {};
+const who = (a, pid) => { const p = D.personas.find(x => x.id === pid); return p?.contacts.find(c => c.id === a.contact_id)?.name || a.contact_name || a.contact_id || ''; };
+function actLine(a, pid) {
+  const w = who(a, pid);
+  return `<b>${esc(a.type)}</b>${w ? ` → ${esc(w)}` : ' → <span style="color:var(--red)">no one</span>'}${a.text ? ` · “${esc(a.text)}”` : a.title ? ` · ${esc(a.title)}` : ''}${a.when_label ? ` · ${esc(a.when_label)}` : ''}${a.amount_inr ? ` · ₹${a.amount_inr}` : ''}`;
+}
+
+/* ---------- hero ---------- */
+function renderKpis() {
+  const s = D.results.systems;
+  const k = [['whole', 'Whole note right'], ['values', 'Dates & amounts exact'], ['contact', 'Right person']];
+  $('#kpis').innerHTML = k.map(([m, l]) => `<div class="card kpi"><b>${pct(s.artha[m])}</b><span>${l}</span><small>base model ${pct(s.base[m])} · + pasted context ${pct(s.base_ctx[m])}</small></div>`).join('');
+  $('#askedRate').textContent = pct(s.artha.asked);
+}
+
+/* ---------- problem ---------- */
+function renderProblem() {
+  const n = note('a2');
+  $('#quote').innerHTML = `
+    <div style="display:flex;gap:12px;align-items:center"><button class="play" data-play="${n.file}" aria-label="Play the recording">${ico('play')}</button><span class="chip">Aditya · Hinglish · real system output</span></div>
+    <p class="said">“${esc(n.text)}”</p>
+    <div class="vs">
+      <div class="b"><h4>Base model</h4><p class="mono" style="font-size:13px">${esc(n.heard.base)}</p><p style="font-size:14px">${n.base.actions.map(a => actLine(a, n.persona)).join('<br>') || 'No actions'}</p></div>
+      <div class="a"><h4>Artha</h4><p style="font-size:16px;line-height:1.8">${highlight(n.artha.transcript, n.artha.marks)}</p><p style="font-size:14px">${n.artha.actions.map(a => actLine(a, n.persona)).join('<br>')}</p></div>
+    </div>`;
+  const s1 = note('s1'), a4 = note('a4'), a7 = note('a7');
+  const gaps = [
+    ['Hearing', 'Names and numbers come out wrong.', `<span class="x">Base: ${esc(s1.heard.base)}</span><span class="ok">Artha: ${esc(s1.heard.artha)}</span>`],
+    ['Meaning', '“Parso shaam”, “dhai sau” stay as words.', `<span class="x">Base: “${esc(n.base.actions[0]?.when_label || 'परसों शाम')}”</span><span class="ok">Artha: ${esc(n.artha.actions[0]?.when_label)}</span>`],
+    ['Who', 'Two Rahuls. Which one?', `<span class="x">Base: “राहुल”. Pasted context: no one</span><span class="ok">Artha: ${esc(who(a4.artha.actions[0], 'aditya'))}, because of “meeting”</span>`],
+    ['Intent', '“Shift karwa do” needs a call.', `<span class="x">Base: a ${esc(n.base.actions[0]?.type || 'summary')}</span><span class="ok">Artha: call the clinic, remind 1 hr before</span>`],
+    ['Safety', '“OTP bata do” must never be obeyed.', `<span class="x">Base: ${esc(a7.base.actions[0]?.type || '')} to “${esc(a7.base.actions[0]?.contact_name || 'HDFC')}”</span><span class="ok">Artha: blocked before any AI</span>`],
+  ];
+  $('#gaps').innerHTML = gaps.map(g => `<div class="card gap"><h3>${g[0]}</h3><p class="muted" style="font-size:13.5px">${g[1]}</p><div class="ex">${g[2]}</div></div>`).join('');
+}
+
+/* ---------- people ---------- */
+function renderPeople() {
+  const pick = { aditya: 'a4', sunita: 's3', imran: 'i2', meenakshi: 'm2' };
+  const pain = {
+    aditya: 'Two Rahuls, two Shankars, and an “Anna” who is really the delivery partner. Family prefers Telugu.',
+    sunita: '“Tai” could be her house help or her sister. “Pawar” could be the doctor or the milkman.',
+    imran: 'Sharma ji the customer and Sharma Traders the supplier. A note about “khata” needs a ledger entry, not a message.',
+    meenakshi: 'Dr. Ramesh and Auto Ramesh. Scam callers asking for OTPs every week.',
+  };
+  $('#peopleGrid').innerHTML = D.personas.map(p => {
+    const n = note(pick[p.id]);
+    const words = {};
+    p.contacts.forEach(c => [c.name.split(' ')[0], ...c.aliases].forEach(w => { const k = w.toLowerCase(); (words[k] ??= new Set()).add(c.name); }));
+    const dup = Object.entries(words).filter(([w, s]) => s.size > 1 && w.length > 2).slice(0, 3).map(([w, s]) => `<span>“${esc(w)}” = ${[...s].map(esc).join(' or ')}</span>`).join('');
+    return `<div class="card pcard">
+      <div class="person-h"><span class="av">${esc(p.avatar)}</span><div><b>${esc(p.name)}, ${p.age}</b><small>${esc(p.city)} · ${esc(p.speaks.join(', '))}</small></div></div>
+      <p>${esc(p.about)}</p>
+      <div class="dupes">${dup}</div>
+      <p class="wrong">${esc(pain[p.id])}</p>
+      <div class="pnote"><button class="play" data-play="${n.file}" aria-label="Play ${esc(p.name)}'s note">${ico('play')}</button><span class="txt">“${esc(n.text)}”</span></div>
+    </div>`;
+  }).join('');
+}
+
+/* ---------- how ---------- */
+function renderPipe() {
+  const P = [['Hear', 'AI', 'Transcription with your contacts’ names as hints.', '“metha” → “Mehta”'], ['Meaning', 'Code', 'Any script to Roman letters; dates, times and amounts made exact.', 'परसों शाम → Mon 6 PM'], ['Who', 'Code', 'Shortlist by sound, case endings, nicknames, topic, recent talk and your corrections.', 'Ammaki → Amma'], ['Plan', 'AI', 'One call picks people from the shortlist and writes actions in each recipient’s language.', 'Call the clinic'], ['Rules', 'Code', 'OTPs blocked first. Money waits for you. Saved contacts only.', 'OTP → never shared'], ['Learn', 'Code', 'Changed plans and your ⇄ picks are saved with their source.', '“Rahul” at work = Verma']];
+  $('#pipe').innerHTML = P.map((p, i) => `<div class="card stage"><div class="k"><b>0${i + 1}</b><span class="chip ${p[1] === 'AI' ? 'accent' : ''}">${p[1]}</span></div><h3>${p[0]}</h3><p>${p[2]}</p><span class="eg">${esc(p[3])}</span></div>`).join('');
+}
+
+/* ---------- demo ---------- */
+const ORDER = { aditya: ['a2', 'a4', 'a5', 'a6', 'a3', 'a7', 'a1'], sunita: ['s1', 's3', 's2'], imran: ['i1', 'i2', 'i6'], meenakshi: ['m2', 'm1', 'm5'] };
+let curP = 'aditya', curN = 'a2', timer = [];
+function renderTabs() {
+  $('#ptabs').innerHTML = D.personas.map(p => `<button class="ptab" data-p="${p.id}" aria-pressed="${p.id === curP}"><span class="av">${esc(p.avatar)}</span><span><b>${esc(p.name.split(' ')[0])}</b><small>${esc(p.city)} · ${esc(p.speaks[0])}</small></span></button>`).join('');
+  $('#nlist').innerHTML = ORDER[curP].map(id => { const n = note(id); return `<button class="nbtn" data-n="${id}" aria-pressed="${id === curN}">${esc(n.label)}<span class="chip">${esc(n.lang)}</span></button>`; }).join('');
+}
+function actCard(a, pid) {
+  const w = who(a, pid);
+  const title = { message: w, call: `Call ${w}`, reminder: a.title || 'Reminder', calendar: a.title || 'Calendar', payment: `Pay ${w}`, ledger: `${w}’s khata`, suggestion: a.title || 'Suggestion' }[a.type];
+  const sub = [a.when_label, a.type === 'payment' ? `₹${a.amount_inr} · needs your OK` : '', a.type === 'ledger' ? `₹${a.amount_inr}` : ''].filter(Boolean).join(' · ');
+  const body = a.type === 'message' ? a.text : a.type === 'call' ? (a.goal || a.text) : '';
+  return `<div class="act"><div class="act-h"><span class="act-i ${a.type}">${ico(a.type)}</span><div class="act-t"><b>${esc(title)}</b>${sub ? `<span>${esc(sub)}</span>` : ''}</div>${a.type === 'message' && a.language ? `<span class="chip accent">${esc(a.language)}</span>` : ''}${a.predicted ? '<span class="chip amber">Predicted</span>' : ''}</div>
+    ${body ? `<p class="act-body">${esc(body)}${a.gloss && a.type === 'message' ? `<small>${esc(a.gloss)}</small>` : ''}</p>` : ''}
+    ${a.alternatives?.length ? `<p class="alt">${ico('swap', 'width:13px;height:13px;vertical-align:-2px')} Not ${esc(w.split(' ')[0])}? One tap: <b>${a.alternatives.map(x => esc(x.name)).join(', ')}</b></p>` : ''}
+    ${a.why ? `<p class="act-why">Why: ${esc(a.why)}</p>` : ''}</div>`;
+}
+function renderDemo(animate) {
+  timer.forEach(clearTimeout); timer = [];
+  const n = note(curN), r = n.artha, v = verdict(curN);
+  const ms = [n.hearMs.artha, r.ms.meaning, r.ms.who, r.ms.plan];
+  const names = ['Heard', 'Meaning', 'Who', 'Plan'];
+  const fmt = x => x >= 1000 ? `${(x / 1000).toFixed(1)}s` : `${x}ms`;
+  $('#screen').innerHTML = `
+    <div class="me"><button class="play" data-play="${n.file}" aria-label="Play the recording">${ico('play')}</button><span class="said">${esc(n.heard.artha)}</span></div>
+    <div class="lights" id="lights">${names.map((l, i) => { const skip = r.blocked && i >= 2; return `<span class="light ${animate ? '' : skip ? '' : 'done'}" data-i="${i}">${animate || skip ? '' : ico('check', 'width:12px;height:12px')}${l} <span class="ms">${!animate && !skip ? fmt(ms[i]) : ''}</span></span>`; }).join('')}${r.blocked ? '<span class="light stop">' + ico('shield', 'width:12px;height:12px') + 'Stopped by a safety rule</span>' : ''}</div>
+    <div id="resultArea" style="display:grid;gap:14px;${animate ? 'opacity:.25;' : ''}transition:opacity .5s">
+      ${r.blocked ? `<div class="blocked">${ico('shield')}<div><b>Never shared. An OTP stays with you.</b><span>The digits were hidden before any AI or log saw them.</span></div></div>` : `<p class="understood">${highlight(r.transcript, r.marks)}</p>`}
+      ${r.actions.length ? `<div class="acts">${r.actions.map(a => actCard(a, n.persona)).join('')}</div>` : `<p class="muted">No action.</p>`}
+      ${r.reply ? `<p class="reply">Artha: “${esc(r.reply)}”</p>` : ''}
+      <p class="dim" style="font-size:12.5px">Total ${fmt(ms.reduce((a, b) => a + b, 0))} · ${esc(n.synthetic ? 'synthetic test voice' : 'real recording')} · recorded output</p>
+    </div>`;
+  const mark = ok => ok ? `<span class="v chip green">${ico('check', 'width:12px;height:12px')}right</span>` : `<span class="v chip red">${ico('x', 'width:12px;height:12px')}wrong</span>`;
+  const top = [...(r.mentions || [])].filter(m => m.kind === 'person');
+  $('#sideDemo').innerHTML = `
+    <div class="card sys"><h4>Artha ${mark(v.artha)}</h4><p class="heard">${r.actions.map(a => actLine(a, n.persona)).join('<br>') || 'No action'}</p></div>
+    <div class="card sys"><h4>Base model ${mark(v.base)}</h4><p class="heard mono">${esc(n.heard.base)}</p><ul>${n.base.actions.map(a => `<li>${actLine(a, n.persona)}</li>`).join('') || '<li>No actions</li>'}</ul></div>
+    <div class="card sys"><h4>Base + pasted context ${mark(v.base_ctx)}</h4><ul>${n.base_ctx.actions.map(a => `<li>${actLine(a, n.persona)}</li>`).join('') || '<li>No actions</li>'}</ul></div>
+    ${top.length ? `<div class="card why"><h4 style="font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--dim)">How Artha chose${r.topics?.length ? ` · topic: ${esc(r.topics.join(', ').replace(/_/g, ' '))}` : ''}</h4>${top.map(m => [...m.candidates].sort((a, b) => b.score - a.score).slice(0, 2).map(c => `<div class="cand"><span><b>${esc(c.name)}</b> for “${esc(m.text)}”</span><span class="mono" style="text-align:right">${Math.round(c.score * 100)}%</span><div class="meter"><i style="width:${Math.round(c.score * 100)}%"></i></div>${c.why ? `<small>${esc(c.why)}</small>` : ''}</div>`).join('')).join('')}</div>` : ''}
+    ${!v.artha ? `<div class="loss">Artha got this one wrong. The speech model heard “${esc(n.heard.artha)}”, so no saved person matched. It is kept in the results as a known failure.</div>` : ''}`;
+  if (!animate) return;
+  names.forEach((_, i) => {
+    timer.push(setTimeout(() => { const el = document.querySelector(`.light[data-i="${i}"]`); if (el && !(r.blocked && i >= 2)) { el.className = 'light run'; } }, 120 + i * 380));
+    timer.push(setTimeout(() => { const el = document.querySelector(`.light[data-i="${i}"]`); if (!el || (r.blocked && i >= 2)) return; el.className = 'light done'; el.innerHTML = `${ico('check', 'width:12px;height:12px')}${names[i]} <span class="ms">${fmt(ms[i])}</span>`; }, 440 + i * 380));
+  });
+  timer.push(setTimeout(() => { const a = $('#resultArea'); if (a) a.style.opacity = 1; }, 1700));
+}
+document.addEventListener('click', e => {
+  const p = e.target.closest('[data-p]'); if (p) { curP = p.dataset.p; curN = ORDER[curP][0]; renderTabs(); renderDemo(true); return; }
+  const n = e.target.closest('[data-n]'); if (n) { curN = n.dataset.n; renderTabs(); renderDemo(true); }
+});
+
+/* ---------- proof ---------- */
+function renderProof() {
+  const s = D.results.systems, R = D.results;
+  const rows = [['whole', 'Whole note right'], ['contact', 'Right person'], ['values', 'Dates and amounts exact'], ['intent', 'Right kind of action'], ['names', 'Names heard right'], ['safety', 'OTP scams handled'], ['asked', 'Questions asked (lower is better)']];
+  const cell = (v, isArtha, best) => `<td class="n">${v == null ? '—' : `<span class="${best ? 'best' : ''}">${pct(v)}</span><span class="bar"><i style="width:${Math.round((v || 0) * 100)}%;background:${isArtha ? 'var(--accent)' : 'var(--line-2)'}"></i></span>`}</td>`;
+  $('#metrics').innerHTML = `<thead><tr><th>${R.cases} clips · ${R.personas} people · ${R.languages.length} languages</th><th class="n">Base model</th><th class="n">+ pasted context</th><th class="n">Artha</th></tr></thead><tbody>` +
+    rows.map(([k, l]) => { const v = [s.base[k], s.base_ctx[k], s.artha[k]]; const best = k === 'asked' ? null : Math.max(...v.filter(x => x != null)); return `<tr><td>${l}</td>${v.map((x, i) => cell(x, i === 2, i === 2 && x === best)).join('')}</tr>`; }).join('') +
+    `<tr><td>Median seconds per note</td><td class="n">${s.base.median_s}</td><td class="n">${s.base_ctx.median_s}</td><td class="n">${s.artha.median_s}</td></tr></tbody>`;
+  const w = R.perCase.map(c => [c.id, c.whole, c.text]);
+  const aOnly = w.filter(([, x]) => x.artha && !x.base_ctx), cOnly = w.filter(([, x]) => x.base_ctx && !x.artha);
+  $('#findings').innerHTML = `
+    <div class="card find"><span class="chip green">Artha wins</span><h3>${aOnly.length} notes only Artha got right</h3><p>${aOnly.map(([, , t]) => `“${esc(t)}”`).slice(0, 4).join('<br>')}</p><p class="muted">Mostly exact times attached to the action, and the right Rahul.</p></div>
+    <div class="card find"><span class="chip amber">Pasted context is strong</span><h3>It finds people well (${pct(s.base_ctx.contact)})</h3><p>When the whole profile is pasted in, the model often finds the person. It still misses exact times (${pct(s.base_ctx.values)} vs ${pct(s.artha.values)}), and sends the full address book with every note. Artha sends a short list.</p></div>
+    <div class="card find"><span class="chip red">Where Artha lost</span><h3>${cOnly.length} note it missed</h3><p>${cOnly.map(([, , t]) => `“${esc(t)}”`).join('<br>')}</p><p class="muted">The speech model misheard the word for milkman. Next: hint the transcription with nicknames as they sound in each language.</p></div>`;
+}
+
+/* ---------- finale ---------- */
+function renderScript() {
+  const B = [
+    ['0:00', 'Hook', 'Play the Mehta ji recording. Show the base model’s line beside it.', '“Six seconds. Every Indian has sent this note. The base model heard every word and understood none of it.”'],
+    ['0:25', 'Artha, live', 'Hold the orb, say the same note fresh. Highlights appear, then “Call Dr. Mehta’s Clinic, Mon 6 PM”. Tap.', '“Artha knows Mehta ji is your doctor, parso is Monday, and shifting an appointment means a call.”'],
+    ['0:55', 'Which Rahul', 'Switch to the meeting note. Rahul Verma is picked; show the ⇄ with Rahul Kulkarni. Tap it once.', '“It doesn’t ask. It guesses well and lets you correct in one tap. And it remembers.”'],
+    ['1:20', 'India in one breath', 'Play Telugu to Amma, then Sunita’s Marathi, then Meenakshi’s OTP scam.', '“Telugu in, Telugu out. And an OTP never reaches any AI.”'],
+    ['1:50', 'Proof', 'Results tab: 93% vs 79% vs 10%, and the one note it missed.', '“Same recordings, answers written first. We show our failure too.”'],
+    ['2:20', 'Why Equal', 'Equal’s loop: context → intent → action. Calls today, messaging next, experts after.', '“Artha is the understanding layer for voice notes to actions. It works on call summaries tomorrow.”'],
+    ['2:45', 'Close', 'Back to the orb.', '“Bas ishaara kaafi hai.”'],
+  ];
+  $('#script').innerHTML = B.map(b => `<div class="beat"><span class="t">${b[0]}</span><div><b>${b[1]}</b><span class="do">${esc(b[2])}</span></div><span class="line">${esc(b[3])}</span></div>`).join('') +
+    `<div class="beat"><span class="t">Backup</span><div><b>If Wi-Fi or the mic fails</b><span class="do">Use the sample notes (pre-recorded audio, same pipeline) or a typed note. Keep a screen recording of the full run.</span></div><span class="line">Never stop the story to debug.</span></div>`;
+}
+
+/* ---------- hero orb (Three.js) ---------- */
+function orb() {
+  if (!window.THREE) return;
+  const box = document.querySelector('.orb-box');
+  let renderer; try { renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true }); } catch { return; }
+  $('#orbFallback').hidden = true;
+  const size = () => box.clientWidth;
+  renderer.setPixelRatio(Math.min(2, devicePixelRatio || 1)); renderer.setSize(size(), size());
+  box.appendChild(renderer.domElement);
+  const scene = new THREE.Scene(), cam = new THREE.PerspectiveCamera(32, 1, .1, 100); cam.position.z = 4.2;
+  const N = `vec3 mod289(vec3 x){return x-floor(x*(1.0/289.0))*289.0;}vec4 mod289(vec4 x){return x-floor(x*(1.0/289.0))*289.0;}vec4 permute(vec4 x){return mod289(((x*34.0)+1.0)*x);}vec4 taylorInvSqrt(vec4 r){return 1.79284291400159-0.85373472095314*r;}
+  float snoise(vec3 v){const vec2 C=vec2(1.0/6.0,1.0/3.0);const vec4 D=vec4(0.0,0.5,1.0,2.0);vec3 i=floor(v+dot(v,C.yyy));vec3 x0=v-i+dot(i,C.xxx);vec3 g=step(x0.yzx,x0.xyz);vec3 l=1.0-g;vec3 i1=min(g.xyz,l.zxy);vec3 i2=max(g.xyz,l.zxy);vec3 x1=x0-i1+C.xxx;vec3 x2=x0-i2+C.yyy;vec3 x3=x0-D.yyy;i=mod289(i);vec4 p=permute(permute(permute(i.z+vec4(0.0,i1.z,i2.z,1.0))+i.y+vec4(0.0,i1.y,i2.y,1.0))+i.x+vec4(0.0,i1.x,i2.x,1.0));float n_=0.142857142857;vec3 ns=n_*D.wyz-D.xzx;vec4 j=p-49.0*floor(p*ns.z*ns.z);vec4 x_=floor(j*ns.z);vec4 y_=floor(j-7.0*x_);vec4 x=x_*ns.x+ns.yyyy;vec4 y=y_*ns.x+ns.yyyy;vec4 h=1.0-abs(x)-abs(y);vec4 b0=vec4(x.xy,y.xy);vec4 b1=vec4(x.zw,y.zw);vec4 s0=floor(b0)*2.0+1.0;vec4 s1=floor(b1)*2.0+1.0;vec4 sh=-step(h,vec4(0.0));vec4 a0=b0.xzyw+s0.xzyw*sh.xxyy;vec4 a1=b1.xzyw+s1.xzyw*sh.zzww;vec3 p0=vec3(a0.xy,h.x);vec3 p1=vec3(a0.zw,h.y);vec3 p2=vec3(a1.xy,h.z);vec3 p3=vec3(a1.zw,h.w);vec4 norm=taylorInvSqrt(vec4(dot(p0,p0),dot(p1,p1),dot(p2,p2),dot(p3,p3)));p0*=norm.x;p1*=norm.y;p2*=norm.z;p3*=norm.w;vec4 m=max(0.6-vec4(dot(x0,x0),dot(x1,x1),dot(x2,x2),dot(x3,x3)),0.0);m=m*m;return 42.0*dot(m*m,vec4(dot(p0,x0),dot(p1,x1),dot(p2,x2),dot(p3,x3)));}`;
+  const u = { uTime: { value: 0 } };
+  const mat = new THREE.ShaderMaterial({ uniforms: u, transparent: true,
+    vertexShader: `uniform float uTime;varying vec3 vN;varying vec3 vP;varying float vNo;${N}void main(){float n=snoise(normal*1.15+vec3(uTime*.6,uTime*.4,uTime*.5));float n2=snoise(normal*2.6-vec3(uTime*.3));vNo=n;vec3 p=position+normal*(n*.08+n2*.02);vN=normalize(normalMatrix*normal);vec4 mv=modelViewMatrix*vec4(p,1.0);vP=mv.xyz;gl_Position=projectionMatrix*mv;}`,
+    fragmentShader: `uniform float uTime;varying vec3 vN;varying vec3 vP;varying float vNo;void main(){vec3 n=normalize(vN);vec3 v=normalize(-vP);float f=pow(1.0-max(dot(n,v),0.0),2.4);vec3 A=vec3(.21,.31,.90),B=vec3(.54,.39,1.0),C=vec3(.25,.82,1.0);vec3 col=mix(A,B,smoothstep(.05,.95,n.y*.5+.5+vNo*.28+sin(uTime*.7)*.06));col=mix(col,C,smoothstep(.45,1.0,n.x*.5+.5+vNo*.22)*.65);vec3 L=normalize(vec3(-.45,.65,1.0));float s=pow(max(dot(n,normalize(L+v)),0.0),42.0);col=col*(.78+.22*max(dot(n,L),0.0))+s*.55+f*.55*mix(C,vec3(1.0),.45);gl_FragColor=vec4(col,.97);}` });
+  const mesh = new THREE.Mesh(new THREE.IcosahedronGeometry(1, 64), mat); scene.add(mesh);
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let t = 0, last = performance.now();
+  const loop = now => { const dt = Math.min(.05, (now - last) / 1000); last = now; t += dt * (reduce ? .05 : .22); u.uTime.value = t; mesh.rotation.y += dt * .1; renderer.render(scene, cam); requestAnimationFrame(loop); };
+  requestAnimationFrame(loop);
+  addEventListener('resize', () => renderer.setSize(size(), size()));
+}
+
+/* ---------- boot ---------- */
+fetch('data.json').then(r => r.json()).then(d => {
+  D = d;
+  $('#capturedAt').textContent = new Date(d.capturedAt).toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' });
+  renderKpis(); renderProblem(); renderPeople(); renderPipe(); renderTabs(); renderDemo(false); renderProof(); renderScript();
+}).catch(() => { document.querySelector('main').insertAdjacentHTML('afterbegin', '<p class="wrap" style="padding-block:20px;color:var(--red)">The data for this page didn’t load. Refresh to try again.</p>'); });
+orb();
+</script>
