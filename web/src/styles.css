@@ -247,6 +247,7 @@ button:disabled { cursor: default; }
 .doall { justify-self: start; }
 .foot { display: flex; align-items: center; gap: 4px; font-size: 12.5px; }
 .foot .dim { margin-right: auto; font-variant-numeric: tabular-nums; }
+.foot .times { display: flex; flex-wrap: wrap; gap: 4px 10px; } .foot .times b { color: var(--ink-2); font-weight: 600; }
 .foot-btn { display: inline-flex; align-items: center; gap: 5px; padding: 5px 10px; border-radius: 999px; color: var(--muted); font-weight: 600; }
 .foot-btn .ico { width: 15px; height: 15px; }
 .foot-btn:hover, .foot-btn.on { background: var(--bg-2); color: var(--ink); }

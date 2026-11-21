@@ -80,6 +80,78 @@ function recordTurn(state: State, who: Persona, result: Result, said: string, fo
   for (const f of result.learn) if (!state.memory.some(m => m.fact.toLowerCase() === f.toLowerCase())) state.memory.push({ fact: f, src: opts.src ?? 'from a voice note', at: nowIso(), learned: true });
 }
 
+/**
+ * One note, start to finish, as a stream of events (newline-delimited JSON), each sent the moment it is ready:
+ *   heard  → the words (audio notes)      gist  → "you said", structured
+ *   say    → the line Artha speaks, so the voice can start while the cards are still being written
+ *   result → the cards                    state → the side panel, after saving
+ * Audio or typed text both come in here; the person's context space loads while the audio is being transcribed.
+ */
+export async function* noteEvents(req: Req): AsyncGenerator<Record<string, unknown>> {
+  const t0 = Date.now();
+  const at = () => Date.now() - t0;
+  const isAudio = /^audio\//.test(req.headers['content-type'] ?? '');
+  const b = isAudio ? {} as any : parse(req.body);
+  const pid = String((isAudio ? req.query.get('p') : b.p) ?? '');
+  const mode = ((isAudio ? req.query.get('mode') : b.mode) ?? 'artha') as Mode;
+  const base = persona(pid);
+  const statePromise = loadState(base.id);
+  const who = withKnownPeople(base);
+  let transcript = String(b.transcript ?? '').slice(0, 1200);
+  if (isAudio) {
+    const hints = mode === 'artha' ? `A short WhatsApp-style voice note from India, may mix Hindi, Marathi, Telugu, Tamil, Urdu, Punjabi, Bengali and English. Names that may come up: ${hintWords(who).join(', ')}.` : undefined;
+    transcript = (await transcribe(req.body, req.headers['content-type'] ?? 'audio/webm', hints)).slice(0, 1200);
+    yield { t: 'heard', text: transcript, ms: at() };
+    if (!transcript) { yield { t: 'error', error: 'Nothing was heard. Try again a little closer.', ms: at() }; return; }
+  }
+  const state = await statePromise;
+  // events from inside understanding are queued and handed out as they happen
+  const queue: Record<string, unknown>[] = [];
+  let wake: (() => void) | null = null;
+  const push = (e: Record<string, unknown>) => { queue.push(e); wake?.(); };
+  const ctx = mode === 'artha' ? { db: space(who.id), query: embedQueryAndPending(space(who.id), transcript) } : undefined;
+  let result: Awaited<ReturnType<typeof understand>> | null = null, failed: Error | null = null;
+  // inline voice: the moment the spoken line is written, generate it and send the audio in this same stream
+  const inlineVoice = (isAudio ? req.query.get('voice') : b.voice) === 'inline';
+  let voiceJob: Promise<void> = Promise.resolve();
+  const speakNow = (text: string) => {
+    voiceJob = (async () => {
+      try {
+        const v = await speakFor(base.id, text);
+        if ('error' in v) return;
+        push({ t: 'audio_start', ms: at() });
+        if (v.cached) push({ t: 'audio', b64: v.cached.toString('base64') });
+        else { const parts: Buffer[] = []; for await (const c of v.stream as any) { const buf = Buffer.from(c); parts.push(buf); push({ t: 'audio', b64: buf.toString('base64') }); } v.done!(Buffer.concat(parts)); }
+        push({ t: 'audio_end', ms: at() });
+      } catch { push({ t: 'audio_end', failed: true, ms: at() }); }
+    })();
+  };
+  const job = understand({ persona: who, state, transcript, mode, forced: b.forced ?? {}, ctx, onEvent: e => { push({ ...e, ms: at() }); if (e.t === 'say' && inlineVoice) speakNow(e.text); } })
+    .then(r => { result = r; }, e => { failed = e; }).finally(() => wake?.());
+  for (;;) {
+    while (queue.length) yield queue.shift()!;
+    if (result || failed) break;
+    await new Promise<void>(r => (wake = r));
+    wake = null;
+  }
+  await job;
+  while (queue.length) yield queue.shift()!;
+  if (failed) { yield { t: 'error', error: (failed as Error).message, ms: at() }; return; }
+  const r = result!;
+  if (r.mode === 'artha') recordTurn(state, who, r, transcript, b.forced);   // gives actions their ids
+  yield { t: 'result', result: r, transcript, ms: at() };
+  if (r.mode === 'artha') await saveState(state);
+  yield { t: 'state', state, ms: at() };
+  // finish streaming the voice if it is still coming
+  let voiceDone = false;
+  voiceJob.finally(() => { voiceDone = true; wake?.(); });
+  while (!voiceDone || queue.length) {
+    while (queue.length) yield queue.shift()!;
+    if (voiceDone) break;
+    await new Promise<void>(res => (wake = res)); wake = null;
+  }
+}
+
 export async function handle(req: Req): Promise<Res> {
   try {
     const { method, path: p, query } = req;
@@ -130,6 +202,13 @@ export async function handle(req: Req): Promise<Res> {
       recordTurn(state, who, result, `(photo) ${scan.title}: ${scan.lines.map(l => `${l.party || l.item} ${l.amount}`).join(', ')}`, undefined, { merge: false, src: 'from a photo' });
       await saveState(state);
       return json(200, { result, scan, state });
+    }
+
+    // The whole note at once (scripts, tests). The app uses the streamed version of this route.
+    if (p === '/api/note' && method === 'POST') {
+      const events: Record<string, unknown>[] = [];
+      for await (const e of noteEvents(req)) events.push(e);
+      return json(200, { events });
     }
 
     // The user answered "which one?": remember it.

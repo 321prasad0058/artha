@@ -2,7 +2,7 @@
 import fs from 'node:fs';
 import http from 'node:http';
 import path from 'node:path';
-import { handle, speakFor } from './handler.js';
+import { handle, noteEvents, speakFor } from './handler.js';
 
 try { process.loadEnvFile('.env'); } catch { /* use the real environment */ }
 const PORT = Number(process.env.PORT || 8787);
@@ -19,6 +19,14 @@ http.createServer(async (req, res) => {
     const parts: Buffer[] = [];
     for await (const c of v.stream as any) { const b = Buffer.from(c); parts.push(b); res.write(b); }
     res.end(); v.done!(Buffer.concat(parts)); return;
+  }
+  if (url.pathname === '/api/note' && req.method === 'POST') {   // a whole note, streamed, as on Lambda
+    const chunks: Buffer[] = [];
+    for await (const c of req) chunks.push(c as Buffer);
+    res.writeHead(200, { 'content-type': 'application/x-ndjson', 'cache-control': 'no-store' });
+    try { for await (const e of noteEvents({ method: 'POST', path: url.pathname, query: url.searchParams, headers: req.headers as Record<string, string>, body: Buffer.concat(chunks) })) res.write(JSON.stringify(e) + '\n'); }
+    catch (e: any) { res.write(JSON.stringify({ t: 'error', error: e?.message ?? 'Server error' }) + '\n'); }
+    return res.end();
   }
   if (url.pathname.startsWith('/api/')) {
     const chunks: Buffer[] = [];

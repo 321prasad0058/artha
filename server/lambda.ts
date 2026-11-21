@@ -1,6 +1,6 @@
 // AWS Lambda entry (Function URL in RESPONSE_STREAM mode). Same routes as the local server; CloudFront sends /api/* here.
 // Streaming lets Artha's spoken reply start playing while it is still being generated.
-import { handle, speakFor } from './handler.js';
+import { handle, noteEvents, speakFor } from './handler.js';
 
 declare const awslambda: any;
 
@@ -29,6 +29,13 @@ export const handler = awslambda.streamifyResponse(async (event: any, responseSt
       for await (const c of v.stream as any) { const b = Buffer.from(c); parts.push(b); s.write(b); }
       s.end(); v.done!(Buffer.concat(parts));
       return;
+    }
+    // a whole note, streamed as newline-delimited JSON events
+    if (path === '/api/note' && method === 'POST') {
+      const s = open(200, { 'content-type': 'application/x-ndjson' });
+      try { for await (const e of noteEvents({ method, path, query: new URLSearchParams(event.rawQueryString ?? ''), headers: event.headers ?? {}, body })) s.write(JSON.stringify(e) + '\n'); }
+      catch (e: any) { s.write(JSON.stringify({ t: 'error', error: e?.message ?? 'Server error' }) + '\n'); }
+      s.end(); return;
     }
     const out = await handle({ method, path, query: new URLSearchParams(event.rawQueryString ?? ''), headers: event.headers ?? {}, body });
     const s = open(out.status, out.headers ?? {});
