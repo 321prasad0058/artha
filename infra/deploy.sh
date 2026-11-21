@@ -37,14 +37,24 @@ if ! ROLE_ARN=$(aws_ iam get-role --role-name "$ROLE" --query Role.Arn --output 
   sleep 10   # IAM is eventually consistent
 fi
 aws_ iam put-role-policy --role-name "$ROLE" --policy-name artha-state \
-  --policy-document "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Action\":[\"s3:GetObject\",\"s3:PutObject\"],\"Resource\":\"arn:aws:s3:::artha-state-$ACCT*/*\"},{\"Effect\":\"Allow\",\"Action\":\"s3:ListBucket\",\"Resource\":\"arn:aws:s3:::artha-state-$ACCT*\"}]}"
+  --policy-document "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Action\":[\"s3:GetObject\",\"s3:PutObject\",\"s3:DeleteObject\"],\"Resource\":\"arn:aws:s3:::artha-state-$ACCT*/*\"},{\"Effect\":\"Allow\",\"Action\":\"s3:ListBucket\",\"Resource\":\"arn:aws:s3:::artha-state-$ACCT*\"}]}"
 
 say "lambda function"
-ENV="Variables={OPENAI_API_KEY=$OPENAI_API_KEY,ARTHA_BUCKET=$STATE,ARTHA_ROOT=/var/task,NODE_OPTIONS=--disable-warning=ExperimentalWarning}"
+# settings are MERGED with what the function already has, so a deploy without the Google keys (CI) never wipes them
+envval() { [ -n "${!1:-}" ] && printf '%s' "${!1}" || { [ -f .env ] && grep -E "^$1=" .env | head -1 | cut -d= -f2-; } }
+DIST0=$(aws_ cloudfront list-distributions --query "DistributionList.Items[?Comment=='artha'].DomainName | [0]" --output text 2>/dev/null || echo None)
+CURENV=$(aws_ lambda get-function-configuration --function-name "$FN" --query 'Environment.Variables' --output json 2>/dev/null || echo '{}')
+ENVFILE=$(mktemp)
+CURENV="$CURENV" OPENAI="$OPENAI_API_KEY" STATE="$STATE" GID="$(envval GOOGLE_CLIENT_ID)" GSEC="$(envval GOOGLE_CLIENT_SECRET)" TKEY="$(envval ARTHA_TOKEN_KEY)" PUB="$([ "$DIST0" != "None" ] && [ -z "${STAGE:-}" ] && echo "https://$DIST0")" node -e '
+  const cur = JSON.parse(process.env.CURENV || "{}") || {};
+  const v = { ...cur, OPENAI_API_KEY: process.env.OPENAI, ARTHA_BUCKET: process.env.STATE, ARTHA_ROOT: "/var/task", NODE_OPTIONS: "--disable-warning=ExperimentalWarning" };
+  for (const [k, e] of [["GOOGLE_CLIENT_ID", "GID"], ["GOOGLE_CLIENT_SECRET", "GSEC"], ["ARTHA_TOKEN_KEY", "TKEY"], ["ARTHA_PUBLIC_URL", "PUB"]]) if (process.env[e]) v[k] = process.env[e];
+  console.log(JSON.stringify({ Variables: v }));' > "$ENVFILE"
+ENV="file://$ENVFILE"
 if aws_ lambda get-function --function-name "$FN" >/dev/null 2>&1; then
   aws_ lambda update-function-code --function-name "$FN" --zip-file fileb://lambda.zip >/dev/null
   aws_ lambda wait function-updated --function-name "$FN"
-  aws_ lambda update-function-configuration --function-name "$FN" --environment "$ENV" --timeout 120 --memory-size 1536 >/dev/null
+  aws_ lambda update-function-configuration --function-name "$FN" --environment "$ENV" --timeout 180 --memory-size 1536 >/dev/null
 else
   for i in 1 2 3; do
     aws_ lambda create-function --function-name "$FN" --runtime nodejs24.x --architectures arm64 --handler index.handler \
@@ -53,6 +63,7 @@ else
   done
 fi
 aws_ lambda wait function-updated --function-name "$FN"
+rm -f "$ENVFILE"
 LURL=$(aws_ lambda get-function-url-config --function-name "$FN" --query FunctionUrl --output text 2>/dev/null || \
        aws_ lambda create-function-url-config --function-name "$FN" --auth-type NONE --invoke-mode RESPONSE_STREAM --query FunctionUrl --output text)
 # streamed responses (the spoken reply starts playing while it is generated)
@@ -104,9 +115,16 @@ DOMAIN=$(aws_ cloudfront get-distribution --id "$DIST" --query Distribution.Doma
 aws_ s3api put-bucket-policy --bucket "$WEB" --policy "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Principal\":{\"Service\":\"cloudfront.amazonaws.com\"},\"Action\":\"s3:GetObject\",\"Resource\":\"arn:aws:s3:::$WEB/*\",\"Condition\":{\"StringEquals\":{\"AWS:SourceArn\":\"arn:aws:cloudfront::$ACCT:distribution/$DIST\"}}}]}"
 
 say "site"
-aws_ s3 sync dist "s3://$WEB" --delete --exclude index.html --cache-control "public, max-age=31536000, immutable" --only-show-errors
+# hashed build files and versioned app icons never change; everything with a fixed name must be re-checked every visit
+FIXED=(index.html sw.js manifest.webmanifest icon.svg apple-touch-icon.png favicon-32.png)
+EXC=(); for f in "${FIXED[@]}"; do EXC+=(--exclude "$f"); done
+aws_ s3 sync dist "s3://$WEB" --delete "${EXC[@]}" --exclude "app/*" --cache-control "public, max-age=31536000, immutable" --only-show-errors
+aws_ s3 sync dist/app "s3://$WEB/app" --delete --cache-control "public, max-age=3600" --only-show-errors
 aws_ s3 cp dist/index.html "s3://$WEB/index.html" --cache-control "no-cache" --content-type "text/html; charset=utf-8" --only-show-errors
-aws_ cloudfront create-invalidation --distribution-id "$DIST" --paths "/index.html" "/clips/*" >/dev/null
+aws_ s3 cp dist/sw.js "s3://$WEB/sw.js" --cache-control "no-cache" --content-type "text/javascript; charset=utf-8" --only-show-errors
+aws_ s3 cp dist/manifest.webmanifest "s3://$WEB/manifest.webmanifest" --cache-control "no-cache" --content-type "application/manifest+json" --only-show-errors
+for f in icon.svg apple-touch-icon.png favicon-32.png; do aws_ s3 cp "dist/$f" "s3://$WEB/$f" --cache-control "public, max-age=3600" --only-show-errors; done
+aws_ cloudfront create-invalidation --distribution-id "$DIST" --paths "/index.html" "/sw.js" "/manifest.webmanifest" "/icon.svg" "/apple-touch-icon.png" "/favicon-32.png" "/app/*" "/clips/*" >/dev/null
 
 echo
 echo "✓ Artha is live: https://$DOMAIN"

@@ -82,6 +82,7 @@ export function space(user: string): DatabaseSync {
     db = new DatabaseSync(file(user));
     db.exec(SCHEMA);
     try { db.exec('ALTER TABLE entity ADD COLUMN about TEXT'); } catch { /* already there */ }
+    try { db.exec('ALTER TABLE entity ADD COLUMN email TEXT'); } catch { /* already there */ }
     open.set(user, db);
   }
   const last = Number((db.prepare(`SELECT v FROM meta WHERE k='swept'`).get() as any)?.v ?? 0);
@@ -127,13 +128,15 @@ export function readState(db: DatabaseSync, p: Persona): State {
     persona: p.id,
     memory: all(`SELECT * FROM fact ORDER BY rowid`).map(f => ({ fact: f.text, src: f.src, at: f.at ? new Date(f.at).toISOString() : '', ...(f.learned ? { learned: true } : {}), ...(f.kind ? { kind: f.kind } : {}), ...(f.subject ? { about: f.subject } : {}), ...(f.mention ? { mention: f.mention } : {}), ...(f.topic ? { topic: f.topic } : {}), uses: f.uses, last_used: f.last_used ? new Date(f.last_used).toISOString() : undefined })),
     threads,
-    calendar: all(`SELECT * FROM cal WHERE kind='calendar' ORDER BY when_iso`).map(c => ({ title: c.title, when_iso: c.when_iso, when_label: c.when_label, ...(c.entity_id ? { contact: c.entity_id } : {}), ...(c.added ? { added: true } : {}) })),
+    calendar: all(`SELECT * FROM cal WHERE kind='calendar' ORDER BY when_iso`).map(c => ({ title: c.title, when_iso: c.when_iso, when_label: c.when_label, ...(c.entity_id ? { contact: c.entity_id } : {}), ...(c.added ? { added: true } : {}), ...(c.added === 2 ? { source: 'gmail' as const } : {}) })),
     reminders: all(`SELECT * FROM cal WHERE kind='reminder' ORDER BY when_iso`).map(c => ({ title: c.title, when_iso: c.when_iso, when_label: c.when_label })),
     ledger: [...carried, ...all(`SELECT * FROM ledger ORDER BY at`).map(l => ({ contact: l.entity_id, amount: l.amount, note: l.note, at: new Date(l.at).toISOString() }))],
     payments: all(`SELECT * FROM event WHERE source='upi' ORDER BY at`).map(e => ({ contact: e.entity_id, amount: JSON.parse(e.data).amount, upi: JSON.parse(e.data).upi, at: new Date(e.at).toISOString() })),
     calls: all(`SELECT * FROM event WHERE source='call' ORDER BY at`).map(e => ({ contact: e.entity_id, goal: e.text, at: new Date(e.at).toISOString(), status: JSON.parse(e.data).status })),
     notes: Number((db.prepare(`SELECT v FROM meta WHERE k='notes'`).get() as any)?.v ?? 0),
     turns,
+    people: all(`SELECT id, name, email, rel FROM entity WHERE source = 'gmail'`).map(e => ({ id: e.id, name: e.name, email: e.email ?? undefined, rel: e.rel, source: 'gmail' as const })),
+    gmail: (() => { const r = db.prepare(`SELECT v FROM meta WHERE k='gmail'`).get() as any; return r ? JSON.parse(r.v) : undefined; })(),
     book: all(`SELECT * FROM book ORDER BY at, rowid`).map(b => ({ id: b.id, turn: b.turn, at: new Date(b.at).toISOString(), day: b.day, kind: b.kind, party: b.party, ...(b.entity_id ? { contact_id: b.entity_id } : {}), item: b.item, amount: b.amount, status: b.status, said: b.said })) as BookEntry[],
   };
 }
@@ -172,7 +175,7 @@ export function writeState(db: DatabaseSync, s: State, p: Persona) {
     for (const x of s.payments) { const at = ms(x.at); ev.run(hash(`upi${x.contact}${x.at}`), 'upi', x.contact, 1, `Paid ₹${x.amount}`, 'UPI', at, JSON.stringify({ amount: x.amount, upi: x.upi }), exp(at)); }
     for (const x of s.calls) { const at = ms(x.at); ev.run(hash(`call${x.contact}${x.at}`), 'call', x.contact, 1, x.goal, 'Artha call', at, JSON.stringify({ status: x.status }), exp(at)); }
     const cal = db.prepare(`INSERT OR REPLACE INTO cal(id, kind, title, when_iso, when_label, entity_id, added, expires_at) VALUES(?,?,?,?,?,?,?,?)`);
-    for (const c of s.calendar) cal.run(hash(`cal${c.title}${c.when_iso}`), 'calendar', c.title, c.when_iso, c.when_label, c.contact ?? null, c.added ? 1 : 0, exp(ms(c.when_iso)));
+    for (const c of s.calendar) cal.run(hash(`cal${c.title}${c.when_iso}`), 'calendar', c.title, c.when_iso, c.when_label, c.contact ?? null, c.source === 'gmail' ? 2 : c.added ? 1 : 0, exp(ms(c.when_iso)));   // 2 = from Gmail
     for (const r of s.reminders) cal.run(hash(`rem${r.title}${r.when_iso}`), 'reminder', r.title, r.when_iso, r.when_label, null, 1, exp(ms(r.when_iso)));
     const led = db.prepare(`INSERT OR REPLACE INTO ledger(id, entity_id, amount, note, at, expires_at) VALUES(?,?,?,?,?,?)`);
     s.ledger.filter(l => l.note !== 'Carried forward').forEach((l, i) => { const at = ms(l.at); led.run(hash(`led${l.contact}${l.at}${i}`), l.contact, l.amount, l.note, at, exp(at)); });
@@ -187,6 +190,10 @@ export function writeState(db: DatabaseSync, s: State, p: Persona) {
     const book = db.prepare(`INSERT OR REPLACE INTO book(id, turn, at, day, kind, party, entity_id, item, amount, status, said, expires_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)`);
     for (const b of s.book ?? []) { const at = ms(b.at); book.run(b.id, b.turn, at, b.day, b.kind, b.party, b.contact_id ?? null, b.item, b.amount, b.status, b.said, exp(at)); }
 
+    // people met in Gmail: kept 90 days from when they were added, like other learned things
+    db.exec(`DELETE FROM entity WHERE source = 'gmail'`);
+    for (const g of s.people ?? []) { ent.run(g.id, g.name, /bank|airlines|dental|fitness|broadband|kart|store|clinic/i.test(g.name) ? 'business' : 'person', g.rel, null, null, 'gmail', now, now, exp(now)); if (g.email) db.prepare(`UPDATE entity SET email = ? WHERE id = ?`).run(g.email, g.id); }
+    if (s.gmail) db.prepare(`INSERT OR REPLACE INTO meta(k, v) VALUES('gmail', ?)`).run(JSON.stringify(s.gmail)); else db.prepare(`DELETE FROM meta WHERE k='gmail'`).run();
     // people first heard in voice notes become entities too (who's who grows by itself)
     for (const b of s.book ?? []) if (b.party && !b.contact_id) {
       const id = personKey(b.party);
@@ -233,7 +240,7 @@ export function habitsOf(db: DatabaseSync, ids: string[]): Record<string, { key:
 
 /** People first heard in voice notes, as contacts the pipeline can match ("Anand Patil" next time). */
 export function voicePeople(db: DatabaseSync) {
-  return db.prepare(`SELECT id, name, rel FROM entity WHERE source = 'voice'`).all() as { id: string; name: string; rel: string }[];
+  return db.prepare(`SELECT id, name, rel FROM entity WHERE source IN ('voice', 'gmail')`).all() as { id: string; name: string; rel: string }[];
 }
 
 /** A short structured card per person: everything about them in one place, for the model. */

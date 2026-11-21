@@ -20,8 +20,33 @@ export function personas(): Persona[] {
   }
   return personaCache;
 }
+// ---- users created by signing in with Google: their profile is built from their mail and saved like a persona
+const users = new Map<string, Persona>();
+const USER_DIR = path.join(ROOT, 'data/users');
+export async function ensurePersona(id: string) {
+  if (!id || !id.startsWith('u-') || users.has(id)) return;
+  try {
+    if (BUCKET) { const { mod, client } = await s3(); const r = await client.send(new mod.GetObjectCommand({ Bucket: BUCKET, Key: `users/${id}.json` })); users.set(id, JSON.parse(await r.Body.transformToString())); }
+    else users.set(id, JSON.parse(fs.readFileSync(path.join(USER_DIR, `${id}.json`), 'utf8')));
+  } catch { /* unknown user */ }
+}
+export async function saveUser(p: Persona) {
+  users.set(p.id, p);
+  const body = JSON.stringify(p, null, 1);
+  if (BUCKET) { const { mod, client } = await s3(); await client.send(new mod.PutObjectCommand({ Bucket: BUCKET, Key: `users/${p.id}.json`, Body: body, ContentType: 'application/json' })); return; }
+  fs.mkdirSync(USER_DIR, { recursive: true }); fs.writeFileSync(path.join(USER_DIR, `${p.id}.json`), body);
+}
+
+/** Deletes a user created from Gmail: profile, context space and saved login. */
+export async function deleteUser(id: string) {
+  if (!id.startsWith('u-')) throw new Error('Sample people cannot be deleted');
+  users.delete(id); dropSpace(id);
+  if (BUCKET) { const { mod, client } = await s3(); for (const Key of [`users/${id}.json`, `context/${id}.db`]) await client.send(new mod.DeleteObjectCommand({ Bucket: BUCKET, Key })).catch(() => {}); return; }
+  fs.rmSync(path.join(USER_DIR, `${id}.json`), { force: true });
+}
+
 export function persona(id: string): Persona {
-  const p = personas().find(x => x.id === id);
+  const p = personas().find(x => x.id === id) ?? users.get(id);
   if (!p) throw Object.assign(new Error(`Unknown person "${id}"`), { status: 404 });
   return p;
 }

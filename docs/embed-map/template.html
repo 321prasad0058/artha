@@ -1,0 +1,280 @@
+<title>Artha Embedding Map</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Noto+Sans+Devanagari:wght@400;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: Artha's own calm look. A light card holds one person's map (fits the screen, zoom optional), a person picker on top,
+   a detail card beside it (below it on phones), then the same-name pairs and how the space is built. */
+:root {
+  --bg: #f5f3ee; --surface: #ffffff; --surface-2: #faf9f6; --ink: #15171b; --ink-2: #2d3036; --muted: #5d6168; --line: #e4e0d7; --line-2: #d3cec3;
+  --accent: #2c46c2; --accent-soft: #e8ecfb; --twin: #6c3fa3; --twin-soft: #f1eaf9;
+  --family: #d94f7a; --work: #3b5bdb; --business: #d9822b; --health: #0b8a7d; --friends: #7b52c7; --services: #4a9a2f; --risk: #c4342b;
+  --fact: #d99a1c; --turn: #5b6ee1; --event: #12a594; --book: #d9822b;
+  --display: 'Instrument Sans', 'Noto Sans Devanagari', system-ui, sans-serif; --mono: 'JetBrains Mono', ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0f1013; --surface: #1a1c20; --surface-2: #1f2226; --ink: #eeede8; --ink-2: #d6d5cf; --muted: #a4a7ad; --line: #2a2d33; --line-2: #3a3e45;
+  --accent: #93a6ff; --accent-soft: #232a4c; --twin: #c49df1; --twin-soft: #2d2141; color-scheme: dark } }
+:root[data-theme="dark"] { --bg: #0f1013; --surface: #1a1c20; --surface-2: #1f2226; --ink: #eeede8; --ink-2: #d6d5cf; --muted: #a4a7ad; --line: #2a2d33; --line-2: #3a3e45;
+  --accent: #93a6ff; --accent-soft: #232a4c; --twin: #c49df1; --twin-soft: #2d2141; color-scheme: dark }
+* { box-sizing: border-box }
+body { background: var(--bg); color: var(--ink); font-family: var(--display); font-size: 15px; line-height: 1.5; -webkit-font-smoothing: antialiased }
+.wrap { max-width: 1240px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 28px 64px; display: grid; gap: 22px }
+.eyebrow { font-size: 12px; font-weight: 600; letter-spacing: .06em; color: var(--accent); text-transform: uppercase }
+h1 { margin: 4px 0 0; font-size: clamp(26px, 3.6vw, 40px); letter-spacing: -.035em; line-height: 1.08; text-wrap: balance }
+.sub { color: var(--muted); margin-top: 6px; max-width: 70ch }
+.picker { display: flex; flex-wrap: wrap; gap: 6px }
+.picker button { display: flex; align-items: center; gap: 7px; padding: 5px 12px 5px 5px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); font: 600 13.5px var(--display); cursor: pointer }
+.picker button span { width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; font-size: 10px; background: var(--ink); color: var(--bg) }
+.picker button[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink) } .picker button[aria-pressed="true"] span { background: var(--bg); color: var(--ink) }
+button:focus-visible, .pnode:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px }
+.board { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 16px; align-items: start }
+.map { position: relative; background: var(--surface); border: 1px solid var(--line); border-radius: 22px; overflow: hidden; height: min(68vh, 640px); min-height: 460px }
+#svg { width: 100%; height: 100%; display: block; touch-action: none; cursor: grab } #svg:active { cursor: grabbing }
+.zoom { position: absolute; right: 12px; top: 12px; display: grid; gap: 4px; z-index: 2 }
+.zoom button { width: 34px; height: 34px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); font: 600 18px var(--display); cursor: pointer; line-height: 1 }
+.zoom button:hover { border-color: var(--accent); color: var(--accent) }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 12.5px; color: var(--muted); padding: 2px 4px }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; vertical-align: -1px; background: currentColor }
+.legend .k i { width: 7px; height: 7px; vertical-align: 1px }
+.legend .t i { width: 16px; height: 0; border-radius: 0; border-top: 2px dashed currentColor; background: none; vertical-align: 3px }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 16px; display: grid; gap: 10px }
+.card h2 { margin: 0; font-size: 19px; letter-spacing: -.02em } .card .rel { color: var(--muted); font-size: 13.5px; margin-top: -6px }
+.card p { margin: 0; font-size: 14px; color: var(--ink-2) }
+.chips { display: flex; flex-wrap: wrap; gap: 5px } .chip { font-size: 12px; font-weight: 600; padding: 2px 9px; border-radius: 999px; background: var(--surface-2); border: 1px solid var(--line); color: var(--ink-2) }
+.meter { display: grid; gap: 7px } .meter div { display: grid; grid-template-columns: 1fr 44px; gap: 8px; align-items: center; font-size: 13px; color: var(--ink-2) }
+.bar { height: 6px; border-radius: 99px; background: var(--surface-2); border: 1px solid var(--line); overflow: hidden; grid-column: 1 / -1; margin-top: -3px } .bar b { display: block; height: 100%; background: var(--accent) }
+.bar.twin b { background: var(--twin) }
+.num { font-family: var(--mono); font-size: 12px; text-align: right; color: var(--ink) }
+.mems { display: grid; gap: 6px; max-height: 220px; overflow: auto }
+.mems div { font-size: 13px; color: var(--ink-2); padding: 6px 9px; border-radius: 10px; background: var(--surface-2); border-left: 3px solid var(--c, var(--accent)) }
+.tip { position: absolute; z-index: 4; pointer-events: none; max-width: 300px; font-size: 13px; color: var(--ink); padding: 8px 11px; border-radius: 12px; background: var(--surface); border: 1px solid var(--line-2); box-shadow: 0 12px 30px -16px rgba(0,0,0,.35); transform: translate(12px, 12px) }
+.tip b { display: block; font-size: 11px; color: var(--accent); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 2px }
+h2.sec { margin: 18px 0 0; font-size: 22px; letter-spacing: -.025em } .lead { color: var(--muted); max-width: 70ch; margin: 4px 0 0 }
+.twins { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 10px }
+.twin-card { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 14px; display: grid; gap: 10px; cursor: pointer; text-align: left; color: inherit; font: inherit }
+.twin-card:hover { border-color: var(--twin) }
+.pair { display: grid; grid-template-columns: 1fr auto 1fr; gap: 10px } .pair b { display: block; font-size: 15px } .pair span { font-size: 12.5px; color: var(--muted) } .pair .who:last-child { text-align: right } .pair .vs { font-size: 11px; color: var(--muted); padding-top: 3px }
+.simrow { display: grid; grid-template-columns: auto 1fr auto; gap: 10px; align-items: center; font-size: 12.5px; color: var(--muted) }
+.simbar { height: 7px; border-radius: 99px; background: var(--surface-2); border: 1px solid var(--line); overflow: hidden } .simbar b { display: block; height: 100%; background: var(--twin) }
+.twin-card small { color: var(--muted); font-size: 12px }
+.facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px }
+.fact { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 14px 16px; display: grid; gap: 3px }
+.fact b { font-size: 17px } .fact span { font-size: 13px; color: var(--muted) } .fact code { font-family: var(--mono); font-size: 14px; color: var(--accent) }
+/* the map's drawing */
+.edge { stroke: var(--line-2); stroke-width: 1.3 } .tether { stroke-width: 1.2; opacity: .55 }
+.halo { opacity: .09 }
+.pnode { cursor: pointer } .pnode circle.core { stroke: var(--surface); stroke-width: 3 }
+.pnode text { font: 600 13.5px var(--display); fill: var(--ink); paint-order: stroke; stroke: var(--surface); stroke-width: 4px; stroke-linejoin: round }
+.pnode text.rel { font: 500 11.5px var(--display); fill: var(--muted) }
+.pnode:hover circle.core { stroke: var(--ink); stroke-width: 2 }
+.unode text { font: 700 15px var(--display); fill: var(--bg) }
+.mem { cursor: help; stroke: var(--surface); stroke-width: 1.5 }
+.twin-arc { fill: none; stroke: var(--twin); stroke-width: 2; stroke-dasharray: 6 5 }
+.twin-tag rect { fill: var(--twin-soft); stroke: var(--twin) } .twin-tag text { font: 600 11.5px var(--mono); fill: var(--twin) } .twin-tag { pointer-events: none }
+.dim { opacity: .12 } [data-id], [data-twin] { transition: opacity .25s }
+@media (max-width: 900px) { .board { grid-template-columns: minmax(0, 1fr) } .map { height: 70vh; min-height: 520px } }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Artha · memory map · text-embedding-3-large</div>
+    <h1 id="title">—</h1>
+    <p class="sub" id="sub"></p>
+  </header>
+  <div class="picker" id="picker" role="group" aria-label="Choose a person"></div>
+  <div class="board">
+    <div>
+      <div class="map">
+        <svg id="svg" role="img" aria-label="People and memories placed by meaning"></svg>
+        <div class="zoom"><button type="button" id="zin" aria-label="Zoom in">+</button><button type="button" id="zout" aria-label="Zoom out">−</button><button type="button" id="zfit" aria-label="Fit to screen" style="font-size:12px">fit</button></div>
+        <div class="tip" id="tip" hidden></div>
+      </div>
+      <div class="legend" id="legend" style="margin-top:10px"></div>
+    </div>
+    <aside class="card" id="card" aria-live="polite"></aside>
+  </div>
+
+  <section>
+    <h2 class="sec">Same name, different people</h2>
+    <p class="lead">Every person here has two people who share a name. In the embedding space they sit apart, because what Artha knows about each one is different. The number is cosine similarity between their two profiles (1 would mean identical). Tap a pair to see it on the map.</p>
+  </section>
+  <div class="twins" id="twins"></div>
+  <section>
+    <h2 class="sec">How this space is built</h2>
+    <p class="lead">Each piece of text in a person's context space is turned into a vector of 256 numbers by the same model. Text that means similar things gets similar numbers, in any language. The map squeezes those 256 dimensions into the 2 that spread the points out most (principal component analysis), then nudges people apart just enough to keep every name readable. Treat distances as a faithful sketch, not exact.</p>
+  </section>
+  <div class="facts" id="facts"></div>
+</div>
+
+<script>
+const DATA = __DATA__;
+const ORDER = ['rohan', 'aditya', 'imran', 'sunita', 'fatima', 'gurpreet', 'ananya', 'meenakshi'];
+const GROUP = { family: ['Family', 'var(--family)'], work: ['Work', 'var(--work)'], business: ['Business', 'var(--business)'], health: ['Health', 'var(--health)'], friends: ['Friends', 'var(--friends)'], services: ['Services', 'var(--services)'], risk: ['Scam caller', 'var(--risk)'] };
+const KIND = { fact: ['Fact', 'var(--fact)'], turn: ['Conversation', 'var(--turn)'], event: ['Chat or call', 'var(--event)'], book: ['Khata', 'var(--book)'] };
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const initials = n => n.replace(/[^A-Za-z ]/g, '').split(' ').filter(Boolean).slice(0, 2).map(w => w[0]).join('');
+const svg = document.getElementById('svg'), tip = document.getElementById('tip');
+const NS = 'http://www.w3.org/2000/svg';
+const el = (tag, attrs = {}, parent = svg) => { const e = document.createElementNS(NS, tag); for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v); parent.append(e); return e; };
+let current = null, selected = null, layout = null;
+
+/** People placed by their real 2D embedding position (relative to the person), then gently pushed apart so names never collide. */
+function computeLayout(W, H) {
+  const narrow = W < 600, pad = narrow ? 50 : 76, card = 0, bottom = 20;
+  const cx = (W - card) / 2, cy = (H - bottom) / 2 + 20;
+  const u = current.user.p;
+  const raw = current.people.map(p => [p.p[0] - u[0], p.p[1] - u[1]]);
+  const rx = Math.max(...raw.map(r => Math.abs(r[0]))) || 1, ry = Math.max(...raw.map(r => Math.abs(r[1]))) || 1;
+  const sx = (cx - pad) / rx, sy = ((H - bottom) / 2 - pad + 10) / ry;
+  const pts = raw.map(r => ({ x: cx + r[0] * sx, y: cy + r[1] * sy }));
+  const minD = narrow ? 84 : 150, all = [{ x: cx, y: cy, fixed: true }, ...pts];
+  for (let it = 0; it < 300; it++) for (let i = 0; i < all.length; i++) for (let j = i + 1; j < all.length; j++) {
+    const a = all[i], b = all[j]; let dx = b.x - a.x, dy = b.y - a.y; const d = Math.hypot(dx, dy) || .01;
+    if (d < minD) { const push = (minD - d) / 2; dx /= d; dy /= d; if (!a.fixed) { a.x -= dx * push; a.y -= dy * push; } if (!b.fixed) { b.x += dx * push * (a.fixed ? 2 : 1); b.y += dy * push * (a.fixed ? 2 : 1); } }
+  }
+  for (const p of pts) { p.x = Math.max(pad + 30, Math.min(W - card - pad - 30, p.x)); p.y = Math.max(pad + 10, Math.min(H - 78, p.y)); }   // room for labels under every node
+  const pos = {}; current.people.forEach((p, i) => (pos[p.id] = pts[i]));
+  return { W, H, cx, cy, pos, narrow };
+}
+
+function draw() {
+  const r = svg.getBoundingClientRect(); svg.setAttribute('viewBox', `0 0 ${r.width} ${r.height}`); svg.innerHTML = '';
+  layout = computeLayout(r.width, r.height);
+  const { cx, cy, pos, narrow } = layout;
+  const defs = el('defs');
+  const root = el('g', { id: 'root' }); const G = (tag, attrs) => el(tag, attrs, root); void defs;
+  // soft group halos
+  for (const g of Object.keys(GROUP)) for (const p of current.people.filter(x => x.group === g)) G('circle', { cx: pos[p.id].x, cy: pos[p.id].y, r: narrow ? 34 : 46, style: `fill:${GROUP[g][1]}`, class: 'halo', 'data-id': p.id });
+  // the person to each person in their life
+  for (const p of current.people) G('line', { x1: cx, y1: cy, x2: pos[p.id].x, y2: pos[p.id].y, class: 'edge', 'data-id': p.id });
+  // memories orbit their person, tilted toward where they really sit in meaning
+  const byOwner = {};
+  for (const m of current.memories) (byOwner[m.entity || m.nearest] ??= []).push(m);
+  for (const [owner, ms] of Object.entries(byOwner)) {
+    const o = pos[owner]; if (!o) continue; const op = current.people.find(p => p.id === owner).p;
+    const order = ms.map((m, i) => ({ m, i, k: Math.cos(Math.atan2(m.p[1] - op[1], m.p[0] - op[0])) })).sort((a, b) => a.k - b.k);
+    order.forEach(({ m }, j) => {
+      const i = j, span = Math.min(Math.PI * .8, .32 * Math.max(1, ms.length - 1));
+      const a = -Math.PI / 2 + (ms.length > 1 ? (j / (ms.length - 1) - .5) * span * 2 : 0), rr = (narrow ? 28 : 36) + (j % 2) * (narrow ? 8 : 12);
+      const x = o.x + Math.cos(a) * rr, y = o.y + Math.sin(a) * rr;
+      G('line', { x1: o.x, y1: o.y, x2: x, y2: y, style: `stroke:${KIND[m.kind]?.[1] ?? 'var(--muted)'}`, class: 'tether', 'data-id': owner });
+      const c = G('circle', { cx: x, cy: y, r: narrow ? 4.5 : 5.5, style: `fill:${KIND[m.kind]?.[1] ?? 'var(--muted)'}`, class: 'mem', 'data-id': owner });
+      c.addEventListener('pointerenter', e => showTip(e, m, owner)); c.addEventListener('pointerleave', () => (tip.hidden = true));
+      c.addEventListener('click', e => { e.stopPropagation(); showTip(e, m, owner); });
+    });
+  }
+  // same-name pairs: a violet curve with how similar they are
+  for (const t of current.twins) {
+    const a = pos[t.a], b = pos[t.b]; if (!a || !b) continue;
+    const mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2, dx = b.x - a.x, dy = b.y - a.y, len = Math.hypot(dx, dy) || 1;
+    let nx = -dy / len, ny = dx / len; if ((cx - mx) * nx + (cy - my) * ny < 0) { nx = -nx; ny = -ny; }   // bend toward the centre, into open space
+    const bend = Math.max(50, Math.min(110, len * .45)), qx = mx + nx * bend, qy = my + ny * bend;
+    G('path', { d: `M${a.x},${a.y} Q${qx},${qy} ${b.x},${b.y}`, class: 'twin-arc', 'data-twin': `${t.a} ${t.b}` });
+    const tx = .25 * a.x + .5 * qx + .25 * b.x, ty = .25 * a.y + .5 * qy + .25 * b.y;
+    const g = G('g', { class: 'twin-tag', 'data-twin': `${t.a} ${t.b}` }), label = `same name · ${t.sim.toFixed(2)}`, w = label.length * 7 + 16;
+    el('rect', { x: tx - w / 2, y: ty - 12, width: w, height: 24, rx: 12 }, g); el('text', { x: tx, y: ty + 4, 'text-anchor': 'middle' }, g).textContent = label;
+  }
+  // the people
+  current.people.forEach((p, i) => {
+    const { x, y } = pos[p.id], col = GROUP[p.group][1], rad = (narrow ? 9 : 11) + Math.min(narrow ? 6 : 9, Math.sqrt(p.interactions + p.memories) * 1.6);
+    const g = G('g', { class: 'pnode', tabindex: 0, role: 'button', 'aria-label': `${p.name}, ${p.rel}`, 'data-id': p.id }); void i;
+    el('circle', { cx: x, cy: y, r: rad, style: `fill:${col}`, class: 'core' }, g);
+    const below = 1;
+    el('text', { x, y: y + below * (rad + (below > 0 ? 18 : 10)), 'text-anchor': 'middle' }, g).textContent = narrow ? p.name.replace(/\s*\(.*\)/, '').slice(0, 18) : p.name;
+    if (!narrow) el('text', { x, y: y + below * (rad + (below > 0 ? 33 : 25)), 'text-anchor': 'middle', class: 'rel' }, g).textContent = p.rel.length > 30 ? p.rel.slice(0, 29) + '…' : p.rel;
+    g.addEventListener('click', e => { e.stopPropagation(); select(p.id); });
+    g.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); select(p.id); } });
+  });
+  // the person, at the centre
+  const u = G('g', { class: 'unode' });
+  el('circle', { cx, cy, r: narrow ? 40 : 50, style: 'fill:var(--accent-soft)' }, u);
+  el('circle', { cx, cy, r: narrow ? 27 : 33, style: 'fill:var(--ink)' }, u);
+  el('text', { x: cx, y: cy + 6, 'text-anchor': 'middle' }, u).textContent = current.user.name.split(' ')[0];
+  applySelection(); applyZoom();
+}
+// zoom is optional: + / − / fit, and drag to move around when zoomed in
+const Z = { k: 1, x: 0, y: 0 };
+function applyZoom() { const r = document.getElementById('root'); if (r) r.setAttribute('transform', `translate(${Z.x},${Z.y}) scale(${Z.k})`); }
+function zoomBy(f) { const b = svg.getBoundingClientRect(), cx = b.width / 2, cy = b.height / 2, k = Math.max(1, Math.min(3, Z.k * f)); Z.x = cx - (cx - Z.x) * k / Z.k; Z.y = cy - (cy - Z.y) * k / Z.k; Z.k = k; if (k === 1) { Z.x = 0; Z.y = 0; } applyZoom(); }
+document.getElementById('zin').onclick = () => zoomBy(1.35); document.getElementById('zout').onclick = () => zoomBy(1 / 1.35); document.getElementById('zfit').onclick = () => { Z.k = 1; Z.x = 0; Z.y = 0; applyZoom(); };
+let pan = null;
+svg.addEventListener('pointerdown', e => { if (Z.k > 1) pan = { x: e.clientX, y: e.clientY, moved: 0 }; });
+svg.addEventListener('pointermove', e => { if (!pan) return; const dx = e.clientX - pan.x, dy = e.clientY - pan.y; pan.moved += Math.abs(dx) + Math.abs(dy); pan.x = e.clientX; pan.y = e.clientY; Z.x += dx; Z.y += dy; applyZoom(); });
+svg.addEventListener('pointerup', () => { setTimeout(() => (pan = null), 0); });
+svg.addEventListener('click', () => { if (!pan || pan.moved < 5) select(null); });
+
+function showTip(e, m, owner) {
+  const r = svg.getBoundingClientRect(), o = current.people.find(p => p.id === owner);
+  tip.hidden = false; tip.style.left = `${Math.min(e.clientX - r.left, r.width - 320)}px`; tip.style.top = `${e.clientY - r.top}px`;
+  tip.innerHTML = `<b>${KIND[m.kind]?.[0] ?? m.kind}${o ? ` · ${m.entity ? 'about' : 'closest to'} ${esc(o.name)}` : ''}</b>${esc(m.text)}`;
+}
+function related(id) { const s = new Set([id]); for (const t of current.twins) { if (t.a === id) s.add(t.b); if (t.b === id) s.add(t.a); } return s; }
+function applySelection() {
+  const keep = selected ? related(selected) : null;
+  svg.querySelectorAll('[data-id]').forEach(n => n.classList.toggle('dim', !!keep && !keep.has(n.dataset.id)));
+  svg.querySelectorAll('[data-twin]').forEach(n => n.classList.toggle('dim', !!keep && !n.dataset.twin.split(' ').some(x => keep.has(x))));
+}
+function select(id) { selected = selected === id ? null : id; applySelection(); renderCard(selected); }
+
+function renderHeader() {
+  const u = current.user;
+  document.getElementById('title').textContent = `${u.name}'s memory map`;
+  document.getElementById('sub').textContent = `${u.city} · ${u.speaks.join(', ')} · ${current.people.length} people · ${current.vectors} memories stored. People who mean similar things in ${u.name.split(' ')[0]}'s life sit closer together. Tap anyone.`;
+}
+function renderLegend() {
+  const groups = [...new Set(current.people.map(p => p.group))];
+  document.getElementById('legend').innerHTML = groups.map(g => `<span style="color:${GROUP[g][1]}"><i></i><span style="color:var(--muted)">${GROUP[g][0]}</span></span>`).join('') +
+    Object.entries(KIND).filter(([k]) => current.memories.some(m => m.kind === k)).map(([, [n, c]]) => `<span class="k" style="color:${c}"><i></i><span style="color:var(--muted)">${n}</span></span>`).join('') +
+    `<span class="t" style="color:var(--twin)"><i></i><span style="color:var(--muted)">Same name</span></span>`;
+}
+function renderCard(id) {
+  const card = document.getElementById('card');
+  if (!id) {
+    const t = current.twins[0];
+    const a = t && current.people.find(p => p.id === t.a), b = t && current.people.find(p => p.id === t.b);
+    card.innerHTML = `<h2>${esc(current.user.name.split(' ')[0])}'s world</h2><p>${esc(current.user.about)}</p>` +
+      (t ? `<div class="meter"><div><span>${esc(a.name)} vs ${esc(b.name)}</span><span class="num">${t.sim.toFixed(2)}</span><div class="bar"><b style="width:${t.sim * 100}%;background:var(--twin)"></b></div></div></div>
+      <p>Same name, ${t.sim < .6 ? 'clearly' : 'still'} apart in meaning: <b style="color:var(--ink)">${esc(a.rel)}</b> vs <b style="color:var(--ink)">${esc(b.rel)}</b>. That gap is how Artha picks the right one without asking.</p>` : '') +
+      `<p style="color:var(--muted)">Tap a person to see who they sit closest to.</p>`;
+    return;
+  }
+  const p = current.people.find(x => x.id === id), mems = current.memories.filter(m => (m.entity || m.nearest) === id);
+  const name = pid => current.people.find(x => x.id === pid)?.name ?? pid;
+  const twin = current.twins.find(t => t.a === id || t.b === id);
+  card.innerHTML = `<h2 style="color:${GROUP[p.group][1]}">${esc(p.name)}</h2><div class="rel">${esc(p.rel)}</div>${p.about ? `<p>${esc(p.about)}</p>` : ''}
+    ${p.called.length ? `<div class="chips">${p.called.map(c => `<span class="chip">“${esc(c)}”</span>`).join('')}</div>` : ''}
+    ${twin ? `<div class="meter"><div><span>Same name: ${esc(name(twin.a === id ? twin.b : twin.a))}</span><span class="num">${twin.sim.toFixed(2)}</span><div class="bar"><b style="width:${twin.sim * 100}%;background:var(--twin)"></b></div></div></div>` : ''}
+    <div class="meter">${p.near.map(n => `<div><span>Close in meaning: ${esc(name(n.id))}</span><span class="num">${n.sim.toFixed(2)}</span><div class="bar"><b style="width:${Math.max(0, n.sim) * 100}%"></b></div></div>`).join('')}</div>
+    ${mems.length ? `<div class="mems">${mems.slice(0, 8).map(m => `<div style="--c:${KIND[m.kind]?.[1]}">${esc(m.text)}</div>`).join('')}</div>` : `<p style="color:var(--muted)">No memories stored about them yet.</p>`}`;
+}
+
+document.getElementById('picker').innerHTML = ORDER.filter(id => DATA.people[id]).map(id => { const u = DATA.people[id].user; return `<button type="button" data-id="${id}" aria-pressed="false"><span>${esc(initials(u.name))}</span>${esc(u.name.split(' ')[0])}</button>`; }).join('');
+document.getElementById('picker').addEventListener('click', e => { const b = e.target.closest('button'); if (b) location.hash = b.dataset.id; });
+const allTwins = ORDER.flatMap(id => (DATA.people[id]?.twins ?? []).map(t => ({ ...t, who: id })));
+document.getElementById('twins').innerHTML = allTwins.map(t => {
+  const P = DATA.people[t.who], a = P.people.find(p => p.id === t.a), b = P.people.find(p => p.id === t.b);
+  return `<button class="twin-card" type="button" data-who="${t.who}" data-id="${t.a}">
+    <div class="pair"><div class="who"><b>${esc(a.name)}</b><span>${esc(a.rel)}</span></div><div class="vs">vs</div><div class="who"><b>${esc(b.name)}</b><span>${esc(b.rel)}</span></div></div>
+    <div class="simrow"><span>similar</span><div class="simbar"><b style="width:${t.sim * 100}%"></b></div><span class="num">${t.sim.toFixed(2)}</span></div>
+    <small>In ${esc(P.user.name.split(' ')[0])}'s phone</small></button>`;
+}).join('');
+document.getElementById('twins').addEventListener('click', e => { const c = e.target.closest('.twin-card'); if (!c) return; location.hash = c.dataset.who; setTimeout(() => { selected = null; select(c.dataset.id); }, 50); document.querySelector('.map').scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' }); });
+const totalVec = ORDER.reduce((s, id) => s + (DATA.people[id]?.vectors ?? 0), 0);
+document.getElementById('facts').innerHTML = [
+  ['Model', `<code>${DATA.model}</code>`, 'OpenAI. Chosen because it matched a Marathi sentence to its English meaning best (0.52 vs 0.34 for the small model).'],
+  ['Size', `<code>${DATA.dims}</code> numbers`, 'Shortened from 3,072. Stored as 8-bit, about 260 bytes per piece of text.'],
+  ['Stored now', `<code>${totalVec}</code> vectors`, `Across ${ORDER.length} people: facts, conversation turns, chats and khata lines.`],
+  ['Where', '<code>SQLite per person</code>', 'One file per person in S3, kept 90 days. Searched in memory in under a millisecond.'],
+].map(([k, v, d]) => `<div class="fact"><span>${k}</span><b>${v}</b><span>${d}</span></div>`).join('');
+
+function route() {
+  const id = ORDER.includes(location.hash.slice(1)) ? location.hash.slice(1) : 'rohan';
+  current = DATA.people[id]; selected = null; Z.k = 1; Z.x = 0; Z.y = 0;
+  document.querySelectorAll('.picker button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.id === id)));
+  renderHeader(); renderLegend(); renderCard(null); draw();
+}
+addEventListener('hashchange', route);
+let rt; addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(draw, 150); });
+route();
+</script>
+</div>

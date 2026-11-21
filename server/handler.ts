@@ -4,12 +4,14 @@ import path from 'node:path';
 import { MODELS, speechStream, transcribe } from './openai.js';
 import { hintWords } from './pipeline/candidates.js';
 import { understand } from './pipeline/understand.js';
-import { loadState, persona, personas, resetState, saveState } from './store.js';
+import { deleteUser, ensurePersona, loadState, persona, personas, resetState, saveState, saveUser } from './store.js';
+import crypto from 'node:crypto';
 import { file, habitsOf, learnHabit, personCard, space, voicePeople, TTL_MS } from './context/space.js';
 import { embedQueryAndPending } from './context/embed.js';
 import { romanize } from './pipeline/translit.js';
 import type { Action, BookEntry, Mode, Persona, Result, State } from './types.js';
 import { scanImage } from './pipeline/scan.js';
+import { SIGNUP_SCOPES, authUrl, checkState, dropToken, exchangeCode, googleConfigured, loadToken, profile, saveToken, syncEvents, userInfo } from './connectors/gmail.js';
 
 /** The person's contacts plus everyone first heard in their voice notes, so "Anand Patil" is known next time. */
 function withKnownPeople(p: Persona): Persona {
@@ -93,6 +95,7 @@ export async function* noteEvents(req: Req): AsyncGenerator<Record<string, unkno
   const isAudio = /^audio\//.test(req.headers['content-type'] ?? '');
   const b = isAudio ? {} as any : parse(req.body);
   const pid = String((isAudio ? req.query.get('p') : b.p) ?? '');
+  await ensurePersona(pid);
   const mode = ((isAudio ? req.query.get('mode') : b.mode) ?? 'artha') as Mode;
   const base = persona(pid);
   const statePromise = loadState(base.id);
@@ -152,9 +155,30 @@ export async function* noteEvents(req: Req): AsyncGenerator<Record<string, unkno
   }
 }
 
+/** Gmail sync as progress events; the result is saved into the person's context space at the end. */
+export async function* gmailSyncEvents(req: Req): AsyncGenerator<Record<string, unknown>> {
+  const b = parse(req.body);
+  await ensurePersona(String(b.p ?? ''));
+  const base = persona(String(b.p ?? ''));
+  const state = await loadState(base.id);
+  for await (const e of syncEvents(state, withKnownPeople(base))) yield e;
+  await saveState(state);
+  yield { t: 'state', state };
+}
+
+/** Routes that answer as a stream of newline-delimited JSON events. */
+export const STREAMS: Record<string, (req: Req) => AsyncGenerator<Record<string, unknown>>> = { '/api/note': noteEvents, '/api/gmail/sync': gmailSyncEvents };
+
+function origin(req: Req) {
+  const host = req.headers['x-forwarded-host'] ?? req.headers.host ?? 'localhost:8787';
+  return /^(localhost|127\.0\.0\.1)/.test(host) ? `http://${host}` : `https://${host}`;
+}
+
 export async function handle(req: Req): Promise<Res> {
   try {
     const { method, path: p, query } = req;
+    // users created from Gmail are loaded on demand
+    { let pid = query.get('p') ?? ''; if (!pid && method === 'POST' && /json/.test(req.headers['content-type'] ?? '')) { try { pid = parse(req.body).p ?? ''; } catch { /* not json */ } } await ensurePersona(String(pid)); }
 
     if (p === '/api/health') return json(200, { ok: true, models: MODELS });
 
@@ -209,6 +233,97 @@ export async function handle(req: Req): Promise<Res> {
       const events: Record<string, unknown>[] = [];
       for await (const e of noteEvents(req)) events.push(e);
       return json(200, { events });
+    }
+
+    // ---- Gmail connector (read-only)
+    if (p === '/api/gmail/status' && method === 'GET') {
+      const pid = persona(query.get('p') ?? '').id;
+      const t = googleConfigured() ? await loadToken(pid) : null;
+      const s = await loadState(pid);
+      return json(200, { configured: googleConfigured(), connected: !!t, email: t?.email ?? '', lastSync: s.gmail?.lastSync ?? '', stats: s.gmail?.stats ?? null });
+    }
+    if (p === '/api/gmail/connect' && method === 'GET') {
+      if (!googleConfigured()) return json(400, { error: 'Gmail is not set up on this server yet' });
+      const pid = persona(query.get('p') ?? '').id;
+      return { status: 302, headers: { location: authUrl(pid, `${process.env.ARTHA_PUBLIC_URL || origin(req)}/api/gmail/callback`) }, body: '' };
+    }
+    // Sign up with Google: Artha builds a new user from their own mail
+    if (p === '/api/auth/google' && method === 'GET') {
+      if (!googleConfigured()) return json(400, { error: 'Google sign-in is not set up on this server yet' });
+      return { status: 302, headers: { location: authUrl('new', `${process.env.ARTHA_PUBLIC_URL || origin(req)}/api/gmail/callback`, SIGNUP_SCOPES) }, body: '' };
+    }
+    if (p === '/api/persona' && method === 'GET') {
+      const x = persona(query.get('p') ?? '');
+      return json(200, { id: x.id, name: x.name, age: x.age, about: x.about, city: x.city, speaks: x.speaks, avatar: x.avatar, contacts: x.contacts, source: x.source ?? 'sample', email: x.email });
+    }
+    if (p === '/api/gmail/callback' && method === 'GET' && checkState(query.get('state') ?? '') === 'new') {
+      const back = process.env.ARTHA_PUBLIC_URL || origin(req);
+      if (!query.get('code')) return { status: 302, headers: { location: `${back}/?signup=failed` }, body: '' };
+      const tok = await exchangeCode(query.get('code')!, `${back}/api/gmail/callback`);
+      const me = await userInfo(tok.access_token);
+      const id = `u-${crypto.createHmac('sha256', process.env.ARTHA_TOKEN_KEY ?? 'artha').update(me.email.toLowerCase()).digest('hex').slice(0, 14)}`;
+      await ensurePersona(id);
+      let isNew = false;
+      try { persona(id); } catch {
+        isNew = true;
+        const name = me.name || me.email.split('@')[0];
+        await saveUser({ id, source: 'gmail', email: me.email, name, age: 0, about: '', city: '', speaks: ['English'], avatar: name.split(/\s+/).map(w => w[0]).join('').slice(0, 2).toUpperCase(), contacts: [], events: [], memory: [], calendar: [], ledger: [] });
+      }
+      const prev = await loadToken(id);
+      const refresh = tok.refresh_token ?? prev?.refresh;
+      if (!refresh) return { status: 302, headers: { location: `${back}/?signup=failed` }, body: '' };
+      await saveToken(id, { refresh, email: me.email, at: nowIso() });
+      return { status: 302, headers: { location: `${back}/?p=${id}&gmail=connected${isNew ? '&new=1' : ''}` }, body: '' };
+    }
+    if (p === '/api/gmail/callback' && method === 'GET') {
+      const pid = checkState(query.get('state') ?? '');
+      const back = process.env.ARTHA_PUBLIC_URL || origin(req);
+      if (!pid || !query.get('code')) return { status: 302, headers: { location: `${back}/?p=${pid ?? ''}&gmail=failed` }, body: '' };
+      const tok = await exchangeCode(query.get('code')!, `${back}/api/gmail/callback`);
+      const prev = await loadToken(pid);
+      const refresh = tok.refresh_token ?? prev?.refresh;
+      if (!refresh) return { status: 302, headers: { location: `${back}/?p=${pid}&gmail=failed` }, body: '' };
+      const me = await profile(tok.access_token);
+      await saveToken(pid, { refresh, email: me.emailAddress, at: nowIso() });
+      return { status: 302, headers: { location: `${back}/?p=${pid}&gmail=connected` }, body: '' };
+    }
+    if (p === '/api/gmail/disconnect' && method === 'POST') {
+      const pid = persona(parse(req.body).p).id;
+      await dropToken(pid);
+      const s = await loadState(pid);
+      // forget everything that came from Gmail
+      s.memory = s.memory.filter(m => !m.src.startsWith('Gmail'));
+      s.calendar = s.calendar.filter(c => c.source !== 'gmail');
+      s.book = (s.book ?? []).filter(b => !b.id.startsWith('gmail:'));
+      for (const k of Object.keys(s.threads)) s.threads[k] = s.threads[k].filter(x => x.via !== 'Gmail');
+      s.people = []; s.gmail = undefined;
+      await saveState(s);
+      return json(200, { state: s });
+    }
+
+    // ---- settings: your profile, forgetting, deleting
+    if (p === '/api/profile' && method === 'POST') {
+      const b = parse(req.body);
+      const cur = persona(String(b.p ?? ''));
+      if (cur.source !== 'gmail') return json(400, { error: 'Sample people cannot be edited' });
+      const clean = (v: unknown, n: number) => String(v ?? '').trim().slice(0, n);
+      const name = clean(b.name, 60) || cur.name;
+      const next = { ...cur, name, city: clean(b.city, 60), about: clean(b.about, 240), speaks: Array.isArray(b.speaks) ? b.speaks.map((x: unknown) => clean(x, 20)).filter(Boolean).slice(0, 6) : cur.speaks,
+        avatar: name.split(/\s+/).map((w: string) => w[0]).join('').slice(0, 2).toUpperCase() };
+      await saveUser(next);
+      return json(200, { persona: next });
+    }
+    if (p === '/api/me/forget' && method === 'POST') {
+      const pid = persona(String(parse(req.body).p ?? '')).id;
+      const prev = await loadState(pid);
+      const s = await resetState(pid);
+      if (prev.gmail) { s.gmail = { ...prev.gmail, seen: [], stats: {}, lastSync: '' }; await saveState(s); }   // still connected; the next sync re-reads mail
+      return json(200, { state: s });
+    }
+    if (p === '/api/me/delete' && method === 'POST') {
+      const pid = String(parse(req.body).p ?? '');
+      await dropToken(pid); await deleteUser(pid);
+      return json(200, { ok: true });
     }
 
     // The user answered "which one?": remember it.

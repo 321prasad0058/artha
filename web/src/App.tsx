@@ -6,9 +6,11 @@ import { API_BASE, api, type PersonaInfo, type Sample, type Scan } from './api';
 import { Orb, type OrbMode } from './Orb';
 import { Intro, shouldShowIntro } from './Intro';
 import { startRecording, type Recording } from './recorder';
+import { closeGetApp, inAppBrowser, installNow, iosFlow, isSafariMac, openGetApp, platform, standalone, useInstall } from './install';
 
 /* ---------------- icons ---------------- */
 const P: Record<string, string> = {
+  download: 'M12 4v11M7 10l5 5 5-5M5 20h14', share: 'M12 3v12M8 7l4-4 4 4M7 11H5v10h14V11h-2', plusbox: 'M4 4h16v16H4zM12 8v8M8 12h8', dots: 'M5 12h.01M12 12h.01M19 12h.01', vdots: 'M12 5h.01M12 12h.01M12 19h.01', copy: 'M9 9h11v11H9zM5 15V4h11',
   mic: 'M9 3h6v12H9zM5 11a7 7 0 0 0 14 0M12 18v3', play: 'M7 4.5v15l13-7.5z', send: 'M4 12l16-8-6 16-3-7z', check: 'M5 12.5l4.5 4.5L19 7',
   chat: 'M4 6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H9l-5 4z', spark: 'M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z',
   brain: 'M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6M12 3v3M12 18v3M3 12h3M18 12h3', chart: 'M4 20V10M10 20V4M16 20v-7M22 20H2', info: 'M12 8v.5M11 12h1v5h1M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18',
@@ -19,6 +21,7 @@ const P: Record<string, string> = {
   speak: 'M4 10v4h4l5 4V6L8 10zM16 9a4 4 0 0 1 0 6M18.5 6.5a8 8 0 0 1 0 11', mute: 'M4 10v4h4l5 4V6L8 10zM17 9l5 6M22 9l-5 6',
   user: 'M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8M4 21a8 8 0 0 1 16 0', box: 'M3 7l9-4 9 4-9 4zM3 7v10l9 4 9-4V7M12 11v10', pin: 'M12 21s-7-6-7-11a7 7 0 0 1 14 0c0 5-7 11-7 11zM12 8a2 2 0 1 0 0 4 2 2 0 0 0 0-4',
   camera: 'M3 8h4l2-3h6l2 3h4v12H3zM12 10a4 4 0 1 0 0 8 4 4 0 0 0 0-8', alert: 'M12 3l10 18H2zM12 10v5M12 18v.5', chev: 'M6 9l6 6 6-6', ask: 'M9 9a3 3 0 1 1 4 2.8c-.7.3-1 .8-1 1.5V14M12 17.5v.5',
+  gear: 'M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z', trash: 'M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3',
   vs: 'M4 5l4 14 4-14M14 17c1 1.5 2.5 2 4 2 2 0 3-1 3-2.5 0-3.5-7-2-7-6 0-1.5 1.2-2.5 3-2.5 1.4 0 2.6.5 3.5 1.5',
 };
 const I = ({ n, s }: { n: string; s?: React.CSSProperties }) => <svg className="ico" viewBox="0 0 24 24" style={s} aria-hidden="true"><path d={P[n]} /></svg>;
@@ -195,10 +198,200 @@ function Highlight({ text, marks }: { text: string; marks: { text: string; cls: 
   return <>{out}</>;
 }
 
+/** The first screen: your own Artha (from Gmail) or a sample person. Skipped for demo links (?p=, ?say=). */
+function shouldWelcome() {
+  const q = new URLSearchParams(location.search);
+  if (q.has('p') || q.has('say')) return false;
+  try { return sessionStorage.getItem('artha.welcomed') !== '1'; } catch { return true; }
+}
+/** Google's official "G" mark (four colours), for the sign-in button. */
+const GoogleG = () => (
+  <svg className="g-mark" viewBox="0 0 48 48" aria-hidden="true">
+    <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" />
+    <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z" />
+    <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z" />
+    <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z" />
+  </svg>
+);
+function Welcome({ me, samples, onPick }: { me: PersonaInfo | null; samples: PersonaInfo[]; onPick: (id: string) => void }) {
+  const ref = useEnter<HTMLDivElement>(true);
+  const [showSamples, setShowSamples] = useState(false);
+  const inst = useInstall();
+  return (
+    <div className="welcome" role="dialog" aria-label="Start with Artha">
+      <div className="w-aurora" aria-hidden="true"><i /><i /><i /></div>
+      <div className="welcome-in" ref={ref}>
+        <header className="w-brand2"><div className="w-lockup"><img src="/icon.svg" alt="" className="w-logo" /><h1 className="w-word">Artha <i>AI</i></h1></div><p>Bas ishaara kaafi hai.</p></header>
+        <section className="w-sign">
+          {me && (<>
+            <button className="w-me" onClick={() => onPick(me.id)}><span className="av lg ink">{me.avatar}</span><span><b>Continue as {me.name.split(' ')[0]}</b><small>{me.email}</small></span><I n="send" /></button>
+            <div className="w-or"><span>or use another account</span></div>
+          </>)}
+          <div className="w-lead"><h2>{me ? <>Sign in to <span className="hl">Artha AI</span></> : <>Set up your <span className="hl">Artha AI</span></>}</h2><p>Connect Gmail once. Artha learns your people, plans and dues, so a short voice note is enough.</p></div>
+          <a className="g-btn" href={`${API_BASE}/api/auth/google`}><GoogleG /><span>Continue with Google</span></a>
+          <ul className="w-trust">
+            <li><I n="shield" /><span><b>Read-only.</b> Never sends, deletes or changes mail.</span></li>
+            <li><I n="eye" /><span><b>Only what helps.</b> Promotions and OTPs are never read.</span></li>
+            <li><I n="brain" /><span><b>Facts, not emails.</b> Keeps notes like “rent due 5 Dec”.</span></li>
+            <li><I n="trash" /><span><b>Yours to remove.</b> Disconnect or delete any time.</span></li>
+          </ul>
+          <p className="w-fine">In testing, Google shows “unverified app”. Choose <b>Advanced → Go to Artha AI</b>.</p>
+        </section>
+        <section className="w-samples">
+          {!showSamples ? <button className="w-more" onClick={() => setShowSamples(true)}>Or explore a sample person, no sign-in needed</button> : (<>
+            <div className="w-samples-h"><b>Sample people</b><button className="link" onClick={() => setShowSamples(false)}>Hide</button></div>
+            <div className="w-people">{samples.map(p => (
+              <button key={p.id} onClick={() => onPick(p.id)}><span className="av ink">{p.avatar}</span><span><b>{p.name.split(' ')[0]}</b><small>{p.city} · {p.speaks[0]}</small></span></button>))}</div>
+          </>)}
+        </section>
+        {!inst.installed && <button className="w-app" onClick={openGetApp}><img src="/apple-touch-icon.png" alt="" /><span><b>Get the Artha AI app</b><small>Free · no app store · opens like any app</small></span><I n="download" /></button>}
+      </div>
+    </div>
+  );
+}
+/** Right after signing in with Google: read the mail, learn who you are and who's who, file plans and bills. */
+function SetupScreen({ pid, onDone }: { pid: string; onDone: (s: State | null) => void }) {
+  const STEPS = ['Reading your mail', 'Learning who you are', 'Learning who\'s who', 'Filing plans, bills and facts'];
+  const [step, setStep] = useState(0); const [line, setLine] = useState(''); const [who, setWho] = useState<{ name: string; city: string; about: string; contacts: number } | null>(null);
+  const [stats, setStats] = useState<Record<string, number> | null>(null); const [err, setErr] = useState('');
+  const final = useRef<State | null>(null);
+  useEffect(() => {
+    api.gmailSync(pid, e => {
+      if (e.t === 'progress') {
+        if (e.stage === 'list') setLine(`${e.n} mails from the last 90 days`);
+        if (e.stage === 'triage') setLine(`${e.kept} worth reading · ${e.skipped} newsletters and promotions skipped`);
+        if (e.stage === 'read') { setStep(1); setLine(`${e.n} mails read${e.otp ? ` · ${e.otp} OTP mail${e.otp > 1 ? 's' : ''} ignored` : ''}`); }
+        if (e.stage === 'profile') setStep(1);
+        if (e.stage === 'understood') setStep(3);
+      } else if (e.t === 'profile') { setWho(e); setStep(2); }
+      else if (e.t === 'done') setStats(e.stats);
+      else if (e.t === 'state') final.current = e.state;
+      else if (e.t === 'error') setErr(e.error);
+    }).catch(e => setErr(e.message));
+  }, [pid]);
+  const done = !!stats;
+  return (
+    <div className="welcome setup" role="dialog" aria-label="Setting up Artha">
+      <div className="welcome-in">
+        <header className="w-head"><img src="/icon.svg" alt="" className="w-mark-img" /><div><h1>{who ? `Namaste, ${who.name.split(' ')[0]}` : 'Setting up your Artha'}</h1><p>{who?.about || 'This takes about a minute.'}</p></div></header>
+        <ol className="s-steps">{STEPS.map((t, i) => <li key={t} className={done || i < step ? 'ok' : i === step ? 'now' : ''}><span>{done || i < step ? <I n="check" /> : i + 1}</span>{t}</li>)}</ol>
+        {line && !done && <p className="s-line"><span className="g-spin" />{line}</p>}
+        {done && <div className="s-stats">{[['contacts', who?.contacts ?? 0, 'people in your life'], ['plans', stats!.plans, 'plans'], ['money', stats!.money, 'bills & payments'], ['facts', stats!.facts, 'things remembered']].map(([k, v, l]) => <div key={String(k)}><b>{v as number}</b><span>{l}</span></div>)}</div>}
+        {err && <p className="bad">{err}</p>}
+        {(done || err) && <button className="btn btn-primary" onClick={() => onDone(final.current)}>{done ? 'Start talking' : 'Continue'}</button>}
+      </div>
+    </div>
+  );
+}
+
+/** Settings: your profile, Gmail, what Artha knows, voice, and your data (forget, delete, sign out). */
+function Settings({ persona, state, voiceOn, onVoice, onClose, onState, onPersona, onKnows, onSignOut }: {
+  persona: PersonaInfo; state: State | null; voiceOn: boolean; onVoice: () => void; onClose: () => void; onState: (s: State) => void;
+  onPersona: (p: PersonaInfo) => void; onKnows: () => void; onSignOut: () => void;
+}) {
+  const own = persona.source === 'gmail';
+  const [edit, setEdit] = useState(false);
+  const [form, setForm] = useState({ name: persona.name, city: persona.city, about: persona.about, speaks: persona.speaks.join(', ') });
+  const [g, setG] = useState<Awaited<ReturnType<typeof api.gmailStatus>> | null>(null);
+  const [counts, setCounts] = useState<Record<string, number> | null>(null);
+  const [confirm, setConfirm] = useState<'' | 'disconnect' | 'forget' | 'delete'>('');
+  const [busy, setBusy] = useState(''); const [msg, setMsg] = useState('');
+  const refresh = useCallback(() => { api.gmailStatus(persona.id).then(setG).catch(() => setG(null)); api.context(persona.id).then(c => setCounts(c.counts)).catch(() => {}); }, [persona.id]);
+  useEffect(refresh, [refresh]);
+  useEffect(() => { const k = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); }; addEventListener('keydown', k); return () => removeEventListener('keydown', k); }, [onClose]);
+  const fromMail = state ? { facts: state.memory.filter(m => m.src.startsWith('Gmail')).length, plans: state.calendar.filter(c => c.source === 'gmail').length, money: (state.book ?? []).filter(b => b.id.startsWith('gmail:')).length } : null;
+  const run = async (label: string, fn: () => Promise<void>) => { setBusy(label); setMsg(''); try { await fn(); } catch (e: any) { setMsg(e.message); } setBusy(''); setConfirm(''); refresh(); };
+  return (
+    <div className="sheet-bg" onClick={onClose}>
+      <div className="sheet" role="dialog" aria-label="Settings" onClick={e => e.stopPropagation()}>
+        <div className="sheet-head"><h2>Settings</h2><button className="icon-btn" onClick={onClose} aria-label="Close"><I n="x" /></button></div>
+
+        <section className="set">
+          <h3>Profile</h3>
+          {!edit ? (
+            <div className="prof"><span className="av lg ink">{persona.avatar}</span>
+              <div><b>{persona.name}</b><small>{[persona.email, persona.city].filter(Boolean).join(' · ') || 'Sample person'}</small>
+                <div className="chips">{persona.speaks.map(l => <span key={l} className="chip">{l}</span>)}</div>
+                {persona.about && <p>{persona.about}</p>}</div>
+              {own ? <button className="btn btn-ghost" onClick={() => setEdit(true)}>Edit</button> : <span className="chip">Sample</span>}
+            </div>
+          ) : (
+            <form className="prof-form" onSubmit={e => { e.preventDefault(); run('Saving', async () => { const r = await api.saveProfile(persona.id, { ...form, speaks: form.speaks.split(',').map(x => x.trim()).filter(Boolean) }); onPersona(r.persona); setEdit(false); setMsg('Profile saved'); }); }}>
+              <label>Name<input id="set-name" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} /></label>
+              <label>City<input id="set-city" value={form.city} onChange={e => setForm({ ...form, city: e.target.value })} /></label>
+              <label>Languages you use<input id="set-langs" value={form.speaks} onChange={e => setForm({ ...form, speaks: e.target.value })} placeholder="Marathi, Hindi, English" /></label>
+              <label>About you<textarea id="set-about" rows={2} value={form.about} onChange={e => setForm({ ...form, about: e.target.value })} /></label>
+              <div className="row"><button className="btn btn-primary" disabled={!!busy}>Save</button><button type="button" className="link" onClick={() => setEdit(false)}>Cancel</button></div>
+            </form>
+          )}
+        </section>
+
+        <section className="set">
+          <h3>Gmail</h3>
+          {!own ? <p className="muted">Gmail is available when you set up Artha for yourself, from the start screen.</p>
+            : !g?.connected ? (<>
+              <p className="muted">Not connected. Connect to let Artha learn your people, plans and bills from mail. Read-only.</p>
+              <a className="btn btn-primary set-btn" href={`${API_BASE}/api/gmail/connect?p=${encodeURIComponent(persona.id)}`}>Connect Gmail</a>
+            </>) : (<>
+              <div className="kv2"><span>Account</span><b>{g.email}</b><span>Last read</span><b>{g.lastSync ? new Date(g.lastSync).toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' }) : 'Not yet'}</b>
+                {g.stats && <><span>From mail</span><b>{[g.stats.facts && `${g.stats.facts} facts`, g.stats.plans && `${g.stats.plans} plans`, g.stats.money && `${g.stats.money} bills & payments`].filter(Boolean).join(' · ') || 'Nothing new'}</b>
+                <span>Skipped</span><b>{g.stats.skipped ?? 0} promotions{g.stats.otp ? ` · ${g.stats.otp} OTP mails` : ''}</b></>}</div>
+              <div className="row">
+                <button className="btn btn-ghost" disabled={!!busy} onClick={() => run('Reading new mail', async () => { await api.gmailSync(persona.id, e => { if (e.t === 'state') onState(e.state); }); setMsg('Up to date'); })}><I n="refresh" />{busy === 'Reading new mail' ? 'Reading…' : 'Sync now'}</button>
+                <button className="link bad" onClick={() => setConfirm('disconnect')}>Disconnect</button>
+              </div>
+              {confirm === 'disconnect' && <div className="confirm"><p>Disconnect Gmail? Artha stops reading your mail and forgets what came from it{fromMail ? `: ${fromMail.facts} facts, ${fromMail.plans} plans, ${fromMail.money} bills & payments` : ''}. Your people and voice notes stay.</p>
+                <div className="row"><button className="btn btn-primary danger" disabled={!!busy} onClick={() => run('Disconnecting', async () => { const r = await api.gmailDisconnect(persona.id); onState(r.state); setMsg('Gmail disconnected'); })}>Disconnect</button><button className="link" onClick={() => setConfirm('')}>Cancel</button></div></div>}
+            </>)}
+        </section>
+
+        <section className="set">
+          <h3>What Artha knows</h3>
+          <div className="counts">{[['people', 'people'], ['facts', 'facts'], ['turns', 'conversations'], ['calendar', 'plans'], ['khata_entries', 'khata entries'], ['vectors', 'memories searchable by meaning']].map(([k, l]) => <div key={k}><b>{counts?.[k] ?? '–'}</b><span>{l}</span></div>)}</div>
+          <button className="link" onClick={onKnows}>See everything Artha knows</button>
+        </section>
+
+        <section className="set">
+          <h3>Voice</h3>
+          <label className="toggle"><input type="checkbox" checked={voiceOn} onChange={onVoice} id="set-voice" /><span>Artha speaks its replies</span></label>
+        </section>
+
+        <section className="set">
+          <h3>App</h3>
+          {standalone ? <p className="muted">You're using the Artha AI app. Open it any time from your home screen.</p> : (<>
+            <p className="muted">Install Artha AI on this {platform === 'desktop' ? 'computer' : 'phone'}. It opens full screen from its own icon, like any app. Free, no app store.</p>
+            <div className="row"><button className="btn btn-primary" onClick={() => { onClose(); openGetApp(); }}><I n="download" />Get the app</button></div>
+          </>)}
+        </section>
+
+        <section className="set">
+          <h3>Your data</h3>
+          <p className="muted">Kept for 90 days in your own private space, then forgotten unless it keeps being useful. Nothing is shared or sold.</p>
+          <div className="row flexwrap">
+            <button className="btn btn-ghost" onClick={() => setConfirm('forget')}><I n="refresh" />Forget what Artha learned</button>
+            {own && <button className="btn btn-ghost danger-txt" onClick={() => setConfirm('delete')}><I n="trash" />Delete my Artha</button>}
+            {own && <button className="link" onClick={onSignOut}>Sign out on this device</button>}
+          </div>
+          {confirm === 'forget' && <div className="confirm"><p>Forget all memories, conversations, plans and khata entries? {own ? 'Your profile and Gmail stay connected; the next sync re-reads your mail.' : 'This sample person goes back to the start.'}</p>
+            <div className="row"><button className="btn btn-primary danger" disabled={!!busy} onClick={() => run('Forgetting', async () => { const r = await api.forget(persona.id); onState(r.state); setMsg('Done. Artha starts fresh.'); })}>Forget</button><button className="link" onClick={() => setConfirm('')}>Cancel</button></div></div>}
+          {confirm === 'delete' && <div className="confirm"><p>Delete your Artha? Your profile, everything it learned and the Gmail connection are removed. This cannot be undone.</p>
+            <div className="row"><button className="btn btn-primary danger" disabled={!!busy} onClick={() => run('Deleting', async () => { await api.deleteMe(persona.id); onSignOut(); })}>Delete everything</button><button className="link" onClick={() => setConfirm('')}>Cancel</button></div></div>}
+        </section>
+        {(busy || msg) && <p className="set-msg">{busy ? `${busy}…` : msg}</p>}
+      </div>
+    </div>
+  );
+}
+
 /* ================= APP ================= */
 export default function App() {
   const [personas, setPersonas] = useState<PersonaInfo[]>([]);
-  const [pid, setPid] = useState<string>(() => { try { return localStorage.getItem('artha.p') || 'aditya'; } catch { return 'aditya'; } });
+  const [pid, setPid] = useState<string>(() => { const q = new URLSearchParams(location.search).get('p'); if (q) return q; try { return localStorage.getItem('artha.p') || 'aditya'; } catch { return 'aditya'; } });
+  // the user's own Artha (created by signing in with Google), remembered on this device
+  const [me, setMe] = useState<PersonaInfo | null>(null);
+  const [welcome, setWelcome] = useState(shouldWelcome);
+  const [settings, setSettings] = useState(false);
+  const [setup, setSetup] = useState(() => { const q = new URLSearchParams(location.search); return q.get('new') === '1' && (q.get('p') ?? '').startsWith('u-'); });
   const [pstate, setPstate] = useState<State | null>(null);
   const [intro, setIntro] = useState(shouldShowIntro);
   const endIntro = useCallback(() => setIntro(false), []);
@@ -216,19 +409,26 @@ export default function App() {
   const voice = useRef<HTMLAudioElement | null>(null);
   const feed = useRef<HTMLDivElement>(null);
 
-  const persona = personas.find(p => p.id === pid);
+  const allPeople = me ? [...personas.filter(p => p.id !== me.id), me] : personas;
+  const persona = allPeople.find(p => p.id === pid);
   const myRuns = runs[pid] ?? [];
   const busy = myRuns.some(r => !r.result && !r.error);
   const orbMode: OrbMode = rec ? 'listening' : busy ? 'thinking' : speaking ? 'speaking' : myRuns.at(-1)?.result ? 'done' : 'idle';
   const say = useCallback((t: string) => { setToast(t); window.clearTimeout((say as any)._t); (say as any)._t = window.setTimeout(() => setToast(''), 2400); }, []);
 
   useEffect(() => { api.personas().then(setPersonas).catch(e => say(e.message)); api.samples().then(setSamples); }, [say]);
+  const loadMe = useCallback((id?: string) => {
+    let mine = id; try { mine = mine ?? localStorage.getItem('artha.me') ?? undefined; } catch { /* */ }
+    if (!mine) return;
+    api.persona(mine).then(p => { setMe(p); try { localStorage.setItem('artha.me', p.id); } catch { /* */ } }).catch(() => {});
+  }, []);
+  useEffect(() => { loadMe(pid.startsWith('u-') ? pid : undefined); }, []);   // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { try { localStorage.setItem('artha.p', pid); } catch { /* private mode */ } setPstate(null); setOpenChat(null); api.state(pid).then(setPstate).catch(e => say(e.message)); }, [pid, say]);
   // ?p=imran&say=... runs a typed note on load (handy for demos and screenshots)
   const autoRan = useRef(false);
   useEffect(() => {
     const q = new URLSearchParams(location.search);
-    if (q.get('p') && q.get('p') !== pid && personas.some(x => x.id === q.get('p'))) { setPid(q.get('p')!); return; }
+    if (q.get('p') && q.get('p') !== pid && allPeople.some(x => x.id === q.get('p'))) { setPid(q.get('p')!); return; }
     if (!autoRan.current && pstate && personas.length && q.get('say')) { autoRan.current = true; fromText(q.get('say')!); }
   }, [personas, pstate]); // eslint-disable-line react-hooks/exhaustive-deps
   const scrollDown = () => requestAnimationFrame(() => setTimeout(() => feed.current?.scrollTo({ top: feed.current.scrollHeight, behavior: 'smooth' }), 60));
@@ -392,11 +592,12 @@ export default function App() {
     <div className="app">
       {intro && <Intro onDone={endIntro} />}
       <header className="top">
-        <div className="brand"><img className="logo" src="/icon.svg" alt="" /><b>Artha</b></div>
+        <div className="brand"><img className="logo" src="/icon.svg" alt="" /><b className="wordmark">Artha <i>AI</i></b></div>
         <nav className="topnav" aria-label="Views">
           {([['artha', 'Artha'], ['chats', 'Chats'], ['results', 'Results'], ['about', 'About']] as const).map(([t, l]) => (
             <button key={t} className={t === 'chats' ? 'only-mid' : ''} aria-current={tab === t || (t === 'artha' && tab === 'memory') ? 'page' : undefined} onClick={() => go(t)}>{l}</button>))}
         </nav>
+        <button className="icon-btn" onClick={() => setSettings(true)} aria-label="Settings"><I n="gear" /></button>
         <button className="icon-btn voice-tg" onClick={toggleVoice} aria-label={voiceOn ? 'Mute Artha’s voice' : 'Let Artha speak'} aria-pressed={voiceOn}><I n={voiceOn ? 'speak' : 'mute'} /></button>
         {persona && <button className="who-btn" onClick={() => setMenu(true)} aria-label={`Testing as ${persona.name}. Switch person`}><span className="av ink">{persona.avatar}</span><span className="nm">{first(persona.name)}</span><I n="swap" s={{ width: 14, height: 14, opacity: .6 }} /></button>}
       </header>
@@ -430,7 +631,7 @@ export default function App() {
           </section>
 
           <aside className="pane pane-side" aria-label="What Artha knows">
-            <Knows persona={persona} state={pstate} fresh={fresh} onReset={reset} />
+            <Knows persona={persona} state={pstate} fresh={fresh} onReset={reset} onState={applyState} />
           </aside>
         </>)}
       </main>
@@ -443,14 +644,69 @@ export default function App() {
       {menu && (
         <div className="menu-bg" onClick={() => setMenu(false)}>
           <div className="menu" role="dialog" aria-label="Choose who to test as" onClick={e => e.stopPropagation()}>
-            <h4>Test as</h4>
+            {me && <><h4>You</h4>
+              <button aria-current={me.id === pid} onClick={() => { setPid(me.id); setMenu(false); setTab('artha'); }}>
+                <span className="av lg ink">{me.avatar}</span><span><b>{me.name}</b><small>{me.email ?? 'Your Gmail'} · {me.speaks.join(', ')}</small></span>
+              </button></>}
+            <h4>Sample people</h4>
             {personas.map(p => (
               <button key={p.id} aria-current={p.id === pid} onClick={() => { setPid(p.id); setMenu(false); setTab('artha'); }}>
                 <span className="av lg ink">{p.avatar}</span><span><b>{p.name}</b><small>{p.city} · {p.speaks.join(', ')}</small></span>
               </button>))}
+            <button className="link reset" onClick={() => { setMenu(false); setSettings(true); }}><I n="gear" />Settings</button>
+            {!standalone && <button className="link reset" onClick={() => { setMenu(false); openGetApp(); }}><I n="download" />Get the app</button>}
+            <button className="link reset" onClick={() => { setMenu(false); setWelcome(true); }}><I n="back" />Back to start</button>
           </div>
         </div>)}
+      {welcome && !setup && <Welcome me={me} samples={personas} onPick={id => { setPid(id); setWelcome(false); setTab('artha'); try { sessionStorage.setItem('artha.welcomed', '1'); } catch { /* */ } }} />}
+      {setup && <SetupScreen pid={pid} onDone={(st) => { if (st) applyState(st); loadMe(pid); setSetup(false); setWelcome(false); history.replaceState(null, '', `${location.pathname}?p=${pid}`); try { sessionStorage.setItem('artha.welcomed', '1'); } catch { /* */ } }} />}
+      {settings && persona && <Settings persona={persona} state={pstate} voiceOn={voiceOn} onVoice={toggleVoice} onClose={() => setSettings(false)}
+        onState={applyState} onPersona={p => { setMe(p); }} onKnows={() => { setSettings(false); go('memory'); }}
+        onSignOut={() => { try { localStorage.removeItem('artha.me'); sessionStorage.removeItem('artha.welcomed'); } catch { /* */ } setMe(null); setSettings(false); setPid('aditya'); setWelcome(true); }} />}
       {toast && <div className="toast" role="status">{toast}</div>}
+      <GetApp />
+    </div>
+  );
+}
+
+/** "Get the app": one tap where the browser can install, otherwise the exact taps for this phone or computer. */
+function GetApp() {
+  const { open, prompt, installed } = useInstall();
+  const [copied, setCopied] = useState(false);
+  if (!open) return null;
+  const link = `${location.origin}/?app`;
+  const copy = async () => { try { await navigator.clipboard.writeText(link); setCopied(true); } catch { /* */ } };
+  const Step = ({ n, children }: { n: number; children: React.ReactNode }) => <li><span className="n">{n}</span><span>{children}</span></li>;
+  const shareWhere = iosFlow === 'menu' ? <>Tap <b className="key"><I n="dots" /></b> at the bottom right, then <b>Share</b></> : iosFlow === 'bar' ? <>Tap <b className="key"><I n="share" /></b> <b>Share</b> at the bottom</> : <>Tap <b className="key"><I n="share" /></b> <b>Share</b> next to the address bar</>;
+  return (
+    <div className="sheet-bg app-bg" onClick={closeGetApp}>
+      <div className="app-sheet" role="dialog" aria-label="Get the Artha AI app" onClick={e => e.stopPropagation()}>
+        <button className="icon-btn app-x" onClick={closeGetApp} aria-label="Close"><I n="x" /></button>
+        <div className="app-top"><img src="/app-icon/v1/any-192.png" alt="" /><div><h2>Artha AI</h2><p>Free · no app store · opens full screen from its own icon</p></div></div>
+        {installed ? <p className="app-done"><I n="check" />Artha AI is installed. Open it from your {platform === 'desktop' ? 'apps' : 'home screen'}.</p>
+          : inAppBrowser ? (<>
+            <p className="app-lead">This window can't install apps. Open the page in {platform === 'ios' ? 'Safari' : 'Chrome'} first:</p>
+            <ol className="app-steps"><Step n={1}>Tap <b className="key"><I n={platform === 'ios' ? 'dots' : 'vdots'} /></b> in the top corner</Step><Step n={2}>Choose <b>Open in {platform === 'ios' ? 'Safari' : 'browser'}</b></Step><Step n={3}>Tap <b>Get the Artha AI app</b> again</Step></ol>
+          </>) : prompt ? (<>
+            <p className="app-lead">One tap. Artha AI goes on your {platform === 'desktop' ? 'computer' : 'home screen'} like any other app.</p>
+            <button className="btn btn-primary app-go" onClick={() => void installNow()}><I n="download" />Install Artha AI</button>
+          </>) : platform === 'ios' ? (<>
+            <p className="app-lead">Add it from {iosFlow === 'top' ? 'your browser' : 'Safari'} in three taps:</p>
+            <ol className="app-steps"><Step n={1}>{shareWhere}</Step><Step n={2}>Scroll down and tap <b className="key"><I n="plusbox" /></b> <b>Add to Home Screen</b></Step><Step n={3}>Keep <b>Open as Web App</b> on and tap <b>Add</b></Step></ol>
+          </>) : platform === 'android' ? (<>
+            <p className="app-lead">Add it from Chrome in two taps:</p>
+            <ol className="app-steps"><Step n={1}>Tap <b className="key"><I n="vdots" /></b> at the top right</Step><Step n={2}>Tap <b>Install app</b> (or <b>Add to Home screen</b>), then <b>Install</b></Step></ol>
+          </>) : isSafariMac ? (<>
+            <p className="app-lead">Add it to your Mac's Dock:</p>
+            <ol className="app-steps"><Step n={1}>In Safari's menu bar choose <b>File → Add to Dock</b></Step><Step n={2}>Click <b>Add</b></Step></ol>
+          </>) : (<>
+            <p className="app-lead">Install it from Chrome or Edge:</p>
+            <ol className="app-steps"><Step n={1}>Click the <b className="key"><I n="download" /></b> install icon at the right end of the address bar</Step><Step n={2}>Click <b>Install</b></Step></ol>
+          </>)}
+        {platform === 'desktop' && !installed && (
+          <div className="app-phone"><b>On your phone</b><p>Open this link in Chrome (Android) or Safari (iPhone) and tap <b>Get the app</b>.</p>
+            <button className="app-link" onClick={copy}><span>{link.replace(/^https?:\/\//, '')}</span><I n={copied ? 'check' : 'copy'} /></button></div>)}
+      </div>
     </div>
   );
 }
@@ -632,7 +888,54 @@ function Chats({ persona, state, open, setOpen, onSwitch }: { persona?: PersonaI
 }
 
 /* ================= what Artha knows ================= */
-function Knows({ persona, state, fresh, onReset }: { persona?: PersonaInfo; state: State | null; fresh: Set<string>; onReset: () => void }) {
+/** Gmail, read-only: connect, sync (with live progress), see what was learned, disconnect (forgets everything from mail). */
+function GmailCard({ pid, onState }: { pid: string; onState: (s: State) => void }) {
+  const [st, setSt] = useState<Awaited<ReturnType<typeof api.gmailStatus>> | null>(null);
+  const [busy, setBusy] = useState(''); const [err, setErr] = useState('');
+  const load = useCallback(() => api.gmailStatus(pid).then(x => { setSt(x); return x; }).catch(() => { setSt(null); return null; }), [pid]);
+  // your own Gmail: new mail is read quietly when you come back (last sync over 30 minutes ago)
+  useEffect(() => { if (!pid.startsWith('u-') || new URLSearchParams(location.search).has('new')) return;
+    load().then(x => { if (x?.connected && (!x.lastSync || Date.now() - Date.parse(x.lastSync) > 30 * 60e3)) syncRef.current?.(); }); }, [pid]);   // eslint-disable-line react-hooks/exhaustive-deps
+  const syncRef = useRef<() => void>();
+  const sync = useCallback(async () => {
+    setErr(''); setBusy('Opening your mail…');
+    try {
+      await api.gmailSync(pid, e => {
+        if (e.t === 'progress') setBusy(({ list: `Found ${e.n} new mails…`, triage: `${e.skipped} newsletters and promotions skipped · reading ${e.kept}…`, read: `Understanding ${e.n} mails${e.otp ? ` (${e.otp} OTP mail${e.otp > 1 ? 's' : ''} ignored)` : ''}…`, understood: `Filing what matters…` } as Record<string, string>)[e.stage] ?? 'Working…');
+        else if (e.t === 'state') onState(e.state);
+        else if (e.t === 'error') setErr(e.error);
+      });
+    } catch (e: any) { setErr(e.message); }
+    setBusy(''); load();
+  }, [pid, onState, load]);
+  syncRef.current = sync;
+  useEffect(() => {
+    load();
+    const q = new URLSearchParams(location.search);
+    if (q.get('gmail') === 'connected' && q.get('new') !== '1') { history.replaceState(null, '', `${location.pathname}?p=${pid}`); sync(); }
+    else if (q.get('gmail') === 'failed') { setErr('Gmail was not connected. Try again.'); history.replaceState(null, '', `${location.pathname}?p=${pid}`); }
+  }, [pid]);   // eslint-disable-line react-hooks/exhaustive-deps
+  if (!st?.configured) return null;
+  const s = st.stats;
+  return (
+    <div className="mini gmail"><h4>Gmail</h4>
+      {!st.connected ? (<>
+        <p className="g-note">Read-only. Artha learns who's who, plans, bills and payments from the last 90 days. Promotions and OTP mails are never read.</p>
+        <a className="btn btn-primary g-btn" href={`${API_BASE}/api/gmail/connect?p=${encodeURIComponent(pid)}`}><I n="chat" />Connect Gmail</a>
+      </>) : (<>
+        <p className="g-note"><b>{st.email}</b>{st.lastSync ? ` · synced ${fmtTime(st.lastSync)}` : ''}</p>
+        {busy ? <p className="g-busy"><span className="g-spin" />{busy}</p> : s ? (
+          <div className="g-stats">{[['people', 'new people'], ['plans', 'plans'], ['money', 'bills & payments'], ['facts', 'facts'], ['scams', 'scam flagged']].filter(([k]) => s[k]).map(([k, l]) => <span key={k}><b>{s[k]}</b> {l}</span>)}
+            <span className="dim">{s.scanned} mails scanned · {s.skipped} skipped{s.otp ? ` · ${s.otp} OTP ignored` : ''}</span></div>) : null}
+        <div className="g-row"><button className="btn btn-ghost" onClick={sync} disabled={!!busy}><I n="refresh" />{s ? 'Sync again' : 'Sync now'}</button>
+          <button className="link" onClick={async () => { setBusy(''); const r = await api.gmailDisconnect(pid); onState(r.state); load(); }} disabled={!!busy}>Disconnect</button></div>
+      </>)}
+      {err && <p className="bad small">{err}</p>}
+    </div>
+  );
+}
+
+function Knows({ persona, state, fresh, onReset, onState }: { persona?: PersonaInfo; state: State | null; fresh: Set<string>; onReset: () => void; onState: (s: State) => void }) {
   const [all, setAll] = useState(false);
   const listRef = useEnter<HTMLDivElement>(state?.memory.length);
   if (!state || !persona) return null;
@@ -649,6 +952,7 @@ function Knows({ persona, state, fresh, onReset }: { persona?: PersonaInfo; stat
       <div key={m.fact} className={`fact ${m.learned ? 'learned' : ''} ${fresh.has(m.fact) ? 'fresh' : ''}`}><I n={m.kind === 'alias' ? 'swap' : m.learned ? 'spark' : 'brain'} /><span>{m.fact}</span></div>))}
       {facts.length > 6 && <button className="link" onClick={() => setAll(x => !x)}>{all ? 'Show less' : `+${facts.length - 6} more`}</button>}
     </div>
+    <GmailCard pid={persona.id} onState={onState} />
     <div className="mini"><h4>Connected on this phone</h4><div className="conns">{[['chat', 'WhatsApp'], ['call', 'Phone'], ['cal', 'Google Calendar'], ['rupee', 'UPI apps'], ['brain', 'Contacts · sample'], ['call', 'Equal calls · simulated']].map(([ic, l]) => <span key={l} className="conn"><I n={ic} s={{ width: 13, height: 13 }} />{l}</span>)}</div></div>
     {upcoming.length > 0 && <div className="mini"><h4>Coming up</h4>{upcoming.map((c, i) => <div key={i} className={c.added ? 'added' : ''}><span>{c.title}</span><span>{c.when_label}</span></div>)}</div>}
     {book.length > 0 && <div className="mini"><h4>Khata book</h4>{book.map(e => <div key={e.id} className={e.status === 'saved' ? 'added' : ''}><span>{({ sale: 'Sold', purchase: 'Bought', to_receive: 'To receive', to_pay: 'To pay', received: 'Received', paid: 'Paid', credit: 'Credit' } as Record<string, string>)[e.kind]}{e.party ? ` · ${e.party}` : e.item ? ` · ${e.item}` : ''}{e.day !== today ? ` · ${e.day.slice(5)}` : ''}</span><span>₹{e.amount.toLocaleString('en-IN')}</span></div>)}</div>}

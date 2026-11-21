@@ -2,7 +2,7 @@ import type { Action, Contact, Mode, Result, State } from '../../server/types';
 import type { Scan } from '../../server/pipeline/scan';
 export type { Scan };
 
-export type PersonaInfo = { id: string; name: string; age: number; about: string; city: string; speaks: string[]; avatar: string; contacts: Contact[] };
+export type PersonaInfo = { id: string; name: string; age: number; about: string; city: string; speaks: string[]; avatar: string; contacts: Contact[]; source?: string; email?: string };
 export type Sample = { id: string; persona: string; text: string; lang: string; label: string; file: string; synthetic: boolean };
 
 /** Where the API lives: the same site (CloudFront, or the local server). */
@@ -43,6 +43,21 @@ export const api = {
       while ((i = buf.indexOf('\n')) >= 0) { const line = buf.slice(0, i).trim(); buf = buf.slice(i + 1); if (line) onEvent(JSON.parse(line)); }
     }
     if (buf.trim()) onEvent(JSON.parse(buf));
+  },
+  persona: (p: string) => call<PersonaInfo>(`${API_BASE}/api/persona?p=${encodeURIComponent(p)}`),
+  saveProfile: (p: string, x: { name: string; city: string; about: string; speaks: string[] }) => post<{ persona: PersonaInfo }>('/api/profile', { p, ...x }),
+  forget: (p: string) => post<{ state: State }>('/api/me/forget', { p }),
+  deleteMe: (p: string) => post<{ ok: boolean }>('/api/me/delete', { p }),
+  context: (p: string) => call<{ counts: Record<string, number>; bytes: number; ttl_days: number }>(`${API_BASE}/api/context?p=${encodeURIComponent(p)}`),
+  gmailStatus: (p: string) => call<{ configured: boolean; connected: boolean; email: string; lastSync: string; stats: Record<string, number> | null }>(`${API_BASE}/api/gmail/status?p=${encodeURIComponent(p)}`),
+  gmailDisconnect: (p: string) => post<{ state: State }>('/api/gmail/disconnect', { p }),
+  /** Gmail sync, streamed: progress events, then done (stats) and state. */
+  gmailSync: async (p: string, onEvent: (e: any) => void) => {
+    const r = await fetch(`${API_BASE}/api/gmail/sync`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ p }) });
+    if (!r.ok || !r.body) throw new Error(`Sync failed (${r.status})`);
+    const reader = r.body.getReader(); const dec = new TextDecoder(); let buf = '';
+    for (;;) { const { value, done } = await reader.read(); if (done) break; buf += dec.decode(value, { stream: true }); let i: number;
+      while ((i = buf.indexOf('\n')) >= 0) { const line = buf.slice(0, i).trim(); buf = buf.slice(i + 1); if (line) onEvent(JSON.parse(line)); } }
   },
   reset: (p: string) => post<{ state: State }>('/api/reset', { p }),
   results: () => call<any>('/api/results'),

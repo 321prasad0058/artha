@@ -68,7 +68,7 @@ export function Intro({ onDone }: { onDone: () => void }) {
     }
     const pos = new Float32Array(cloud);
     const col = new Float32Array(N * 3);
-    const blue = new THREE.Color('#6a7bff'), violet = new THREE.Color('#b48cff'), teal = new THREE.Color('#5fe0cf'), saffron = new THREE.Color('#ffb347'), tmp = new THREE.Color();
+    const blue = new THREE.Color('#3cd070'), violet = new THREE.Color('#baff29'), teal = new THREE.Color('#7dffb0'), saffron = new THREE.Color('#ffb347'), tmp = new THREE.Color();
     for (let i = 0; i < N; i++) {
       if (seed[i] > .93) tmp.copy(saffron);                                       // a few warm sparks
       else tmp.copy(blue).lerp(seed[i] > .5 ? violet : teal, Math.abs(seed[i] - .5) * 1.7);
@@ -84,7 +84,7 @@ export function Intro({ onDone }: { onDone: () => void }) {
     haloGeo.setAttribute('position', geo.getAttribute('position')); haloGeo.setAttribute('color', geo.getAttribute('color')); haloGeo.setDrawRange(0, Math.floor(N / 3));
     const points = new THREE.Points(geo, mat), glowPts = new THREE.Points(haloGeo, halo);
     scene.add(glowPts, points);
-    const glow = new THREE.Mesh(new THREE.PlaneGeometry(10, 10), new THREE.MeshBasicMaterial({ map: dotTexture(true), color: '#4b5cff', transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending }));
+    const glow = new THREE.Mesh(new THREE.PlaneGeometry(10, 10), new THREE.MeshBasicMaterial({ map: dotTexture(true), color: '#00b140', transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending }));
     glow.position.z = -1.5; scene.add(glow);
 
     const s = { a: 0, b: 0, c: 0, d: 0, amp: 0, spin: 0 };   // field→wave, wave→orb, orb burst, exit
@@ -195,7 +195,7 @@ export function Intro({ onDone }: { onDone: () => void }) {
       <div className="beat b3 low"><p>Knows who you mean, and when, and how much.</p></div>
       <div className="beat b4">
         <span className="mark">A</span>
-        <h1 className="name">Artha</h1>
+        <h1 className="name">Artha AI</h1>
         <p className="tag">Bas ishaara kaafi hai.</p>
       </div>
       <button className="skip" onClick={e => { e.stopPropagation(); finish(); }}>Skip</button>

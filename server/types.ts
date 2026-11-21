@@ -1,6 +1,8 @@
 /** A person in the user's world. "about" is what makes them THEM (two Ayush: the cricket friend vs the teammate). */
 export type Contact = { id: string; name: string; rel: string; lang: string; aliases: string[]; upi?: string; about?: string };
 export type Persona = {
+  /** 'gmail' = a real user whose profile Artha built from their own mail */
+  source?: 'gmail'; email?: string;
   id: string; name: string; age: number; about: string; city: string; speaks: string[]; avatar: string;
   contacts: Contact[];
   events: { day: number; time: string; contact: string; text: string }[];
@@ -71,7 +73,7 @@ export type State = {
   persona: string;
   memory: { fact: string; src: string; at: string; learned?: boolean; kind?: string; about?: string; mention?: string; topic?: string; uses?: number; last_used?: string }[];
   threads: Record<string, { me: boolean; text: string; at: string; via?: string }[]>;
-  calendar: { title: string; when_iso: string; when_label: string; contact?: string; added?: boolean }[];
+  calendar: { title: string; when_iso: string; when_label: string; contact?: string; added?: boolean; source?: 'gmail' }[];
   reminders: { title: string; when_label: string; when_iso: string }[];
   ledger: { contact: string; amount: number; note: string; at: string }[];
   payments: { contact: string; amount: number; upi: string; at: string }[];
@@ -81,6 +83,10 @@ export type State = {
   turns?: Turn[];
   /** The khata book: every entry the user dictated, structured, with its day and status. */
   book?: BookEntry[];
+  /** People first met in connected sources (Gmail senders who are not saved contacts). */
+  people?: { id: string; name: string; email?: string; rel: string; source: 'gmail' }[];
+  /** Gmail connection: what was synced, so the next sync only reads new mail. */
+  gmail?: { email: string; lastSync: string; historyId: string; seen: string[]; stats: Record<string, number> };
 };
 
 export type Turn = {
