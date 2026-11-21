@@ -1,0 +1,39 @@
+{
+  "id": "sunita",
+  "name": "Sunita Patil",
+  "age": 54,
+  "about": "Runs the home in Kothrud, Pune. Speaks Marathi, some Hindi.",
+  "city": "Pune",
+  "speaks": ["Marathi", "Hindi"],
+  "avatar": "SP",
+  "contacts": [
+    { "id": "rohit", "name": "Rohit", "rel": "Son, in Bengaluru", "lang": "English", "aliases": ["Rohit", "mulga"] },
+    { "id": "sneha", "name": "Sneha", "rel": "Daughter-in-law", "lang": "Marathi", "aliases": ["Sneha", "sunbai"] },
+    { "id": "dr_pawar", "name": "Dr. Pawar", "rel": "Family doctor", "lang": "Marathi", "aliases": ["Pawar doctor", "doctor", "Pawar sir"] },
+    { "id": "pawar_milk", "name": "Pawar Dudhwale", "rel": "Milkman", "lang": "Marathi", "aliases": ["dudhwale", "Pawar kaka", "Pawar"], "upi": "pawardairy@upi" },
+    { "id": "mangal", "name": "Mangal tai", "rel": "House help", "lang": "Marathi", "aliases": ["Mangal", "tai", "kamwali"], "upi": "mangal.tai@upi" },
+    { "id": "vaishali", "name": "Vaishali", "rel": "Sister", "lang": "Marathi", "aliases": ["Vaishali", "tai"] },
+    { "id": "shinde", "name": "Shinde kaka", "rel": "Society secretary", "lang": "Marathi", "aliases": ["Shinde", "secretary", "kaka"] },
+    { "id": "gas", "name": "Bharat Gas agency", "rel": "Gas cylinder", "lang": "Marathi", "aliases": ["gas wale", "cylinder"] }
+  ],
+  "events": [
+    { "day": 0, "time": "10:05", "contact": "pawar_milk", "text": "Kaku, ya mahinyache 1,850 rupaye baki aahet." },
+    { "day": 0, "time": "09:30", "contact": "dr_pawar", "text": "Sugar report ready aahe. Udya sakali 11 la ya." },
+    { "day": 0, "time": "08:00", "contact": "mangal", "text": "Kaku, aaj ushira yein, 10 vajta." },
+    { "day": -1, "time": "21:10", "contact": "rohit", "text": "Aai, I'll come after Diwali. Tickets booked." },
+    { "day": -1, "time": "17:40", "contact": "vaishali", "text": "Ravivari ghari ye na, puran poli karte." },
+    { "day": -4, "time": "12:00", "contact": "gas", "text": "Cylinder booking number 4471 confirmed." },
+    { "day": -2, "time": "19:00", "contact": "shinde", "text": "Society meeting Sunday 6 vajta, clubhouse." }
+  ],
+  "memory": [
+    { "fact": "Dr. Pawar is your family doctor (sugar check-ups)", "src": "from calls" },
+    { "fact": "Milk bill is paid by UPI to Pawar Dudhwale", "src": "from payments" },
+    { "fact": "Medicine reminder at 9 PM every day", "src": "your setting" },
+    { "fact": "Rohit prefers texts in English", "src": "from messages" },
+    { "fact": "Mangal tai comes at 8 AM, not on Sundays", "src": "from messages" }
+  ],
+  "calendar": [
+    { "title": "Dr. Pawar: sugar report", "day": 1, "time": "11:00", "contact": "dr_pawar" }
+  ],
+  "ledger": []
+}

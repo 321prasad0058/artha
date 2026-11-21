@@ -1,0 +1,12 @@
+.env
+.env.*
+!.env.example
+node_modules/
+.DS_Store
+*.pdf
+CLI-creds
+.aws-local/
+data/state/
+dist/
+.lambda/
+eval/results/*.tmp

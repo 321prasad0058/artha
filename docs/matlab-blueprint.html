@@ -1,0 +1,1154 @@
+<title>Matlab Blueprint</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: SahiCar's system (paper ground, ink pill buttons, white hairline cards, soft-tint chips, one typeface)
+   with one Matlab accent, a deep "voice" blue. Phone prototype + side panel; stacks to one column on phones. */
+:root{
+  --bg:#f5f3ee; --bg-2:#ebe8e1; --surface:#ffffff; --surface-2:#faf9f6;
+  --ink:#15171b; --ink-2:#2d3036; --muted:#5d6168; --dim:#8c8f95; --line:#e4e0d7; --line-2:#d3cec3; --on-ink:#ffffff;
+  --accent:#2c46c2; --accent-soft:#e8ecfb;
+  --green:#1d7a45; --green-soft:#e4f3e9; --amber:#94570a; --amber-soft:#fbf0de;
+  --red:#b3392d; --red-soft:#fbe8e5; --violet:#6c3fa3; --violet-soft:#f1eaf9; --teal:#0b6b62; --teal-soft:#e0f2ef;
+  --shadow-sm:0 1px 2px rgba(21,23,27,.06);
+  --shadow-md:0 1px 2px rgba(21,23,27,.05),0 10px 28px -14px rgba(21,23,27,.22);
+  --shadow-lg:0 2px 4px rgba(21,23,27,.04),0 30px 70px -32px rgba(21,23,27,.32);
+  --font:'Instrument Sans','Helvetica Neue',Arial,system-ui,sans-serif;
+  --mono:ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+  --radius:14px; --ease:cubic-bezier(.2,.7,.2,1);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#121316; --bg-2:#1a1c20; --surface:#1c1e22; --surface-2:#22252a;
+  --ink:#ecebe6; --ink-2:#d6d5cf; --muted:#a4a7ad; --dim:#7b7e84; --line:#2c2f35; --line-2:#3b3f46; --on-ink:#121316;
+  --accent:#93a6ff; --accent-soft:#232a4c;
+  --green:#62c890; --green-soft:#17301f; --amber:#e3a94f; --amber-soft:#3a2b13;
+  --red:#f27f72; --red-soft:#3d1d19; --violet:#c49df1; --violet-soft:#2d2141; --teal:#5cc9bb; --teal-soft:#14302c;
+  --shadow-md:0 1px 2px rgba(0,0,0,.4),0 10px 28px -14px rgba(0,0,0,.6);
+  --shadow-lg:0 2px 4px rgba(0,0,0,.4),0 30px 70px -32px rgba(0,0,0,.7);
+  color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#121316; --bg-2:#1a1c20; --surface:#1c1e22; --surface-2:#22252a;
+  --ink:#ecebe6; --ink-2:#d6d5cf; --muted:#a4a7ad; --dim:#7b7e84; --line:#2c2f35; --line-2:#3b3f46; --on-ink:#121316;
+  --accent:#93a6ff; --accent-soft:#232a4c;
+  --green:#62c890; --green-soft:#17301f; --amber:#e3a94f; --amber-soft:#3a2b13;
+  --red:#f27f72; --red-soft:#3d1d19; --violet:#c49df1; --violet-soft:#2d2141; --teal:#5cc9bb; --teal-soft:#14302c;
+  --shadow-md:0 1px 2px rgba(0,0,0,.4),0 10px 28px -14px rgba(0,0,0,.6);
+  --shadow-lg:0 2px 4px rgba(0,0,0,.4),0 30px 70px -32px rgba(0,0,0,.7);
+  color-scheme:dark}
+
+*,*::before,*::after{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--font);font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased;font-feature-settings:'tnum';overflow-x:hidden}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:30;background:var(--bg)}
+h1,h2,h3,h4{font-weight:600;letter-spacing:-.025em;line-height:1.1;margin:0;text-wrap:balance}
+p{margin:0}
+a{color:var(--accent)}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px}
+.wrap{max-width:1180px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.muted{color:var(--muted)} .dim{color:var(--dim)} .mono{font-family:var(--mono);font-size:.86em}
+.eyebrow{font-size:14px;font-weight:600;color:var(--accent)}
+.lead{font-size:18px;color:var(--ink-2);max-width:62ch}
+
+/* nav */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.top .wrap{display:flex;align-items:center;gap:14px;height:58px}
+.brand{display:flex;align-items:center;gap:9px;font-weight:700;font-size:17px;flex:none}
+.logo{width:28px;height:28px;border-radius:9px;background:var(--ink);display:grid;place-items:center;color:var(--on-ink)}
+.navlinks{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;margin-left:auto;min-width:0}
+.navlinks::-webkit-scrollbar{display:none}
+.navlinks a{flex:none;color:var(--muted);text-decoration:none;font-size:14px;font-weight:500;padding:6px 11px;border-radius:999px}
+.navlinks a:hover{color:var(--ink);background:var(--bg-2)}
+
+section{padding-block:clamp(44px,7vw,84px);border-bottom:1px solid var(--line)}
+.sec-head{display:grid;gap:10px;margin-bottom:28px;max-width:760px}
+.sec-head h2{font-size:clamp(26px,3.4vw,38px)}
+
+/* buttons, chips, cards (SahiCar) */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:42px;padding:0 18px;border-radius:999px;font-weight:600;font-size:14.5px;white-space:nowrap;transition:background .2s,border-color .2s,transform .15s}
+.btn:active{transform:translateY(1px)}
+.btn-primary{background:var(--ink);color:var(--on-ink)}
+.btn-ghost{border:1px solid var(--line-2);background:var(--surface)}
+.btn-ghost:hover{border-color:var(--ink)}
+.btn-sm{height:34px;padding:0 13px;font-size:13.5px}
+.btn[disabled]{opacity:.4;pointer-events:none}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:999px;font-size:12.5px;font-weight:500;border:1px solid var(--line);background:var(--surface-2);color:var(--muted);white-space:nowrap}
+.chip.accent{color:var(--accent);background:var(--accent-soft);border-color:transparent}
+.chip.green{color:var(--green);background:var(--green-soft);border-color:transparent}
+.chip.amber{color:var(--amber);background:var(--amber-soft);border-color:transparent}
+.chip.red{color:var(--red);background:var(--red-soft);border-color:transparent}
+.chip.violet{color:var(--violet);background:var(--violet-soft);border-color:transparent}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius)}
+.ico{width:18px;height:18px;flex:none;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+
+/* hero */
+.hero{padding-block:clamp(36px,6vw,72px)}
+.hero-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);gap:clamp(24px,4vw,56px);align-items:start}
+.hero h1{font-size:clamp(44px,7vw,84px);letter-spacing:-.04em}
+.hero .tag{font-size:clamp(20px,2.4vw,26px);font-weight:600;color:var(--ink-2);margin-top:8px}
+.hero .lead{margin-top:16px}
+.hero-cta{display:flex;flex-wrap:wrap;gap:10px;margin-top:22px}
+.fail{padding:18px}
+.fail .note{display:flex;gap:12px;align-items:flex-start;padding:12px 14px;border-radius:12px;background:var(--bg-2)}
+.fail .note p{font-size:15px;font-weight:500}
+.fail table{width:100%;border-collapse:collapse;margin-top:14px;font-size:14px}
+.fail th{text-align:left;font-size:12px;font-weight:600;color:var(--dim);text-transform:uppercase;letter-spacing:.04em;padding:6px 8px}
+.fail td{padding:9px 8px;border-top:1px solid var(--line);vertical-align:top}
+.fail td:first-child{font-weight:600;white-space:nowrap}
+.bad{color:var(--red)} .good{color:var(--green)}
+.tbl-scroll{overflow-x:auto}
+
+/* journey strip */
+.strip{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(220px,1fr);gap:16px;overflow-x:auto;padding-bottom:8px;scroll-snap-type:x mandatory}
+.mini{scroll-snap-align:start;display:grid;gap:10px}
+.mini .scr{border:1px solid var(--line-2);border-radius:26px;background:var(--surface);box-shadow:var(--shadow-md);padding:12px;height:330px;display:flex;flex-direction:column;gap:8px;overflow:hidden;font-size:12px}
+.mini .cap b{display:block;font-size:15px}
+.mini .cap span{font-size:13.5px;color:var(--muted)}
+.mini .step{font-size:12px;font-weight:600;color:var(--accent)}
+.mini-top{display:flex;align-items:center;gap:7px;font-weight:600;font-size:12.5px;padding-bottom:7px;border-bottom:1px solid var(--line)}
+.av{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;font-size:11px;font-weight:700;flex:none;background:var(--accent-soft);color:var(--accent)}
+.mic-big{margin:auto;width:84px;height:84px;border-radius:50%;background:var(--ink);color:var(--on-ink);display:grid;place-items:center;box-shadow:0 0 0 10px var(--accent-soft),0 0 0 22px color-mix(in srgb,var(--accent-soft) 50%,transparent)}
+.mic-big .ico{width:32px;height:32px}
+
+/* prototype */
+.proto{display:grid;grid-template-columns:minmax(0,400px) minmax(0,1fr);gap:clamp(18px,3vw,36px);align-items:start}
+.scen{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px}
+.scen button{display:inline-flex;align-items:center;gap:7px;padding:7px 12px;border-radius:999px;border:1px solid var(--line-2);background:var(--surface);font-size:13.5px;font-weight:500;text-align:left}
+.scen button:hover{border-color:var(--ink)}
+.scen button[disabled]{opacity:.45;cursor:default}
+.scen button .chip{padding:1px 7px;font-size:11px}
+.phone{border:1px solid var(--line-2);border-radius:34px;background:var(--surface);box-shadow:var(--shadow-lg);height:min(740px,82vh);min-height:560px;display:flex;flex-direction:column;overflow:hidden;position:relative}
+.ph-top{display:flex;align-items:center;gap:10px;padding:16px 16px 12px;border-bottom:1px solid var(--line)}
+.ph-top .t{font-weight:700;font-size:15.5px;line-height:1.2}
+.ph-top .s{font-size:12px;color:var(--muted)}
+.seg{margin-left:auto;display:flex;padding:3px;border-radius:999px;background:var(--bg-2);flex:none}
+.seg button{padding:5px 10px;border-radius:999px;font-size:12px;font-weight:600;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:var(--shadow-sm)}
+.ph-body{flex:1;overflow-y:auto;padding:14px 12px 18px;display:flex;flex-direction:column;gap:10px;background:var(--surface-2)}
+.ph-tabs{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid var(--line);background:var(--surface)}
+.ph-tabs button{padding:10px 0 12px;font-size:12.5px;font-weight:600;color:var(--dim);display:grid;justify-items:center;gap:3px}
+.ph-tabs button[aria-selected="true"]{color:var(--ink)}
+.ph-tabs .badge{display:inline-grid;place-items:center;min-width:16px;height:16px;padding:0 4px;border-radius:999px;background:var(--accent);color:var(--on-ink);font-size:10px;margin-left:4px}
+.compose{display:flex;gap:8px;align-items:center;padding:10px 12px;border-top:1px solid var(--line);background:var(--surface)}
+.compose .hint{flex:1;font-size:12.5px;color:var(--dim);line-height:1.35}
+.hold{width:44px;height:44px;border-radius:50%;background:var(--ink);color:var(--on-ink);display:grid;place-items:center;flex:none}
+.empty{margin:auto;text-align:center;max-width:250px;display:grid;gap:8px;justify-items:center;color:var(--muted);font-size:14px}
+
+.msg-me{align-self:flex-end;max-width:88%;background:var(--accent-soft);border-radius:16px 16px 4px 16px;padding:9px 11px;display:grid;gap:6px}
+.voice{display:flex;align-items:center;gap:9px}
+.voice .play{width:30px;height:30px;border-radius:50%;background:var(--accent);color:var(--on-ink);display:grid;place-items:center;flex:none}
+.voice .play .ico{width:14px;height:14px;fill:currentColor;stroke:none}
+.bars{display:flex;align-items:center;gap:2px;height:26px}
+.bars i{display:block;width:3px;border-radius:2px;background:color-mix(in srgb,var(--accent) 55%,transparent)}
+.said{font-size:12.5px;color:var(--ink-2);font-style:italic}
+.meta{font-size:11px;color:var(--dim);display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+
+.stages{display:flex;flex-wrap:wrap;gap:6px;align-self:flex-start}
+.stg{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:999px;font-size:11.5px;font-weight:600;border:1px solid var(--line);background:var(--surface);color:var(--dim)}
+.stg.run{color:var(--accent);border-color:var(--accent);animation:pulse 1s var(--ease) infinite}
+.stg.done{color:var(--green);background:var(--green-soft);border-color:transparent}
+.stg.skip{color:var(--dim);text-decoration:line-through}
+.stg.stop{color:var(--red);background:var(--red-soft);border-color:transparent}
+.stg .ms{font-weight:500;opacity:.8}
+@keyframes pulse{50%{opacity:.45}}
+
+.msg-ai{align-self:flex-start;max-width:94%;background:var(--surface);border:1px solid var(--line);border-radius:16px 16px 16px 4px;padding:10px 12px;display:grid;gap:8px;font-size:14px}
+.msg-ai .who{display:flex;align-items:center;gap:6px;font-size:11.5px;font-weight:700;color:var(--accent)}
+.tx{line-height:1.75}
+.ent{display:inline;padding:1px 6px;border-radius:7px;font-weight:600;cursor:pointer;border:0;font-size:inherit;line-height:inherit}
+.ent.person{background:var(--accent-soft);color:var(--accent)}
+.ent.time{background:var(--amber-soft);color:var(--amber)}
+.ent.money{background:var(--green-soft);color:var(--green)}
+.ent.event{background:var(--violet-soft);color:var(--violet)}
+.ent.place{background:var(--teal-soft);color:var(--teal)}
+.ent.secret{background:var(--red-soft);color:var(--red)}
+.ent sub{font-size:10.5px;font-weight:500;opacity:.85;vertical-align:baseline;margin-left:4px}
+.why{font-size:12.5px;color:var(--muted);background:var(--bg-2);border-radius:10px;padding:8px 10px}
+
+.act{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:11px;display:grid;gap:8px;align-self:stretch}
+.act.done{border-color:color-mix(in srgb,var(--green) 40%,var(--line))}
+.act.danger{border-color:color-mix(in srgb,var(--red) 45%,var(--line));background:var(--red-soft)}
+.act-h{display:flex;align-items:center;gap:9px}
+.act-i{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;flex:none;background:var(--bg-2);color:var(--ink)}
+.act-i.msg{background:var(--accent-soft);color:var(--accent)} .act-i.call{background:var(--teal-soft);color:var(--teal)}
+.act-i.remind,.act-i.cal{background:var(--amber-soft);color:var(--amber)} .act-i.pay{background:var(--green-soft);color:var(--green)}
+.act-i.block{background:var(--surface);color:var(--red)} .act-i.suggest{background:var(--violet-soft);color:var(--violet)}
+.act-t{font-weight:600;font-size:13.5px;line-height:1.25}
+.act-s{font-size:12px;color:var(--muted)}
+.act-body{font-size:13.5px;background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:8px 10px}
+.act-body .gloss{display:block;font-size:12px;color:var(--muted);margin-top:3px}
+.act-why{font-size:11.5px;color:var(--dim);display:flex;gap:5px;align-items:flex-start}
+.act-btns{display:flex;flex-wrap:wrap;gap:6px}
+.act-btns .btn{height:32px;padding:0 13px;font-size:13px}
+.ok-line{font-size:12.5px;font-weight:600;color:var(--green);display:flex;gap:5px;align-items:center}
+.base-out{background:var(--surface);border:1px dashed var(--line-2);border-radius:14px;padding:11px;display:grid;gap:7px;font-size:13.5px}
+.base-out .row{display:flex;gap:7px;align-items:flex-start}
+.flag{font-size:12px;color:var(--red);display:flex;gap:6px;align-items:flex-start}
+.clar{background:var(--surface);border:1px solid var(--accent);border-radius:14px;padding:11px;display:grid;gap:9px}
+.clar .q{font-weight:600}
+.clar .opts{display:flex;flex-wrap:wrap;gap:6px}
+.doall{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:12px;color:var(--muted)}
+.reply{display:flex;gap:8px;align-items:center}
+.spk{width:28px;height:28px;border-radius:50%;border:1px solid var(--line-2);display:grid;place-items:center;flex:none}
+.spk .ico{width:14px;height:14px}
+.thinking{font-size:12.5px;color:var(--muted);display:flex;gap:6px;align-items:center}
+.dot3 i{display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--accent);margin-right:3px;animation:pulse 1s infinite}
+.dot3 i:nth-child(2){animation-delay:.2s}.dot3 i:nth-child(3){animation-delay:.4s}
+
+.chatlist{display:grid;gap:2px}
+.chatrow{display:flex;gap:10px;align-items:center;padding:9px 6px;border-radius:12px;text-align:left;width:100%}
+.chatrow:hover{background:var(--bg-2)}
+.chatrow .nm{font-weight:600;font-size:13.5px;display:flex;justify-content:space-between;gap:8px}
+.chatrow .lm{font-size:12px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.chatrow .tm{font-size:11px;color:var(--dim);font-weight:500;flex:none}
+.chatrow .new{color:var(--accent)}
+.thr{display:grid;gap:8px}
+.bub{max-width:85%;padding:8px 11px;border-radius:14px;font-size:13.5px}
+.bub.them{background:var(--surface);border:1px solid var(--line);justify-self:start}
+.bub.me{background:var(--accent-soft);justify-self:end}
+.bub .tm{display:block;font-size:10.5px;color:var(--dim);margin-top:3px}
+.bub .via{font-size:10.5px;color:var(--accent);font-weight:600;display:block;margin-bottom:2px}
+
+/* side panel */
+.side{display:grid;gap:16px;min-width:0}
+.panel{padding:16px;display:grid;gap:12px;min-width:0}
+.panel h3{font-size:16px;display:flex;align-items:center;gap:8px}
+.panel h3 .chip{margin-left:auto}
+.mem{display:grid;gap:7px}
+.mem-i{display:flex;gap:9px;align-items:flex-start;padding:9px 11px;border-radius:11px;border:1px solid var(--line);background:var(--surface-2);font-size:13.5px}
+.mem-i.new{border-color:var(--accent);background:var(--accent-soft);animation:pop .6s var(--ease)}
+.mem-i .src{font-size:11px;color:var(--dim);display:block}
+@keyframes pop{0%{transform:scale(.97);opacity:.4}100%{transform:none;opacity:1}}
+.stage-list{display:grid;gap:8px}
+details.sd{border:1px solid var(--line);border-radius:12px;background:var(--surface-2)}
+details.sd summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:9px;padding:10px 12px;font-weight:600;font-size:14px}
+details.sd summary::-webkit-details-marker{display:none}
+details.sd summary .chip{margin-left:auto}
+details.sd .sd-b{padding:0 12px 12px;display:grid;gap:8px;font-size:13.5px;min-width:0}
+.num{width:22px;height:22px;border-radius:50%;background:var(--ink);color:var(--on-ink);font-size:11.5px;display:grid;place-items:center;flex:none}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;font-size:13px}
+.kv dt{color:var(--muted)} .kv dd{margin:0;font-weight:500;min-width:0}
+.cand{display:grid;gap:5px}
+.cand-r{display:grid;grid-template-columns:minmax(0,1fr) 46px;gap:2px 10px;align-items:center;font-size:13px}
+.meter{grid-column:1/-1;height:5px;border-radius:9px;background:var(--bg-2);overflow:hidden}
+.meter i{display:block;height:100%;background:var(--accent);border-radius:9px}
+.cand-r small{grid-column:1/-1;color:var(--dim);font-size:11.5px}
+pre.json{margin:0;font-family:var(--mono);font-size:11.5px;line-height:1.5;background:var(--bg-2);border-radius:10px;padding:10px;overflow-x:auto;white-space:pre}
+.live{padding:16px;display:grid;gap:10px}
+.live textarea{width:100%;min-height:76px;resize:vertical;border-radius:12px;border:1px solid var(--line-2);background:var(--surface);color:var(--ink);padding:10px 12px;font:inherit;font-size:15px}
+.live textarea:focus{outline:none;border-color:var(--ink);box-shadow:0 0 0 3px color-mix(in srgb,var(--ink) 10%,transparent)}
+.live-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.live-note{font-size:12.5px;color:var(--muted)}
+.mic-on{background:var(--red)!important;color:#fff!important}
+
+/* pipeline */
+.pipe{display:grid;gap:0;counter-reset:s}
+.pstep{display:grid;grid-template-columns:44px minmax(0,1fr);gap:14px;position:relative;padding-bottom:18px}
+.pstep::before{content:"";position:absolute;left:21px;top:44px;bottom:0;width:2px;background:var(--line-2)}
+.pstep:last-child::before{display:none}
+.pnum{width:44px;height:44px;border-radius:14px;background:var(--ink);color:var(--on-ink);display:grid;place-items:center;font-weight:700}
+.pcard{padding:16px;display:grid;gap:10px}
+.pcard-h{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.pcard-h h3{font-size:18px}
+.io{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:10px;align-items:center;font-size:13.5px}
+.io > div{background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:8px 10px;min-width:0}
+.io .arr{color:var(--dim)}
+.io b{display:block;font-size:11px;color:var(--dim);font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px}
+
+/* grids */
+.g3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.g2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.box{padding:18px;display:grid;gap:8px;align-content:start}
+.box h3{font-size:17px}
+.box p,.box li{font-size:14.5px;color:var(--ink-2)}
+.box ul{margin:0;padding-left:18px;display:grid;gap:5px}
+.ctx-person{display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-top:1px solid var(--line)}
+.ctx-person:first-of-type{border-top:0}
+.ctx-person .nm{font-weight:600;font-size:14px}
+.ctx-person .al{font-size:12.5px;color:var(--muted)}
+
+table.t{width:100%;border-collapse:collapse;font-size:14px;min-width:560px}
+table.t th{text-align:left;font-size:12px;color:var(--dim);font-weight:600;text-transform:uppercase;letter-spacing:.04em;padding:8px 10px;border-bottom:1px solid var(--line-2)}
+table.t td{padding:10px;border-bottom:1px solid var(--line);vertical-align:top}
+table.t td.n{font-variant-numeric:tabular-nums;text-align:right}
+table.t th.n{text-align:right}
+.tbl{padding:6px 8px;overflow-x:auto}
+.pend{color:var(--dim);font-style:italic}
+
+.idea-col{display:grid;gap:10px;align-content:start}
+.idea-col > h3{font-size:16px;display:flex;align-items:center;gap:8px}
+.idea{padding:13px 14px;display:grid;gap:4px}
+.idea b{font-size:14.5px}
+.idea span{font-size:13.5px;color:var(--muted)}
+
+.arch{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1.3fr) auto minmax(0,1fr);gap:12px;align-items:center}
+.arch .node{padding:14px;display:grid;gap:6px;font-size:13.5px}
+.arch .node b{font-size:15px}
+.arch .node ul{margin:0;padding-left:16px;color:var(--muted)}
+.arch .link{color:var(--dim);font-size:12px;text-align:center;display:grid;justify-items:center;gap:2px}
+.tl{display:grid;gap:0}
+.tl-r{display:grid;grid-template-columns:86px minmax(0,1fr);gap:14px;padding:12px 0;border-top:1px solid var(--line)}
+.tl-r .when{font-weight:700;font-variant-numeric:tabular-nums}
+.tl-r .what b{display:block;font-size:15px}
+.tl-r .what span{font-size:14px;color:var(--muted)}
+.tl-r.sleep .when,.tl-r.sleep b{color:var(--violet)}
+.comp{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.comp-box{padding:16px;display:grid;gap:12px}
+.comp-box h4{font-size:13px;color:var(--dim);font-weight:600;text-transform:uppercase;letter-spacing:.04em}
+footer{padding-block:28px;color:var(--muted);font-size:13.5px}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--on-ink);padding:10px 16px;border-radius:999px;font-size:14px;font-weight:500;box-shadow:var(--shadow-lg);z-index:40}
+
+@media (max-width:960px){
+  .hero-grid,.proto,.g2{grid-template-columns:minmax(0,1fr)}
+  .g3{grid-template-columns:minmax(0,1fr)}
+  .arch{grid-template-columns:minmax(0,1fr)}
+  .arch .link{transform:rotate(90deg);padding:4px 0}
+  .phone{height:640px;min-height:0}
+}
+@media (max-width:520px){
+  .io{grid-template-columns:minmax(0,1fr)}
+  .io .arr{transform:rotate(90deg);justify-self:center}
+  .navlinks a{padding:6px 8px}
+  .seg button{padding:5px 8px}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-mic" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></symbol>
+  <symbol id="i-play" viewBox="0 0 24 24"><path d="M7 4.5v15l13-7.5z"/></symbol>
+  <symbol id="i-msg" viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4z"/></symbol>
+  <symbol id="i-call" viewBox="0 0 24 24"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/></symbol>
+  <symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4zM10 21h4"/></symbol>
+  <symbol id="i-cal" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4"/></symbol>
+  <symbol id="i-pay" viewBox="0 0 24 24"><path d="M7 5h10M7 9h10M7 5c5 0 7 2 7 4s-2 4-7 4l7 7"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7"/></symbol>
+  <symbol id="i-spark" viewBox="0 0 24 24"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/></symbol>
+  <symbol id="i-chat" viewBox="0 0 24 24"><path d="M4 6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H9l-5 4z"/></symbol>
+  <symbol id="i-brain" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1"/></symbol>
+  <symbol id="i-back" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></symbol>
+  <symbol id="i-speak" viewBox="0 0 24 24"><path d="M4 10v4h4l5 4V6L8 10zM16 9a4 4 0 0 1 0 6M18.5 6.5a8 8 0 0 1 0 11"/></symbol>
+  <symbol id="i-warn" viewBox="0 0 24 24"><path d="M12 4l9 16H3zM12 10v4M12 17v.5"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+</svg>
+
+<header class="top">
+  <div class="wrap">
+    <div class="brand"><span class="logo"><svg class="ico" style="width:16px;height:16px"><use href="#i-mic"/></svg></span>Matlab</div>
+    <nav class="navlinks" aria-label="Sections">
+      <a href="#journey">Journey</a><a href="#prototype">Prototype</a><a href="#pipeline">How it works</a>
+      <a href="#context">Context</a><a href="#proof">Proof</a><a href="#ui">UI system</a><a href="#ideas">Add &amp; improve</a><a href="#build">Build plan</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+<!-- HERO -->
+<section class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <p class="eyebrow">Builders 2026 · Track 2 · Voice AI for India</p>
+      <h1>Matlab</h1>
+      <p class="tag">Aap bolo. Matlab samjhega.</p>
+      <p class="lead">Indians talk in short voice notes full of nicknames, “parso” and “wahi wala”. Matlab turns each note into the right actions by using what your phone already knows about your life: your people, your calls, your calendar and your habits.</p>
+      <div class="hero-cta">
+        <a class="btn btn-primary" href="#prototype"><svg class="ico"><use href="#i-play"/></svg>Try the prototype</a>
+        <a class="btn btn-ghost" href="#pipeline">See how it works</a>
+      </div>
+    </div>
+    <div class="card fail">
+      <div class="note">
+        <span class="av" style="width:34px;height:34px"><svg class="ico"><use href="#i-mic"/></svg></span>
+        <div><p>“Anna ko bol do parcel security pe chhod de, aur Mehta ji wala appointment parso shaam ko shift karwa do.”</p><span class="meta">Voice note · 0:06 · Hinglish</span></div>
+      </div>
+      <div class="tbl-scroll">
+      <table>
+        <thead><tr><th>Level</th><th>Base model</th><th>Matlab</th></tr></thead>
+        <tbody>
+          <tr><td>Hearing</td><td class="bad">“metha ji”</td><td class="good">Mehta ji → Dr. Mehta’s Clinic</td></tr>
+          <tr><td>Meaning</td><td class="bad">“parso sham” (just words)</td><td class="good">Mon 23 Nov, around 6 PM</td></tr>
+          <tr><td>Who</td><td class="bad">“anna”: no one</td><td class="good">Santosh Anna, who called at 3:02 PM about this parcel</td></tr>
+          <tr><td>Intent</td><td class="bad">A summary sentence</td><td class="good">Message Anna in Telugu, call the clinic to move the slot, remind 1 hr before</td></tr>
+        </tbody>
+      </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- JOURNEY -->
+<section id="journey">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="eyebrow">The journey</p>
+      <h2>Five screens, from a voice note to work done</h2>
+      <p class="lead">This is Equal’s loop on slide 5 (context, intent, actions, fulfilment) applied to one voice note. Swipe on a phone.</p>
+    </div>
+    <div class="strip" id="strip"></div>
+  </div>
+</section>
+
+<!-- PROTOTYPE -->
+<section id="prototype">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="eyebrow">Prototype</p>
+      <h2>Play a voice note and watch Matlab work</h2>
+      <p class="lead">Pick a note. Flip between <b>Matlab</b> and <b>Base model</b> at the top of the phone to see the same recording both ways. Tap a highlighted word to see why Matlab chose it. Answer the “Which Rahul?” question, then play the follow-up: it remembers.</p>
+    </div>
+    <div class="scen" id="scen"></div>
+    <div class="proto">
+      <div class="phone" id="phone">
+        <div class="ph-top" id="phTop"></div>
+        <div class="ph-body" id="phBody"></div>
+        <div class="compose" id="compose">
+          <span class="hold" aria-hidden="true"><svg class="ico"><use href="#i-mic"/></svg></span>
+          <span class="hint">In the real app you hold to speak. Here, pick a note above or try your own on the right.</span>
+        </div>
+        <div class="ph-tabs" role="tablist">
+          <button role="tab" id="tabM" aria-selected="true"><svg class="ico"><use href="#i-spark"/></svg>Matlab</button>
+          <button role="tab" id="tabC" aria-selected="false"><svg class="ico"><use href="#i-chat"/></svg><span>Chats<span class="badge" id="chatBadge" hidden>0</span></span></button>
+        </div>
+      </div>
+      <div class="side">
+        <div class="card live" id="liveCard">
+          <h3 style="font-size:16px;display:flex;gap:8px;align-items:center"><svg class="ico"><use href="#i-mic"/></svg>Try your own note<span class="chip accent" style="margin-left:auto">live</span></h3>
+          <textarea id="liveText" placeholder="e.g. Priya ko bolo aaj dinner bahar karte hain, 8 baje ke baad">Priya ko bolo aaj dinner bahar karte hain, saadhe aath baje</textarea>
+          <div class="live-row">
+            <button class="btn btn-primary btn-sm" id="liveGo"><svg class="ico"><use href="#i-spark"/></svg>Understand it</button>
+            <button class="btn btn-ghost btn-sm" id="liveMic" hidden><svg class="ico"><use href="#i-mic"/></svg><span>Speak</span></button>
+            <button class="btn btn-ghost btn-sm" id="liveStop" hidden>Stop</button>
+          </div>
+          <p class="live-note" id="liveNote">Uses this sample person’s context on the right. The date and amount parsing below runs in this page as plain code; the understanding step is a stand-in run by Claude. The hackathon build uses OpenAI for this.</p>
+        </div>
+        <div class="card panel">
+          <h3><svg class="ico"><use href="#i-brain"/></svg>Memory<span class="chip" id="memCount">6 facts</span></h3>
+          <div class="mem" id="mem"></div>
+        </div>
+        <div class="card panel">
+          <h3><svg class="ico"><use href="#i-spark"/></svg>Inside this note<span class="chip" id="insideLabel">nothing yet</span></h3>
+          <div class="stage-list" id="inside"><p class="muted" style="font-size:14px">Play a note to see what each stage produced.</p></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PIPELINE -->
+<section id="pipeline">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="eyebrow">How it works</p>
+      <h2>Six stages, each one testable on its own</h2>
+      <p class="lead">The model does what only a model can do: understand and plan. Code does what must be exact: numbers, dates and safety rules. Each example follows the Anna and Mehta ji note.</p>
+    </div>
+    <div class="pipe" id="pipe"></div>
+  </div>
+</section>
+
+<!-- CONTEXT -->
+<section id="context">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="eyebrow">Personal context</p>
+      <h2>What Matlab knows about the sample person</h2>
+      <p class="lead">This is a made-up Hyderabad user, Aditya, built to be hard: two Rahuls, two Shankars, a Mehta who isn’t the doctor, and people who prefer different languages. Only the few people relevant to a note are sent to the model, never the whole address book.</p>
+    </div>
+    <div class="g3">
+      <div class="card box"><h3>People</h3><div id="ctxPeople"></div></div>
+      <div class="card box"><h3>Recent activity</h3><div id="ctxEvents"></div></div>
+      <div class="card box"><h3>Habits and preferences</h3><div id="ctxHabits"></div>
+        <p class="muted" style="font-size:13px;margin-top:6px">Every fact keeps a record of where it came from (which call or note), so it can be shown, corrected or forgotten. This lines up with the consent and deletion rules in India’s DPDP Act.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PROOF -->
+<section id="proof">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="eyebrow">Proof for Track 2</p>
+      <h2>Same recordings, base model vs Matlab</h2>
+      <p class="lead">The track asks for a measurable improvement. Every clip has a correct answer written down before it is run. The prototype above uses scripted examples; the table below fills in only from the real eval run.</p>
+    </div>
+    <div class="g3" style="margin-bottom:16px">
+      <div class="card box"><span class="chip">System A</span><h3>Base</h3><p>Plain transcription, then the model with no context. This is what Track 2 asks us to compare against.</p></div>
+      <div class="card box"><span class="chip amber">System B</span><h3>Base + pasted context</h3><p>The same, with the whole contact list pasted into the prompt. It’s the obvious shortcut, so beating it shows the design is what helps.</p></div>
+      <div class="card box"><span class="chip accent">System C</span><h3>Matlab</h3><p>The full six-stage pipeline: name hints, entity code, the resolver, rules and memory.</p></div>
+    </div>
+    <div class="g2">
+      <div class="card tbl">
+        <table class="t">
+          <thead><tr><th>Clips by difficulty</th><th class="n">Hindi / Hinglish</th><th class="n">Marathi</th><th class="n">Telugu</th><th class="n">English</th></tr></thead>
+          <tbody>
+            <tr><td>Names and nicknames</td><td class="n">4</td><td class="n">2</td><td class="n">2</td><td class="n">1</td></tr>
+            <tr><td>Dates, times, amounts</td><td class="n">4</td><td class="n">2</td><td class="n">2</td><td class="n">1</td></tr>
+            <tr><td>“Usko”, “wahi wala”, “jo kal aaya”</td><td class="n">3</td><td class="n">1</td><td class="n">1</td><td class="n">1</td></tr>
+            <tr><td>Two requests in one note</td><td class="n">2</td><td class="n">1</td><td class="n">1</td><td class="n">0</td></tr>
+            <tr><td>Ambiguous: should ask</td><td class="n">2</td><td class="n">1</td><td class="n">0</td><td class="n">0</td></tr>
+            <tr><td>Safety: OTP, money</td><td class="n">2</td><td class="n">0</td><td class="n">0</td><td class="n">1</td></tr>
+            <tr><td><b>Planned total: 36 + 10 held-out</b></td><td class="n">17</td><td class="n">7</td><td class="n">6</td><td class="n">4</td></tr>
+          </tbody>
+        </table>
+        <p class="muted" style="font-size:12.5px;padding:8px 10px">Recorded by Prasad on the day. Telugu clips use OpenAI voices and are labelled synthetic. The 10 held-out clips are recorded after tuning, so the final numbers aren’t overfitted.</p>
+      </div>
+      <div class="card tbl">
+        <table class="t">
+          <thead><tr><th>Metric</th><th class="n">A</th><th class="n">B</th><th class="n">C</th></tr></thead>
+          <tbody>
+            <tr><td>Names heard correctly</td><td class="n pend">—</td><td class="n pend">—</td><td class="n pend">—</td></tr>
+            <tr><td>Right contact chosen</td><td class="n pend">—</td><td class="n pend">—</td><td class="n pend">—</td></tr>
+            <tr><td>Dates and amounts exact</td><td class="n pend">—</td><td class="n pend">—</td><td class="n pend">—</td></tr>
+            <tr><td>Right intent</td><td class="n pend">—</td><td class="n pend">—</td><td class="n pend">—</td></tr>
+            <tr><td><b>Whole note right</b></td><td class="n pend">—</td><td class="n pend">—</td><td class="n pend">—</td></tr>
+            <tr><td>Unneeded questions asked</td><td class="n pend">—</td><td class="n pend">—</td><td class="n pend">—</td></tr>
+            <tr><td>Seconds per note (median)</td><td class="n pend">—</td><td class="n pend">—</td><td class="n pend">—</td></tr>
+          </tbody>
+        </table>
+        <p class="muted" style="font-size:12.5px;padding:8px 10px">Filled in by <span class="mono">npm run eval</span> on Saturday night. Next to it goes a table of what each part adds: name hints, entity code, the resolver.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- UI SYSTEM -->
+<section id="ui">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="eyebrow">UI system</p>
+      <h2>SahiCar’s design language, applied to messaging</h2>
+      <p class="lead">Keep it simple to scan and simple to tap. One typeface, a calm paper background, white cards with hairline borders, black pill buttons for the main action, and colour only where it carries meaning.</p>
+    </div>
+    <div class="g2" style="margin-bottom:16px">
+      <div class="card box">
+        <h3>Rules we keep from SahiCar</h3>
+        <ul>
+          <li><b>One accent, used sparingly.</b> Blue marks what Matlab understood; everything else stays ink and paper.</li>
+          <li><b>Black pill for the one main action</b> on each card (Send, Do it, Confirm). Outlined pills for the rest.</li>
+          <li><b>Soft-tint chips carry meaning:</b> people are blue, time is amber, money is green, events are violet, danger is red. Each chip also says what it is in words, so it doesn’t rely on colour alone.</li>
+          <li><b>Phone first.</b> The phone is the product; on desktop the panel sits beside it, on a phone it stacks below.</li>
+          <li><b>Show the work.</b> Stage lights with timings and a “why” on every guess build trust, the way SahiCar shows how each car is scored.</li>
+        </ul>
+      </div>
+      <div class="card comp-box">
+        <h4>Components</h4>
+        <div class="comp"><button class="btn btn-primary btn-sm">Send</button><button class="btn btn-ghost btn-sm">Edit</button><span class="chip accent">Telugu</span><span class="chip green">Safe</span><span class="chip red">Blocked</span><span class="chip amber">Predicted</span></div>
+        <h4>Understood words</h4>
+        <div class="tx" style="font-size:14px"><span class="ent person">Anna<sub>Santosh Anna</sub></span> <span class="ent time">parso shaam<sub>Mon 23 Nov · 6 PM</sub></span> <span class="ent money">dhai sau<sub>₹250</sub></span> <span class="ent event">appointment<sub>Sun 10 AM</sub></span> <span class="ent secret">OTP<sub>hidden</sub></span></div>
+        <h4>Stage lights</h4>
+        <div class="stages"><span class="stg done"><svg class="ico" style="width:12px;height:12px"><use href="#i-check"/></svg>Heard <span class="ms">1.2s</span></span><span class="stg done"><svg class="ico" style="width:12px;height:12px"><use href="#i-check"/></svg>Meaning <span class="ms">9ms</span></span><span class="stg run">Who</span><span class="stg">Plan</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- IDEAS -->
+<section id="ideas">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="eyebrow">Add and improve</p>
+      <h2>What makes it feel like magic, sorted by when to build it</h2>
+      <p class="lead">Build the left column first: those features are the demo. The middle column is for Saturday night if time allows. The right column goes in the “What’s next” slide.</p>
+    </div>
+    <div class="g3">
+      <div class="idea-col"><h3><span class="chip green">Build now</span>Core demo</h3><div id="ideasNow" class="idea-col"></div></div>
+      <div class="idea-col"><h3><span class="chip amber">If time</span>Saturday night</h3><div id="ideasTime" class="idea-col"></div></div>
+      <div class="idea-col"><h3><span class="chip">Pitch</span>What’s next</h3><div id="ideasPitch" class="idea-col"></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- BUILD -->
+<section id="build" style="border-bottom:0">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="eyebrow">Build plan</p>
+      <h2>Architecture, timeline and what we cut first</h2>
+    </div>
+    <div class="arch" style="margin-bottom:28px">
+      <div class="card node"><b>Phone browser</b><ul><li>React + Vite + Tailwind</li><li>Records the note (webm)</li><li>Hosted on S3 + CloudFront (HTTPS, which the mic needs)</li></ul></div>
+      <div class="link"><svg class="ico"><use href="#i-play"/></svg>audio + user id</div>
+      <div class="card node"><b>Matlab API · AWS Lambda, us-west-2</b><ul><li>Hear → Meaning → Who → Plan → Rules → Learn</li><li>Each stage is its own TypeScript module with tests</li><li>Context and memory as JSON in S3</li><li>OpenAI key stays here, never in the page</li></ul></div>
+      <div class="link"><svg class="ico"><use href="#i-play"/></svg>API calls</div>
+      <div class="card node"><b>OpenAI</b><ul><li>Transcription with name hints</li><li>gpt-6.2-sol for planning, with a fixed output format</li><li>gpt-6-luna for picking contacts</li><li>Text-to-speech for the reply and the Telugu test clips</li></ul></div>
+    </div>
+    <div class="card tbl" style="margin-bottom:16px">
+      <table class="t">
+        <thead><tr><th>The submission must include</th><th>How Matlab meets it</th></tr></thead>
+        <tbody>
+          <tr><td><b>A working demo, end to end on fresh input</b> (not slides or a mock-up)</td><td>The live AWS link: hold to speak any new note, then get transcription, actions and memory. Judges can record their own note on stage.</td></tr>
+          <tr><td><b>Source code in a repo judges can open</b></td><td>A public GitHub repo with each stage as its own module, unit tests for the normaliser, and a README with run steps.</td></tr>
+          <tr><td><b>Evidence of results</b></td><td>The scoreboard: Base vs Base + context vs Matlab on the same clips, plus held-out clips and new outputs. Memory persists in S3 across sessions; show a fact learned yesterday being used today.</td></tr>
+          <tr><td><b>An honest note: built, reused, simulated</b></td><td><span class="mono">HONEST.md</span>. Built: the pipeline, normaliser, resolver, rules, UI and eval. Reused: OpenAI models and open-source libraries. Simulated: the contacts and calendar (a made-up person), message delivery inside the app, and the clinic call if it isn’t live.</td></tr>
+          <tr><td><b>Only data you have permission to use</b></td><td>No real contacts or other people’s voices. Prasad records the clips; Telugu clips are synthetic and labelled.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="g2">
+      <div class="card box">
+        <h3>Timeline · code freeze Sun 2 PM</h3>
+        <div class="tl" id="tl"></div>
+      </div>
+      <div class="idea-col">
+        <div class="card box"><h3>Cut in this order if we fall behind</h3><ul><li>Matlab placing a real call</li><li>Two-pass transcription (keep one pass with hints)</li><li>Memory in S3 (keep a local JSON file)</li><li>The Marathi clip set</li></ul></div>
+        <div class="card box"><h3>Risks and fallbacks</h3><ul>
+          <li><b>The transcription model ignores hints:</b> fix names after transcription instead, by matching how names sound against the contacts. Still measurable.</li>
+          <li><b>4–6 seconds per note:</b> fine, because a voice note isn’t a live call. Show the stage timings; use the smaller model for picking contacts.</li>
+          <li><b>“No outside help”:</b> Prasad records every clip; Telugu clips are synthetic. Ask Sai or Bala before using anyone else’s voice.</li>
+          <li><b>AWS keys expire:</b> refresh <span class="mono">CLI-creds</span> from Workshop Studio.</li></ul></div>
+      </div>
+    </div>
+  </div>
+</section>
+</main>
+<footer><div class="wrap">Matlab blueprint for Builders 2026. Prototype outputs are scripted examples of typical failures, and no number here is a measurement. Aditya and his contacts are made up.</div></footer>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+/* ============ DATA: the sample person ============ */
+const TODAY = "Sat 21 Nov";
+const CONTACTS = {
+  santosh:{name:"Santosh Anna",rel:"Delivery partner",lang:"Telugu",alias:["Anna","Santosh anna","delivery wale"],av:"SA",last:"Parcel ke liye ghar pe koi hai? 10 min mein pahunch raha hoon.",tm:"3:02 PM"},
+  mehta:{name:"Dr. Mehta’s Clinic",rel:"Your doctor",lang:"English / Hindi",alias:["Mehta ji","doctor","clinic"],av:"DM",last:"Your appointment is confirmed for tomorrow, 10 AM. Please bring your previous reports.",tm:"11:20 AM"},
+  mehtaU:{name:"Mehta Uncle",rel:"Neighbour",lang:"Hindi",alias:["Mehta uncle"],av:"MU",last:"Beta, Diwali party ki photos bhejna.",tm:"Oct"},
+  rahulV:{name:"Rahul Verma",rel:"Office",lang:"English",alias:["Rahul"],av:"RV",last:"Can we sync on the Q4 review this weekend?",tm:"Yesterday"},
+  rahulK:{name:"Rahul Kulkarni",rel:"Cousin",lang:"Marathi",alias:["Rahul","Rahul dada"],av:"RK",last:"Dada, Pune la kadhi yetoy?",tm:"Thu"},
+  amma:{name:"Amma",rel:"Mother",lang:"Telugu",alias:["Amma"],av:"A",last:"Bhojanam ki eppudu vastunnav?",tm:"9:05 AM"},
+  shankar:{name:"Shankar",rel:"Rapido driver",lang:"Hindi",alias:["Shankar bhaiya","Rapido bhaiya"],av:"S",last:"Sir, drop ho gaya. ₹250 pending hai, UPI kar dena.",tm:"9:40 AM"},
+  shankarR:{name:"Shankar Rao",rel:"Gym trainer",lang:"Telugu",alias:["Shankar sir"],av:"SR",last:"Monday 6 AM session confirmed.",tm:"Wed"},
+  lakshmi:{name:"Lakshmi akka",rel:"House help",lang:"Telugu",alias:["akka","Lakshmi"],av:"LA",last:"Repu 8 ki vastanu.",tm:"Yesterday"},
+  priya:{name:"Priya",rel:"Wife",lang:"Hindi / English",alias:["Priya"],av:"P",last:"Dinner bahar karein aaj?",tm:"1:10 PM"},
+  hdfc:{name:"“HDFC Bank” (unverified)",rel:"Unknown caller",lang:"Hindi",alias:["HDFC wale"],av:"?",last:"Call at 3:15 PM: “Update your KYC now or the account will be blocked.”",tm:"3:15 PM"},
+};
+const EVENTS = [
+  ["3:15 PM","Unknown caller claiming to be HDFC asked to “update KYC”"],
+  ["3:02 PM","Santosh Anna called about a parcel delivery"],
+  ["1:10 PM","Priya: “Dinner bahar karein aaj?”"],
+  ["11:20 AM","Dr. Mehta’s Clinic confirmed tomorrow, 10 AM"],
+  ["9:40 AM","Shankar (Rapido): ₹250 pending"],
+  ["Yesterday","Rahul Verma asked to sync on the Q4 review"],
+];
+const BASE_MEMORY = [
+  ["Dr. Mehta’s Clinic is your doctor","from a call, 12 Oct"],
+  ["Appointments: remind you 1 hr before","from your settings"],
+  ["You always carry your previous reports","from 3 past calls"],
+  ["Santosh Anna prefers Telugu","from 9 messages"],
+  ["Lakshmi akka prefers Telugu and comes at 8 AM","from messages"],
+  ["You ride to Amma’s house (Kukatpally) by Rapido","from 4 trips"],
+];
+
+/* ============ DATA: scripted voice notes ============ */
+const S = {
+ s1:{label:"Anna + Mehta ji",lang:"Hinglish",dur:"0:06",
+  say:"Anna ko bol do parcel security pe chhod de, aur Mehta ji wala appointment parso shaam ko shift karwa do.",
+  base:{tx:"anna ko bol do parcel security pe chod de aur metha ji wala appointment parso sham ko shift karwa do",
+   out:[["warn","Send message to “anna”: no contact by that name"],["warn","Reminder: “shift metha ji appointment parso sham”, no date set"]],
+   flags:["“Mehta” heard as “metha”","“Anna” not linked to anyone","“parso shaam” left as words","No call to the clinic"]},
+  hint:["Santosh Anna","Dr. Mehta","Lakshmi akka","Kondapur"],
+  tx:[["Anna","person","Santosh Anna"]," ko bol do parcel security pe chhod de, aur ",["Mehta ji","person","Dr. Mehta’s Clinic"]," wala ",["appointment","event","Sun 22 Nov · 10 AM"]," ",["parso shaam","time","Mon 23 Nov · ~6 PM"]," ko shift karwa do."],
+  meaning:[["parso","day after tomorrow → Mon 23 Nov"],["shaam","evening → around 6:00 PM"]],
+  who:[["Anna",[["Santosh Anna",.94,"You call him “Anna”; he called at 3:02 PM about this parcel"],["Lakshmi akka",.04,"Only the relationship word matches"]]],
+       ["Mehta ji",[["Dr. Mehta’s Clinic",.97,"Your doctor, with an appointment tomorrow at 10 AM"],["Mehta Uncle",.03,"Saved, but no recent activity"]]]],
+  actions:[
+   {type:"msg",cid:"santosh",lang:"Telugu",text:"Anna, parcel ni security daggara pettandi. Thank you!",gloss:"Anna, please leave the parcel with security.",why:"You spoke Hinglish; Santosh prefers Telugu"},
+   {type:"call",cid:"mehta",goal:"Move tomorrow’s 10 AM appointment to Mon 23 Nov, evening (5–7 PM)",why:"“Shift karwa do” means get it moved, so Matlab calls the clinic"},
+   {type:"remind",title:"Dr. Mehta · carry previous reports",when:"Mon 23 Nov · 1 hr before the new time",why:"Predicted from your habits: reminders 1 hr before, always carry reports",pred:true}],
+  rules:["No money moves","No OTP or ID numbers","Every time is in the future","Messages go only to saved contacts"],
+  learn:[["Dr. Mehta appointment moving to Mon 23 Nov evening (waiting for the clinic)","from this note"]],
+  reply:"Ho gaya. Anna ko Telugu mein bata diya, aur clinic ko call karke appointment parso shaam shift karwa raha hoon.",
+  ms:[1180,9,620,1450]},
+
+ s2:{label:"Which Rahul?",lang:"Hinglish",dur:"0:04",
+  say:"Rahul ko bol do kal ki meeting 4 baje rakhte hain.",
+  base:{tx:"rahul ko bol do kal ki meeting 4 baje rakhte hain",
+   out:[["warn","Send message to Rahul Kulkarni: “kal ki meeting 4 baje rakhte hain”"]],
+   flags:["Picked the first “Rahul” in the address book (your cousin)","Sent Hinglish to a Marathi speaker","No day, time or calendar entry"]},
+  hint:["Rahul Verma","Rahul Kulkarni"],
+  tx:[["Rahul","person","2 people"]," ko bol do ",["kal","time","Sun 22 Nov"]," ki ",["meeting","event","work?"]," ",["4 baje","time","4:00 PM"]," rakhte hain."],
+  meaning:[["kal","tomorrow (it’s a plan, so the future) → Sun 22 Nov"],["4 baje","4:00 PM (meetings happen in the afternoon)"]],
+  who:[["Rahul",[["Rahul Verma (Office)",.55,"“Meeting” fits work; he asked for a sync yesterday"],["Rahul Kulkarni (Cousin)",.45,"You talk often on weekends"]]]],
+  clarify:{q:"Kaunse Rahul? Which Rahul did you mean?",opts:[["rahulV","Rahul Verma · Office"],["rahulK","Rahul Kulkarni · Cousin"]]},
+  after:{
+   rahulV:{actions:[{type:"msg",cid:"rahulV",lang:"English",text:"Hi Rahul, shall we do tomorrow’s meeting at 4 PM?",why:"Rahul Verma writes in English"},
+                   {type:"cal",title:"Meeting with Rahul Verma",when:"Sun 22 Nov · 4:00 PM",why:"A meeting time was set"}],
+           learn:[["When you say “Rahul” about work, you mean Rahul Verma (Office)","from your answer"]],
+           reply:"Theek hai, Rahul Verma ko bol diya. Kal 4 baje calendar mein daal diya."},
+   rahulK:{actions:[{type:"msg",cid:"rahulK",lang:"Marathi",text:"Rahul dada, udya chi meeting 4 vajta theuya ka?",gloss:"Shall we keep tomorrow’s meeting at 4?",why:"Rahul Kulkarni prefers Marathi"},
+                   {type:"cal",title:"Meeting with Rahul Kulkarni",when:"Sun 22 Nov · 4:00 PM",why:"A meeting time was set"}],
+           learn:[["When you say “Rahul” about meetings, you mean Rahul Kulkarni (Cousin)","from your answer"]],
+           reply:"Theek hai, Rahul dada ko Marathi mein bol diya. Kal 4 baje calendar mein hai."}},
+  rules:["No money moves","Every time is in the future"],
+  ms:[980,7,540,0]},
+
+ s3:{label:"Rahul again",lang:"Hinglish",dur:"0:03",needs:"s2",
+  say:"Rahul ko bolo Q4 wali report bhi le aaye.",
+  base:{tx:"rahul ko bolo q4 wali report bhi le aaye",
+   out:[["warn","Send message to Rahul Kulkarni: “q4 wali report bhi le aaye”"]],
+   flags:["Doesn’t remember what you said two minutes ago","Same wrong Rahul as before"]},
+  hint:["Rahul Verma","Rahul Kulkarni","Q4 review"],
+  rules:["No money moves"],
+  ms:[860,5,210,1100]},
+
+ s4:{label:"Telugu: Amma",lang:"Telugu",dur:"0:04",
+  say:"Ammaki cheppu, repu madhyanam lunch ki vastanu.",
+  base:{tx:"amma ki cheppu repu madhyanam lunch ki vastanu",
+   out:[["warn","No clear action found. Detected the word “lunch”, with no date"]],
+   flags:["“repu madhyanam” (tomorrow afternoon) not understood","No message to Amma","No calendar entry"]},
+  hint:["Amma","Kukatpally"],
+  tx:[["Ammaki","person","Amma"]," cheppu, ",["repu madhyanam","time","Sun 22 Nov · 1 PM"]," ",["lunch","event","at Amma’s"]," ki vastanu."],
+  meaning:[["repu","tomorrow → Sun 22 Nov"],["madhyanam","afternoon → around 1:00 PM"]],
+  who:[["Ammaki",[["Amma",.99,"“-ki” means “to”; saved as Amma, who speaks Telugu"]]]],
+  actions:[
+   {type:"msg",cid:"amma",lang:"Telugu",text:"Amma, repu madhyanam lunch ki vastanu.",gloss:"Amma, I’ll come for lunch tomorrow afternoon.",why:"Same language as Amma"},
+   {type:"cal",title:"Lunch at Amma’s · Kukatpally",when:"Sun 22 Nov · 1:00 PM",why:"A plan with a time"},
+   {type:"suggest",title:"Book a Rapido at 12:15 PM?",why:"Predicted: you usually ride to Amma’s by Rapido",pred:true}],
+  rules:["No money moves","Every time is in the future"],
+  learn:[["Lunch at Amma’s on Sun 22 Nov","from this note"]],
+  reply:"Ammaki cheppanu. Repu 1 ki calendar lo pettanu.",
+  ms:[1240,6,380,1380]},
+
+ s5:{label:"Dhai sau to Shankar",lang:"Hindi",dur:"0:03",
+  say:"Shankar bhaiya ko dhai sau bhej do.",
+  base:{tx:"shankar bhaiya ko dhai sau bhej do",
+   out:[["danger","Pay ₹200 to “Shankar”, with no confirmation"]],
+   flags:["“dhai sau” (₹250) read as ₹200","Two Shankars, and it didn’t check which","Would pay without asking you"]},
+  hint:["Shankar","Shankar Rao"],
+  tx:[["Shankar bhaiya","person","Shankar · Rapido"]," ko ",["dhai sau","money","₹250"]," bhej do."],
+  meaning:[["dhai sau","2½ × 100 → ₹250 (worked out by code, not the model)"]],
+  who:[["Shankar bhaiya",[["Shankar (Rapido)",.96,"Said “₹250 pending” at 9:40 AM; you call him bhaiya"],["Shankar Rao (Gym)",.04,"You call him “sir”"]]]],
+  actions:[{type:"pay",cid:"shankar",amount:"₹250",upi:"shankar.rides@upi",why:"Matches his ₹250 request from this morning"}],
+  rules:["Money always needs your confirmation","The amount matches his request (₹250)"],
+  learn:[],
+  reply:"Shankar bhaiya ko ₹250 bhejne ke liye bas confirm kar do.",
+  ms:[900,8,410,1210]},
+
+ s6:{label:"OTP scam",lang:"Hinglish",dur:"0:04",
+  say:"HDFC wale ko OTP bata do, 4 8 2 9 1 3.",
+  base:{tx:"hdfc wale ko otp bata do 482913",
+   out:[["danger","Send message to “HDFC Bank”: “OTP 482913”"]],
+   flags:["Would share your OTP","No scam check on the 3:15 PM caller"]},
+  hint:["HDFC"],
+  tx:[["HDFC wale","person","unverified caller, 3:15 PM"]," ko ",["OTP","secret","hidden"]," bata do, ",["••••••","secret","never sent to the model"],"."],
+  meaning:[["OTP + 6 digits","caught by a safety rule in code, before any model sees it"]],
+  who:[],
+  blocked:true,
+  actions:[
+   {type:"block",title:"Matlab will never share an OTP",why:"Banks never ask for an OTP on a call. The digits were hidden before any model saw them."},
+   {type:"suggest",title:"Mark the 3:15 PM “HDFC” caller as a likely scam?",why:"They asked you to “update KYC”, which is a common scam script"}],
+  rules:["Blocked: OTP + digits found","Digits hidden from the model and the logs"],
+  learn:[["The 3:15 PM “HDFC” caller is a likely scam","from this note"]],
+  reply:"OTP kabhi kisi ko nahi batate. Bank kabhi OTP nahi maangta.",
+  ms:[870,4,0,0]},
+
+ s7:{label:"Marathi → Telugu",lang:"Marathi",dur:"0:05",
+  say:"Lakshmi akka la sang, udya kamala yeu naka, aamhi baher jaat aahot.",
+  base:{tx:"lakshmi akka la sang udya kamala yeu naka amhi baher jat ahot",
+   out:[["warn","Send message to “Lakshmi akka la”: “udya kamala yeu naka…” (in Marathi)"]],
+   flags:["Name read as “Lakshmi akka la” (“la” is Marathi for “to”)","Sends Marathi to a Telugu speaker","“udya” (tomorrow) not set"]},
+  hint:["Lakshmi akka"],
+  tx:[["Lakshmi akka la","person","Lakshmi akka"]," sang, ",["udya","time","Sun 22 Nov"]," kamala yeu naka, aamhi baher jaat aahot."],
+  meaning:[["udya","tomorrow → Sun 22 Nov"],["la","Marathi for “to”, removed from the name"]],
+  who:[["Lakshmi akka la",[["Lakshmi akka",.98,"Saved as Lakshmi akka, your house help"]]]],
+  actions:[
+   {type:"msg",cid:"lakshmi",lang:"Telugu",text:"Akka, repu pani ki raavaddu, memu bayataki veltunnam.",gloss:"Akka, don’t come to work tomorrow, we’re going out.",why:"You spoke Marathi; Lakshmi akka prefers Telugu"},
+   {type:"suggest",title:"Remove “Lakshmi akka, 8 AM” from tomorrow?",why:"Predicted: she usually comes at 8 AM",pred:true}],
+  rules:["No money moves","Every time is in the future"],
+  learn:[["Out all day on Sun 22 Nov; house help told","from this note"]],
+  reply:"Lakshmi akka la Telugu madhe sangitla.",
+  ms:[1100,6,330,1290]},
+};
+
+/* ============ STATE ============ */
+const st = {mode:"matlab",tab:"matlab",openChat:null,runs:[],learned:null,memory:BASE_MEMORY.map(m=>({t:m[0],src:m[1],isNew:false})),
+  threads:Object.fromEntries(Object.entries(CONTACTS).map(([k,c])=>[k,[{me:false,text:c.last,tm:c.tm}]])),unread:new Set()};
+let runSeq = 0, focusRun = null;
+
+/* ============ HELPERS ============ */
+const $ = s => document.querySelector(s);
+const esc = s => String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const ico = (id,st="") => `<svg class="ico" ${st?`style="${st}"`:""}><use href="#i-${id}"/></svg>`;
+function toast(t){const el=$("#toast");el.textContent=t;el.hidden=false;clearTimeout(toast._t);toast._t=setTimeout(()=>el.hidden=true,2200)}
+function bars(seed,n=26){let h="",x=seed*9301+49297;for(let i=0;i<n;i++){x=(x*9301+49297)%233280;const v=6+Math.round((x/233280)*18*(0.55+0.45*Math.sin(i/3)));h+=`<i style="height:${Math.max(5,v)}px"></i>`}return h}
+const scrollPhone = () => {const b=$("#phBody");requestAnimationFrame(()=>b.scrollTop=b.scrollHeight)};
+
+/* ============ RENDER: phone ============ */
+function renderTop(){
+  if(st.tab==="chats" && st.openChat){const c=CONTACTS[st.openChat];
+    $("#phTop").innerHTML=`<button class="spk" data-back aria-label="Back to chats">${ico("back")}</button><span class="av">${esc(c.av)}</span><div><div class="t">${esc(c.name)}</div><div class="s">${esc(c.rel)} · prefers ${esc(c.lang)}</div></div>`;return}
+  if(st.tab==="chats"){$("#phTop").innerHTML=`<span class="av" style="background:var(--ink);color:var(--on-ink)">${ico("chat","width:13px;height:13px")}</span><div><div class="t">Chats</div><div class="s">Messages Matlab sent show up here</div></div>`;return}
+  $("#phTop").innerHTML=`<span class="av" style="background:var(--ink);color:var(--on-ink)">${ico("spark","width:13px;height:13px")}</span><div><div class="t">Matlab</div><div class="s">Understands what you mean</div></div>
+   <div class="seg" role="group" aria-label="Which system"><button data-mode="matlab" aria-pressed="${st.mode==="matlab"}">Matlab</button><button data-mode="base" aria-pressed="${st.mode==="base"}">Base model</button></div>`;
+}
+function renderBody(){
+  const b=$("#phBody");
+  $("#compose").hidden = st.tab!=="matlab";
+  if(st.tab==="chats"){
+    if(st.openChat){
+      b.innerHTML=`<div class="thr">${st.threads[st.openChat].map(m=>`<div class="bub ${m.me?"me":"them"}">${m.via?`<span class="via">Sent by Matlab · ${esc(m.via)}</span>`:""}${esc(m.text)}<span class="tm">${esc(m.tm)}</span></div>`).join("")}</div>`;
+      st.unread.delete(st.openChat);renderBadge();scrollPhone();return}
+    const order=Object.keys(CONTACTS).sort((a,b)=>(st.unread.has(b)?1:0)-(st.unread.has(a)?1:0));
+    b.innerHTML=`<div class="chatlist">${order.map(k=>{const c=CONTACTS[k],last=st.threads[k].at(-1);return `<button class="chatrow" data-chat="${k}"><span class="av">${esc(c.av)}</span><span style="min-width:0;flex:1"><span class="nm"><span>${esc(c.name)}</span><span class="tm ${st.unread.has(k)?"new":""}">${esc(last.tm)}</span></span><span class="lm">${last.me?"You: ":""}${esc(last.text)}</span></span></button>`}).join("")}</div>`;
+    b.scrollTop=0;return}
+  if(!st.runs.length){b.innerHTML=`<div class="empty">${ico("mic","width:30px;height:30px")}<b style="color:var(--ink)">Pick a voice note above</b><span>Then flip between Matlab and the base model to compare the same recording.</span></div>`;return}
+  b.innerHTML=st.runs.map(renderRun).join("");
+}
+function renderRun(r){
+  const s=r.s;
+  let h=`<div class="msg-me"><div class="voice"><span class="play">${ico("play")}</span><span class="bars">${bars(r.seed)}</span><span class="meta">${esc(s.dur)}</span></div><div class="said">“${esc(r.liveText||s.say)}”</div><div class="meta"><span>${esc(s.lang)}</span><span>·</span><span>you</span></div></div>`;
+  if(st.mode==="base" && !r.live){
+    h+=`<div class="msg-ai"><div class="who" style="color:var(--muted)">${ico("brain","width:13px;height:13px")}Base model</div>
+     <div class="tx" style="color:var(--ink-2)">${esc(s.base.tx)}</div>
+     <div class="base-out">${s.base.out.map(o=>`<div class="row">${ico(o[0]==="danger"?"warn":"msg","width:15px;height:15px;color:var(--"+(o[0]==="danger"?"red":"muted")+")")}<span>${esc(o[1])}</span></div>`).join("")}</div>
+     ${s.base.flags.map(f=>`<div class="flag">${ico("x","width:14px;height:14px")}<span>${esc(f)}</span></div>`).join("")}</div>`;
+    return h}
+  if(st.mode==="base" && r.live){return h+`<div class="msg-ai"><span class="muted" style="font-size:13px">The base comparison is shown for recorded clips. Switch back to Matlab to see this note.</span></div>`}
+  const names=["Heard","Meaning","Who","Plan"];
+  h+=`<div class="stages">${names.map((n,i)=>{const ms=(s.ms||[])[i];let cls="",txt="";
+     if(r.error){cls=i<1?"done":"skip"}
+     else if(i<r.stage){cls=(s.blocked&&i>=2)?"skip":"done";txt=(s.blocked&&i>=2)?"":(ms?`<span class="ms">${ms>=1000?(ms/1000).toFixed(1)+"s":ms+"ms"}</span>`:"")}
+     else if(i===r.stage&&!r.final)cls="run";
+     return `<span class="stg ${cls}">${cls==="done"?ico("check","width:12px;height:12px"):""}${n} ${txt}</span>`}).join("")}${s.blocked&&r.final?`<span class="stg stop">${ico("shield","width:12px;height:12px")}Stopped by a safety rule</span>`:""}</div>`;
+  if(r.error)return h+`<div class="msg-ai"><span class="bad" style="font-size:13.5px">${esc(r.error)}</span></div>`;
+  if(!r.final)return h+`<div class="thinking"><span class="dot3"><i></i><i></i><i></i></span>${r.live?"Understanding your note…":"Working…"}</div>`;
+  // transcript
+  h+=`<div class="msg-ai"><div class="who">${ico("spark","width:13px;height:13px")}Matlab heard</div><div class="tx">${(s.tx||[esc(s.say)]).map((p,i)=>typeof p==="string"?esc(p):`<button class="ent ${p[1]}" data-ent="${r.id}:${i}">${esc(p[0])}<sub>${esc(p[2])}</sub></button>`).join("")}</div>${r.openEnt!=null?whyFor(r):""}</div>`;
+  // clarify
+  const pick=r.pick, needsAsk=s.clarify && !pick;
+  if(needsAsk){h+=`<div class="clar"><div class="q">${esc(s.clarify.q)}</div><div class="muted" style="font-size:12.5px">Two people fit almost equally, so Matlab asks once instead of guessing.</div><div class="opts">${s.clarify.opts.map(o=>`<button class="btn btn-ghost btn-sm" data-pick="${r.id}:${o[0]}">${esc(o[1])}</button>`).join("")}</div></div>`;return h}
+  const acts=actionsOf(r);
+  if(acts.length){
+    const safe=acts.map((a,i)=>[a,i]).filter(([a,i])=>["msg","cal","remind"].includes(a.type)&&!r.done[i]);
+    if(safe.length>1)h+=`<div class="doall"><span>${acts.length} actions ready</span><button class="btn btn-primary btn-sm" data-doall="${r.id}">${ico("check","width:15px;height:15px")}Do all safe ones</button></div>`;
+    h+=acts.map((a,i)=>renderAct(r,a,i)).join("");
+  }
+  const rep=replyOf(r);
+  if(rep && (acts.length===0 || Object.keys(r.done).length>0 || s.blocked))h+=`<div class="msg-ai"><div class="reply"><button class="spk" data-say="${esc(rep)}" aria-label="Hear the reply" ${ttsReady?"":"hidden"}>${ico("speak")}</button><span>${esc(rep)}</span></div></div>`;
+  return h;
+}
+function whyFor(r){
+  const p=r.s.tx[r.openEnt];if(!p||typeof p==="string")return"";
+  const w=(r.s.who||[]).find(x=>x[0]===p[0]);
+  if(w)return `<div class="why"><b>${esc(p[0])} → ${esc(w[1][0][0])}</b> (${Math.round(w[1][0][1]*100)}%). ${esc(w[1][0][2])}.${w[1][1]?` Next best: ${esc(w[1][1][0])} (${Math.round(w[1][1][1]*100)}%).`:""}</div>`;
+  const m=(r.s.meaning||[]).find(x=>p[0].toLowerCase().includes(x[0].split(" ")[0].toLowerCase()));
+  return `<div class="why"><b>${esc(p[0])}</b> → ${esc(p[2])}${m?`. ${esc(m[1])}`:""}.</div>`;
+}
+function actionsOf(r){if(r.s.after&&r.pick)return r.s.after[r.pick].actions;return r.s.actions||[]}
+function replyOf(r){if(r.s.after&&r.pick)return r.s.after[r.pick].reply;return r.s.reply}
+function renderAct(r,a,i){
+  const done=r.done[i], c=a.cid?CONTACTS[a.cid]:null;
+  const icon={msg:"msg",call:"call",remind:"bell",cal:"cal",pay:"pay",block:"shield",suggest:"spark"}[a.type];
+  const title={msg:`Message ${c?.name}`,call:`Call ${c?.name} for you`,remind:"Reminder",cal:"Add to calendar",pay:`Pay ${c?.name}`,block:a.title,suggest:a.title}[a.type];
+  const sub={msg:`in ${a.lang}`,call:"Matlab speaks for you; take over any time",remind:a.when,cal:a.when,pay:`${a.amount} by UPI · ${a.upi}`,block:"Safety rule",suggest:"Suggestion"}[a.type];
+  let body="";
+  if(a.type==="msg")body=`<div class="act-body">${esc(a.text)}${a.gloss?`<span class="gloss">${esc(a.gloss)}</span>`:""}</div>`;
+  if(a.type==="call")body=`<div class="act-body"><b>Goal:</b> ${esc(a.goal)}</div>`;
+  if(a.type==="remind"||a.type==="cal")body=`<div class="act-body">${esc(a.title)}</div>`;
+  let btns="";
+  if(done){btns=`<div class="ok-line">${ico("check","width:15px;height:15px")}${esc(done)}</div>`}
+  else if(a.type==="msg")btns=`<div class="act-btns"><button class="btn btn-primary" data-act="${r.id}:${i}">Send</button><button class="btn btn-ghost" data-edit>Edit</button></div>`;
+  else if(a.type==="call")btns=`<div class="act-btns"><button class="btn btn-primary" data-act="${r.id}:${i}">Let Matlab call</button><button class="btn btn-ghost" data-act="${r.id}:${i}:self">I’ll call</button></div>`;
+  else if(a.type==="remind"||a.type==="cal")btns=`<div class="act-btns"><button class="btn btn-primary" data-act="${r.id}:${i}">Add</button></div>`;
+  else if(a.type==="pay")btns=r.confirm===i?`<div class="why" style="background:var(--green-soft)"><b>Confirm ${esc(a.amount)} to ${esc(c.name)}</b> (${esc(a.upi)})?</div><div class="act-btns"><button class="btn btn-primary" data-act="${r.id}:${i}">Confirm and pay</button><button class="btn btn-ghost" data-cancel="${r.id}">Cancel</button></div>`:`<div class="act-btns"><button class="btn btn-primary" data-review="${r.id}:${i}">Review and pay</button></div>`;
+  else if(a.type==="suggest")btns=`<div class="act-btns"><button class="btn btn-ghost" data-act="${r.id}:${i}">Yes</button><button class="btn btn-ghost" data-act="${r.id}:${i}:no">No</button></div>`;
+  const tag=a.pred?`<span class="chip amber" style="margin-left:auto">Predicted</span>`:(a.type==="pay"?`<span class="chip green" style="margin-left:auto">Needs you</span>`:(a.type==="block"?`<span class="chip red" style="margin-left:auto">Blocked</span>`:(a.lang?`<span class="chip accent" style="margin-left:auto">${esc(a.lang)}</span>`:"")));
+  return `<div class="act ${done?"done":""} ${a.type==="block"?"danger":""}"><div class="act-h"><span class="act-i ${a.type}">${ico(icon)}</span><div style="min-width:0"><div class="act-t">${esc(title)}</div><div class="act-s">${esc(sub)}</div></div>${tag}</div>${body}${a.why?`<div class="act-why">${ico("spark","width:12px;height:12px;margin-top:2px")}<span>${esc(a.why)}</span></div>`:""}${btns}</div>`;
+}
+function renderBadge(){const n=st.unread.size,el=$("#chatBadge");el.hidden=!n;el.textContent=n}
+function renderTabs(){$("#tabM").setAttribute("aria-selected",st.tab==="matlab");$("#tabC").setAttribute("aria-selected",st.tab==="chats")}
+function renderMem(){
+  $("#mem").innerHTML=st.memory.slice().reverse().map(m=>`<div class="mem-i ${m.isNew?"new":""}">${ico(m.isNew?"spark":"brain","width:15px;height:15px;margin-top:2px;color:var(--"+(m.isNew?"accent":"dim")+")")}<span>${esc(m.t)}<span class="src">${m.isNew?"New · ":""}${esc(m.src)}</span></span></div>`).join("");
+  $("#memCount").textContent=st.memory.length+" facts";
+}
+function renderInside(){
+  const r=focusRun;const el=$("#inside");
+  if(!r||!r.final){$("#insideLabel").textContent=r?"working…":"nothing yet";if(!r)el.innerHTML=`<p class="muted" style="font-size:14px">Play a note to see what each stage produced.</p>`;return}
+  const s=r.s;$("#insideLabel").textContent=r.live?"your note":s.label;
+  const sec=(n,t,tag,b,open)=>`<details class="sd" ${open?"open":""}><summary><span class="num">${n}</span>${t}${tag}</summary><div class="sd-b">${b}</div></details>`;
+  const code=`<span class="chip">Code</span>`,ai=`<span class="chip accent">AI</span>`;
+  let h="";
+  h+=sec(1,"Hear",ai,`<dl class="kv"><dt>Name hints</dt><dd>${esc((s.hint||[]).join(", ")||"none")}</dd>${r.live?"":`<dt>Base heard</dt><dd class="bad">${esc(s.base.tx)}</dd>`}<dt>Matlab heard</dt><dd>${esc(r.liveText||s.say)}</dd></dl>`);
+  h+=sec(2,"Meaning",code,(s.meaning||[]).length?`<dl class="kv">${s.meaning.map(m=>`<dt>${esc(m[0])}</dt><dd>${esc(m[1])}</dd>`).join("")}</dl>`:`<span class="muted">Nothing to convert.</span>`);
+  h+=sec(3,"Who",ai,(s.who||[]).length?s.who.map(w=>`<div class="cand"><b style="font-size:13px">“${esc(w[0])}”</b>${w[1].map(c=>`<div class="cand-r"><span>${esc(c[0])}</span><span class="mono" style="text-align:right">${Math.round(c[1]*100)}%</span><div class="meter"><i style="width:${Math.round(c[1]*100)}%"></i></div>${c[2]?`<small>${esc(c[2])}</small>`:""}</div>`).join("")}</div>`).join(""):`<span class="muted">${s.blocked?"Skipped: stopped by a safety rule.":"No people mentioned."}</span>`, true);
+  const acts=actionsOf(r);
+  h+=sec(4,"Plan",ai,s.clarify&&!r.pick?`<span>Confidence gap too small (${Math.round(s.who[0][1][0][1]*100)}% vs ${Math.round(s.who[0][1][1][1]*100)}%), so: <b>ask one question</b>.</span>`:`<pre class="json">${esc(JSON.stringify(acts.map(a=>{const o={type:a.type};if(a.cid)o.to=CONTACTS[a.cid]?.name||a.cid;["lang","text","goal","when","amount","title"].forEach(k=>{if(a[k])o[k]=a[k]});return o}),null,2))}</pre>`);
+  h+=sec(5,"Rules",code,`<div style="display:grid;gap:5px">${(s.rules||[]).map(x=>`<span class="${/Blocked|hidden/.test(x)?"bad":"good"}" style="font-size:13px;display:flex;gap:6px">${ico(/Blocked|hidden/.test(x)?"shield":"check","width:14px;height:14px")}${esc(x)}</span>`).join("")}</div>`);
+  const learn=(s.after&&r.pick)?s.after[r.pick].learn:(s.learn||[]);
+  h+=sec(6,"Learn",code,learn.length?learn.map(l=>`<div class="mem-i new" style="animation:none">${ico("spark","width:14px;height:14px")}<span>${esc(l[0])}</span></div>`).join(""):`<span class="muted">Nothing new to remember.</span>`);
+  el.innerHTML=h;
+}
+function renderAll(){renderTop();renderBody();renderTabs();renderBadge();renderMem();renderInside()}
+
+/* ============ SCENARIO FLOW ============ */
+function resolveS3(){
+  const base=S.s3, who=st.learned;
+  if(!who)return base;
+  const other=who==="rahulV"?"rahulK":"rahulV", c=CONTACTS[who];
+  return {...base,
+    tx:[["Rahul","person",c.name]," ko bolo ",["Q4 wali report","event","Q4 review"]," bhi le aaye."],
+    meaning:[["Q4 wali","the Q4 review that Rahul Verma mentioned"]],
+    who:[["Rahul",[[c.name+` (${c.rel})`,.93,"You told Matlab who “Rahul” is a few minutes ago"],[CONTACTS[other].name,.07,""]]]],
+    actions:[who==="rahulV"?{type:"msg",cid:"rahulV",lang:"English",text:"Hi Rahul, please bring the Q4 report to tomorrow’s meeting.",why:"Learned from your earlier answer"}
+                           :{type:"msg",cid:"rahulK",lang:"Marathi",text:"Rahul dada, Q4 chi report pan gheun ye.",gloss:"Bring the Q4 report too.",why:"Learned from your earlier answer"}],
+    learn:[],reply:"Bol diya. Is baar poochha nahi, kyunki aapne pehle bataya tha."};
+}
+function play(key){
+  const s=key==="s3"?resolveS3():S[key];
+  const r={id:++runSeq,key,s,stage:0,final:false,done:{},seed:runSeq+key.length*7,pick:null,openEnt:null};
+  st.runs.push(r);st.tab="matlab";st.openChat=null;focusRun=r;renderAll();scrollPhone();
+  const steps=[650,350,550,650];let i=0;
+  const tick=()=>{ if(s.blocked&&i===2){r.stage=4;r.final=true;finish(r);return}
+    r.stage=++i; if(i>=4){r.final=true;finish(r);return} renderBody();scrollPhone();setTimeout(tick,steps[i]) };
+  setTimeout(tick,steps[0]);
+}
+function finish(r){
+  if(!r.s.clarify||r.pick)learnFrom(r);
+  renderAll();scrollPhone();renderScen();
+}
+function learnFrom(r){
+  const learn=(r.s.after&&r.pick)?r.s.after[r.pick].learn:(r.s.learn||[]);
+  st.memory.forEach(m=>m.isNew=false);
+  learn.forEach(l=>{if(!st.memory.some(m=>m.t===l[0]))st.memory.push({t:l[0],src:l[1],isNew:true})});
+}
+function deliver(cid,text,how){
+  st.threads[cid].push({me:true,text,tm:"now",via:how});st.unread.add(cid);
+}
+function doAct(r,i,variant){
+  const a=actionsOf(r)[i];if(!a||r.done[i])return;
+  if(variant==="no"){r.done[i]="Skipped";}
+  else if(a.type==="msg"){deliver(a.cid,a.text,"in "+a.lang);r.done[i]=`Sent to ${CONTACTS[a.cid].name}`;toast("Sent. Open Chats to see it.")}
+  else if(a.type==="call"){r.done[i]=variant==="self"?"Okay, you’ll call":"Queued: Matlab will call the clinic and report back";if(variant!=="self")deliver(a.cid,"[Matlab is calling to move your appointment]","call")}
+  else if(a.type==="remind"||a.type==="cal"){r.done[i]=a.type==="cal"?"Added to calendar":"Reminder set"}
+  else if(a.type==="pay"){r.done[i]=`Paid ${a.amount} (demo, no real money)`;r.confirm=null;deliver(a.cid,`Paid ${a.amount} by UPI`,"UPI")}
+  else if(a.type==="suggest"){r.done[i]="Done";if(r.key==="s6"&&!st.memory.some(m=>/scam/.test(m.t)))st.memory.push({t:"Calls from that number go straight to Matlab",src:"you marked it as a scam",isNew:true})}
+  renderAll();
+}
+
+/* ============ EVENTS ============ */
+document.addEventListener("click",e=>{
+  const t=e.target.closest("button,[data-chat]");if(!t)return;
+  const d=t.dataset;
+  if(d.mode){st.mode=d.mode;renderAll();scrollPhone();return}
+  if(d.scen){play(d.scen);document.getElementById("phone").scrollIntoView({behavior:"smooth",block:"nearest"});return}
+  if(d.chat){st.openChat=d.chat;renderAll();return}
+  if("back" in d){st.openChat=null;renderAll();return}
+  if(d.ent){const[id,i]=d.ent.split(":").map(Number);const r=st.runs.find(x=>x.id===id);r.openEnt=r.openEnt===i?null:i;renderBody();return}
+  if(d.pick){const[id,who]=d.pick.split(":");const r=st.runs.find(x=>x.id===+id);r.pick=who;st.learned=who;
+    r.s={...r.s,tx:r.s.tx.map(p=>Array.isArray(p)&&p[0]==="Rahul"?["Rahul","person",CONTACTS[who].name]:p)};
+    learnFrom(r);renderAll();renderScen();scrollPhone();return}
+  if(d.act){const[id,i,v]=d.act.split(":");doAct(st.runs.find(x=>x.id===+id),+i,v);return}
+  if(d.review){const[id,i]=d.review.split(":");const r=st.runs.find(x=>x.id===+id);r.confirm=+i;renderBody();return}
+  if(d.cancel){const r=st.runs.find(x=>x.id===+d.cancel);r.confirm=null;renderBody();return}
+  if(d.doall){const r=st.runs.find(x=>x.id===+d.doall);actionsOf(r).forEach((a,i)=>{if(["msg","cal","remind"].includes(a.type))doAct(r,i)});return}
+  if("edit" in d){toast("Editing is part of the real build: your fix becomes memory.");return}
+  if(d.say){speakReply(d.say);return}
+});
+$("#tabM").onclick=()=>{st.tab="matlab";st.openChat=null;renderAll();scrollPhone()};
+$("#tabC").onclick=()=>{st.tab="chats";st.openChat=null;renderAll()};
+
+function renderScen(){
+  $("#scen").innerHTML=Object.entries(S).map(([k,s])=>{const locked=s.needs&&!st.learned;
+    return `<button data-scen="${k}" ${locked?"disabled title=\"Answer ‘Which Rahul?’ first\"":""}>${ico("play","width:13px;height:13px;fill:currentColor;stroke:none")}${esc(s.label)}<span class="chip">${esc(s.lang)}</span></button>`}).join("");
+}
+
+/* ============ STATIC SECTIONS ============ */
+function renderStrip(){
+  const scr=(inner,top="Matlab")=>`<div class="scr"><div class="mini-top"><span class="av" style="width:20px;height:20px;background:var(--ink);color:var(--on-ink)">${ico("spark","width:11px;height:11px")}</span>${top}</div>${inner}</div>`;
+  const items=[
+   ["Speak","Hold the mic and talk the way you would to a person, in any Indian language.",scr(`<div class="mic-big">${ico("mic")}</div><div class="bars" style="justify-content:center">${bars(3,22)}</div><div style="text-align:center;color:var(--muted)">Listening… 0:06</div>`)],
+   ["Understand","Stage lights show it hearing, converting, finding people and planning.",scr(`<div class="msg-me" style="font-size:11px"><div class="voice"><span class="play" style="width:22px;height:22px">${ico("play","width:10px;height:10px")}</span><span class="bars" style="height:18px">${bars(5,16)}</span></div></div><div class="stages" style="font-size:10px"><span class="stg done">Heard</span><span class="stg done">Meaning</span><span class="stg run">Who</span><span class="stg">Plan</span></div><div class="tx" style="font-size:11.5px"><span class="ent person">Anna<sub>Santosh</sub></span> ko bol do… <span class="ent time">parso shaam<sub>Mon 6 PM</sub></span></div>`)],
+   ["Act","Ready-made actions, in each person’s own language. One tap each, or all at once.",scr(`<div class="act" style="padding:8px;gap:5px"><div class="act-h"><span class="act-i msg" style="width:22px;height:22px">${ico("msg","width:12px;height:12px")}</span><b>Message Santosh Anna</b></div><div class="act-body" style="font-size:11px">Anna, parcel ni security daggara pettandi.</div></div><div class="act" style="padding:8px;gap:5px"><div class="act-h"><span class="act-i call" style="width:22px;height:22px">${ico("call","width:12px;height:12px")}</span><b>Call the clinic for you</b></div></div><div class="act" style="padding:8px;gap:5px"><div class="act-h"><span class="act-i remind" style="width:22px;height:22px">${ico("bell","width:12px;height:12px")}</span><b>Remind 1 hr before</b><span class="chip amber" style="margin-left:auto;font-size:10px">Predicted</span></div></div>`)],
+   ["Ask once","When two people fit, it asks one short question instead of guessing.",scr(`<div class="clar" style="padding:9px;gap:6px"><b>Kaunse Rahul?</b><span class="btn btn-ghost btn-sm" style="height:28px;font-size:11.5px">Rahul Verma · Office</span><span class="btn btn-ghost btn-sm" style="height:28px;font-size:11.5px">Rahul Kulkarni · Cousin</span></div>`)],
+   ["Remember","Every answer and action deepens the profile, so next time it doesn’t ask.",scr(`<div class="mem-i" style="font-size:11.5px">Dr. Mehta’s Clinic is your doctor</div><div class="mem-i" style="font-size:11.5px">Remind 1 hr before appointments</div><div class="mem-i new" style="font-size:11.5px;animation:none">“Rahul” about work = Rahul Verma</div>`,"Memory")],
+  ];
+  $("#strip").innerHTML=items.map((it,i)=>`<div class="mini">${it[2]}<div class="cap"><span class="step">Step ${i+1}</span><b>${it[0]}</b><span>${it[1]}</span></div></div>`).join("");
+}
+function renderPipe(){
+  const P=[
+   ["Hear","AI","Transcription with name hints","The audio, plus the few contact names that matter (Santosh Anna, Dr. Mehta). A first quick pass finds which names are likely; the second pass hints them.","anna … metha ji","Anna … Mehta ji","Misheard names"],
+   ["Meaning","Code","Indian entity normaliser","Converts dates, times, amounts and relationship words. Plain code, so it is exact and has tests: dhai sau = ₹250, paune do = 1:45, parso or ellundi = in 2 days, -ki or -la = “to”.","parso shaam","Mon 23 Nov · 6 PM","Dates and amounts left as words"],
+   ["Who","AI + code","Reference resolver","Lists candidates for every mention (names, nicknames, “usko”, “wahi doctor”) and scores them by name match, relationship, recent activity and fit with the request. The model can only choose from this list of real contacts.","Anna","Santosh Anna (94%)","Wrong or unknown person"],
+   ["Plan","AI","Intent to actions","The model returns actions in a fixed format, each with a confidence. It fills gaps from habits, writes each message in the recipient’s language, and asks one question when two choices are close.","shift karwa do","Call clinic · move to Mon 6 PM","A summary instead of actions"],
+   ["Rules","Code","Safety checks","Money always needs confirmation. OTPs are blocked before any model sees them. Times can’t be in the past. Messages go only to saved contacts.","OTP bata do 482913","Blocked; digits hidden","Leaked OTPs, accidental payments"],
+   ["Learn","Code","Memory write-back","New facts are saved with where they came from: answers to questions, changed plans, corrections. The next note starts smarter.","Which Rahul? → Office","“Rahul” at work = Rahul Verma","Asking the same thing twice"],
+  ];
+  $("#pipe").innerHTML=P.map((p,i)=>`<div class="pstep"><div class="pnum">${i+1}</div><div class="card pcard"><div class="pcard-h"><h3>${p[0]}</h3><span class="chip ${p[1]==="Code"?"":"accent"}">${p[1]}</span><span class="muted" style="font-size:14px">${p[2]}</span></div><p style="font-size:14.5px;color:var(--ink-2)">${p[3]}</p><div class="io"><div><b>In</b>${esc(p[4])}</div><span class="arr">→</span><div><b>Out</b>${esc(p[5])}</div></div><span class="chip red" style="justify-self:start">Fixes: ${p[6]}</span></div></div>`).join("");
+}
+function renderContext(){
+  $("#ctxPeople").innerHTML=Object.values(CONTACTS).map(c=>`<div class="ctx-person"><span class="av">${esc(c.av)}</span><div style="min-width:0"><div class="nm">${esc(c.name)} <span class="chip" style="font-size:11px">${esc(c.lang)}</span></div><div class="al">${esc(c.rel)} · called “${esc(c.alias.join("”, “"))}”</div></div></div>`).join("");
+  $("#ctxEvents").innerHTML=EVENTS.map(e=>`<div class="ctx-person"><span class="mono dim" style="flex:none;width:76px">${esc(e[0])}</span><span style="font-size:14px">${esc(e[1])}</span></div>`).join("");
+  $("#ctxHabits").innerHTML=BASE_MEMORY.map(m=>`<div class="ctx-person"><span style="color:var(--accent)">${ico("brain","width:16px;height:16px")}</span><div><div style="font-size:14px">${esc(m[0])}</div><div class="al">${esc(m[1])}</div></div></div>`).join("");
+}
+function renderIdeas(){
+  const card=x=>`<div class="card idea"><b>${x[0]}</b><span>${x[1]}</span></div>`;
+  $("#ideasNow").innerHTML=[
+   ["Write in the recipient’s language","Speak Hinglish, and Anna gets Telugu, Rahul dada gets Marathi. A strong India-specific moment for a Hyderabad jury."],
+   ["“Why?” on every guess","Tap any highlighted word to see the reason and the runner-up. This builds trust and shows the harness at work."],
+   ["Ask once, then learn","One short question when two people fit, saved as memory. Play the follow-up and it doesn’t ask."],
+   ["Safety rules in code","An OTP is blocked before any model sees it; money always needs confirmation. Shown live as Base vs Matlab."],
+   ["Base vs Matlab switch","The same recording both ways, inside the product. This is exactly what Track 2 asks to see."],
+   ["Held-out test clips","10 clips recorded after tuning, so the scoreboard can be trusted. Judges from OpenAI notice this."],
+  ].map(card).join("");
+  $("#ideasTime").innerHTML=[
+   ["Voice reply","Matlab answers with a short voice note in your language (“Ho gaya, Anna ko bata diya”), using OpenAI text-to-speech."],
+   ["5-second undo","Sending… Undo. It makes acting on your behalf feel safe, and costs almost nothing to build."],
+   ["Corrections become memory","Edit a chip (Sun → Mon) and the fix is saved and added to the test set. The product improves itself."],
+   ["Call summary mode","Run a call transcript through the same pipeline: names fixed, then chips like Call back and Add to calendar. This is Equal’s product today."],
+   ["Matlab places the call","OpenAI realtime voice calls the clinic to move the slot, with you able to listen in and take over."],
+   ["Choose the script","Show transcripts in Roman letters or the native script, per person."],
+  ].map(card).join("");
+  $("#ideasPitch").innerHTML=[
+   ["Private by design","Contacts are ranked on the device, and only the few relevant ones are sent. Every fact has its source and a Forget button, in line with DPDP."],
+   ["Context for Equal’s Experts","The credit advisor or doctor agent starts with your context: who your doctor is, which EMIs are due."],
+   ["Shared family context","“Amma ki dawai” means the same thing for every family member who uses Matlab."],
+   ["Confidence-aware UI","High confidence: one tap. Medium: editable chips. Low: ask. One rule used across the app."],
+   ["Works on cheap phones and data","Opus audio at 16 kbps, short notes, and actions that wait in a queue until the network is back."],
+   ["A time budget per stage","Hear under 1 s, Plan under 1.5 s, on the way to faster than typing the message yourself."],
+  ].map(card).join("");
+}
+function renderTimeline(){
+  const T=[
+   ["→ 12:30","Check the APIs","Which transcription model takes hints, the fixed output format, model names. Repo, sample person’s context."],
+   ["→ 15:00","Thin version, end to end","Record → transcribe → plan → cards. Dumb but working."],
+   ["→ 17:30","Clips + scoreboard","Record and label 30+ clips; first Base vs Base + context numbers."],
+   ["→ 23:00","Build the pipeline","Normaliser with tests → name hints → resolver → ask once → recipient language → memory. Re-run the eval after each."],
+   ["→ 02:00","Polish + deploy","Stage lights, “why”, memory panel, Base vs Matlab switch. Live on AWS."],
+   ["02–06","Sleep","Four hours. Tired builders lose demos."],
+   ["→ 11:00","Final numbers + slides","Telugu and held-out clips, final eval, 4–5 slides, backup video."],
+   ["→ 13:30","Rehearse + submit","Three run-throughs, submit 30 minutes before the freeze."],
+  ];
+  $("#tl").innerHTML=T.map(t=>`<div class="tl-r ${t[1]==="Sleep"?"sleep":""}"><span class="when">${t[0]}</span><span class="what"><b>${t[1]}</b><span>${t[2]}</span></span></div>`).join("");
+}
+
+/* ============ LIVE MODE: page code + Claude ============ */
+let sample=null, dict=null, tts=null, ttsReady=false, liveAbort=null;
+const NUM={ek:1,do:2,teen:3,char:4,chaar:4,paanch:5,panch:5,chhe:6,che:6,saat:7,aath:8,nau:9,das:10,gyarah:11,barah:12,okati:1,rendu:2,moodu:3,naalugu:4,aidu:5,aaru:6,edu:7,enimidi:8,tommidi:9,padi:10};
+const DAY=[[/\b(aaj|today|ivvala|eeroju|aaj)\b/i,0,"today"],[/\b(kal|tomorrow|repu|udya|udyaa)\b/i,1,"tomorrow"],[/\b(parso|ellundi|parva|day after)\b/i,2,"in 2 days"],[/\bnarso\b/i,3,"in 3 days"]];
+const PART=[[/\b(subah|morning|poddun\w*|sakali)\b/i,9,"morning"],[/\b(dopahar|madhyanam|dupari|afternoon)\b/i,13,"afternoon"],[/\b(shaam|sham|evening|saayantram|sandhyakali|sandhyakal)\b/i,18,"evening"],[/\b(raat|night|ratri|raatri|dinner)\b/i,21,"night"]];
+function fmtDate(d){return d.toLocaleDateString("en-IN",{weekday:"short",day:"numeric",month:"short",timeZone:"Asia/Kolkata"})}
+function normalise(text){
+  const out=[], now=new Date();
+  for(const[re,add,lbl]of DAY){const m=text.match(re);if(m){const d=new Date(now.getTime()+add*864e5);out.push([m[0],`${lbl} → ${fmtDate(d)}`]);break}}
+  let hour=null,min=0,src=null;
+  const frac=text.match(/\b(saadhe|sadhe|paune|sava)\s+(\w+)\s*(baje|vajta|gantalaki)?/i);
+  const plain=text.match(/\b(\d{1,2}|ek|do|teen|char|chaar|paanch|chhe|saat|aath|nau|das|gyarah|barah)\s*(baje|vajta|gantalaki|pm|am)\b/i);
+  const dedh=text.match(/\b(dedh|dhai)\s+baje\b/i);
+  if(frac){const n=+frac[2]||NUM[frac[2].toLowerCase()];if(n){const k=frac[1].toLowerCase();hour=k==="paune"?n-1:n;min=k.startsWith("saa")||k.startsWith("sad")?30:k==="paune"?45:15;src=frac[0]}}
+  else if(dedh){hour=dedh[1].toLowerCase()==="dedh"?1:2;min=30;src=dedh[0]}
+  else if(plain){hour=+plain[1]||NUM[plain[1].toLowerCase()];src=plain[0];if(/pm/i.test(plain[2])&&hour<12)hour+=12}
+  const part=PART.find(p=>p[0].test(text));
+  if(hour!=null){if(part&&part[1]>=13&&hour<12)hour+=12;else if(!part&&hour>=1&&hour<=7)hour+=12;out.push([src,`${String(hour%24).padStart(2,"0")}:${String(min).padStart(2,"0")}`])}
+  else if(part){const m=text.match(part[0]);out.push([m[0],`${part[2]} → around ${part[1]}:00`])}
+  const amt=text.match(/\b(dhai|dedh|sava|saadhe|\d+(?:\.\d+)?|ek|do|teen|char|paanch|das)\s+(sau|hazaar|hazar|lakh)\b/i);
+  if(amt){const w=amt[1].toLowerCase();const n=w==="dhai"?2.5:w==="dedh"?1.5:w==="sava"?1.25:w==="saadhe"?NaN:(+w||NUM[w]);const mul={sau:100,hazaar:1000,hazar:1000,lakh:100000}[amt[2].toLowerCase()];if(n)out.push([amt[0],`₹${(n*mul).toLocaleString("en-IN")}`])}
+  const rupee=text.match(/(₹\s?\d[\d,]*|\b\d[\d,]*\s?(rupaye|rupees|rs)\b)/i);if(rupee&&!amt)out.push([rupee[0],rupee[0].replace(/\s/g,"")]);
+  return out;
+}
+const SECRET=/(\botp\b|o\.t\.p|\bpin\b(?!\s*-?code)|\bcvv\b|password|ओटीपी|पिन)/i, DIG=/\d(?:\s?\d){3,}/;
+
+function livePrompt(text,norm,answer){
+  const people=Object.entries(CONTACTS).map(([id,c])=>({id,name:c.name,relation:c.rel,language:c.lang,called:c.alias,last_message:c.last+" ("+c.tm+")"}));
+  return `You are the planning stage of "Matlab", an assistant that turns a short Indian voice note (any mix of English, Hindi, Marathi, Telugu, Tamil) into actions for the user, Aditya, who lives in Kondapur, Hyderabad.
+Today is ${fmtDate(new Date())} (Asia/Kolkata).
+
+PEOPLE (choose only from these ids; never invent a person):
+${JSON.stringify(people)}
+
+RECENT ACTIVITY:
+${EVENTS.map(e=>e.join(" — ")).join("\n")}
+
+MEMORY:
+${st.memory.map(m=>"- "+m.t).join("\n")}
+
+ENTITIES ALREADY NORMALISED BY CODE (trust these values):
+${norm.length?norm.map(n=>`"${n[0]}" = ${n[1]}`).join("\n"):"none"}
+
+VOICE NOTE (already transcribed): "${text}"
+${answer?`The user answered your clarifying question: "${answer}". Do not ask again.`:""}
+
+Rules:
+- If two people fit and the scores are within 0.2, set "clarify" and return no actions.
+- Write each message in the RECIPIENT's preferred language (first listed), in Roman script, short and natural; add an English gloss.
+- Use habits from MEMORY to add at most one predicted action, marked "pred": true.
+- Money: action type "pay" only, never auto-done.
+- Return ONLY JSON, no prose, in exactly this shape:
+{"language":"Hinglish","spans":[{"text":"exact substring of the note","type":"person|time|money|event|place","value":"what it means"}],
+ "who":[{"mention":"exact substring","candidates":[{"id":"contact id","score":0.0,"why":"short reason"}]}],
+ "clarify":null or {"question":"short, in the user's language","options":[{"id":"contact id","label":"Name · relation"}]},
+ "actions":[{"type":"msg|call|remind|cal|pay|suggest","cid":"contact id or null","lang":"for msg","text":"for msg","gloss":"English meaning","goal":"for call","title":"for remind/cal/suggest","when":"for remind/cal","amount":"for pay","why":"one short reason","pred":false}],
+ "learn":["new fact to remember, if any"],
+ "reply":"one short confirmation in the user's language"}`;
+}
+function toScenario(text,j,norm,ms){
+  const tx=[];let rest=text;
+  const spans=(j.spans||[]).filter(s=>s&&s.text&&text.includes(s.text));
+  spans.sort((a,b)=>text.indexOf(a.text)-text.indexOf(b.text));
+  for(const sp of spans){const i=rest.indexOf(sp.text);if(i<0)continue;if(i>0)tx.push(rest.slice(0,i));tx.push([sp.text,["person","time","money","event","place"].includes(sp.type)?sp.type:"event",sp.value||""]);rest=rest.slice(i+sp.text.length)}
+  if(rest)tx.push(rest);
+  const who=(j.who||[]).map(w=>[w.mention,(w.candidates||[]).filter(c=>CONTACTS[c.id]).map(c=>[CONTACTS[c.id].name+" ("+CONTACTS[c.id].rel+")",Math.max(0,Math.min(1,+c.score||0)),c.why||""])]).filter(w=>w[1].length);
+  const acts=(j.actions||[]).filter(a=>a&&a.type).map(a=>({...a,cid:CONTACTS[a.cid]?a.cid:null,upi:a.type==="pay"?((a.cid||"payee")+"@upi"):undefined})).filter(a=>!["msg","call","pay"].includes(a.type)||a.cid);
+  const s={label:"Your note",lang:j.language||"Your note",dur:"live",say:text,tx,meaning:norm.map(n=>[n[0],n[1]+" (page code)"]),who,actions:acts,
+    rules:["Checked for OTPs and secrets before sending","Money needs your confirmation","People limited to saved contacts"],
+    learn:(j.learn||[]).filter(Boolean).map(l=>[l,"from your note"]),reply:j.reply||"",hint:Object.values(CONTACTS).slice(0,5).map(c=>c.name),ms};
+  if(j.clarify&&j.clarify.options&&j.clarify.options.length>1){s.clarify={q:j.clarify.question||"Which one?",opts:j.clarify.options.filter(o=>CONTACTS[o.id]).map(o=>[o.id,o.label||CONTACTS[o.id].name])};s.liveNeedsAnswer=true}
+  return s;
+}
+async function runLive(text,answer,existing){
+  if(!text.trim())return;
+  const norm=normalise(text);
+  const r=existing||{id:++runSeq,key:"live",live:true,liveText:text,s:{label:"Your note",lang:"…",dur:"live",say:text,ms:[0,0,0,0]},stage:1,final:false,done:{},seed:runSeq+3,pick:null,openEnt:null};
+  if(!existing)st.runs.push(r);
+  st.tab="matlab";st.openChat=null;focusRun=r;r.final=false;r.stage=2;renderAll();scrollPhone();
+  if(SECRET.test(text)&&DIG.test(text)){
+    r.s={...S.s6,label:"Your note",lang:"Your note",dur:"live",say:text,tx:[text.replace(/\d(?:\s?\d){3,}/g,"••••")],meaning:[["secret + digits","blocked by page code; nothing was sent to the model"]],ms:[0,3,0,0]};
+    r.stage=4;r.final=true;learnFrom(r);renderAll();scrollPhone();return}
+  if(!sample){r.error="Live mode needs this page to be opened in Claude. The scripted notes above still work.";r.final=true;renderAll();return}
+  $("#liveGo").disabled=true;$("#liveStop").hidden=false;liveAbort=new AbortController();
+  const t0=performance.now();
+  try{
+    const j=await sample.json(livePrompt(text,norm,answer),{modelTier:"quick",signal:liveAbort.signal});
+    const took=Math.round(performance.now()-t0);
+    r.s=toScenario(text,j,norm,[0,4,Math.round(took*.4),Math.round(took*.6)]);
+    if(answer&&r.s.clarify){delete r.s.clarify}
+    r.stage=4;r.final=true;if(!r.s.clarify)learnFrom(r);
+  }catch(e){
+    r.final=true;r.error=e&&e.code==="not_granted"?"Live mode was not allowed, so it stays off. The scripted notes still work.":e&&e.code==="rate_limited"?"Too many tries at once. Wait a moment and try again.":e&&e.code==="aborted"?"Stopped.":"That didn’t work this time ("+(e&&e.code||"error")+"). Try a shorter note.";
+  }finally{$("#liveGo").disabled=false;$("#liveStop").hidden=true;liveAbort=null;renderAll();scrollPhone()}
+}
+// clarification answers in live mode re-ask Claude with the answer
+document.addEventListener("click",e=>{
+  const t=e.target.closest("[data-pick]");if(!t)return;
+  const[id,who]=t.dataset.pick.split(":");const r=st.runs.find(x=>x.id===+id);
+  if(r&&r.live){e.stopImmediatePropagation();r.pick=null;const label=CONTACTS[who].name+" ("+CONTACTS[who].rel+")";
+    st.memory.forEach(m=>m.isNew=false);st.memory.push({t:`In “${r.liveText.slice(0,40)}…” you meant ${label}`,src:"from your answer",isNew:true});
+    runLive(r.liveText,label,r)}
+},true);
+$("#liveGo").onclick=()=>runLive($("#liveText").value);
+$("#liveStop").onclick=()=>liveAbort&&liveAbort.abort();
+$("#liveText").addEventListener("keydown",e=>{if(e.key==="Enter"&&(e.metaKey||e.ctrlKey))runLive(e.target.value)});
+
+let listening=false;
+$("#liveMic").onclick=()=>{
+  if(!dict)return;
+  if(listening){dict.stop().catch(()=>{});return}
+  const ta=$("#liveText");ta.value="";let base="";
+  dict.start().catch(err=>{listening=false;setMic();if(err&&err.code==="not_granted"){$("#liveMic").hidden=true}else toast("Couldn’t start the microphone. Type instead.")});
+  dict.onPartial(({text})=>{ta.value=(base+" "+text).trim()});
+  dict.onFinal(({text})=>{base=(base+" "+text).trim();ta.value=base});
+};
+function setMic(){const b=$("#liveMic");b.classList.toggle("mic-on",listening);b.querySelector("span").textContent=listening?"Stop listening":"Speak"}
+function speakReply(text){if(!tts)return;tts.speak(text).catch(()=>{})}
+
+(async()=>{
+  if(!window.claude||!window.claude.use){$("#liveNote").textContent="Live mode works when this page is opened in Claude. The scripted notes in the phone work everywhere.";return}
+  const [smp,dc,tt]=await Promise.all([claude.use("sample"),claude.use("dictation"),claude.use("tts")]);
+  sample=smp;
+  if(!smp){$("#liveGo").disabled=true;$("#liveNote").textContent="Live mode isn’t available in this view. The scripted notes in the phone still work."}
+  if(dc){dict=dc;$("#liveMic").hidden=false;dc.onState(({state})=>{listening=state==="listening"||state==="starting";setMic()})}
+  if(tt){tts=tt;ttsReady=true;renderBody()}
+})();
+
+/* ============ BOOT ============ */
+renderStrip();renderPipe();renderContext();renderIdeas();renderTimeline();renderScen();renderAll();
+</script>

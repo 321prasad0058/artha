@@ -1,0 +1,39 @@
+{
+  "id": "imran",
+  "name": "Imran Qureshi",
+  "age": 38,
+  "about": "Runs a kirana store in Aminabad, Lucknow. Speaks Hindi and Urdu; keeps a credit (udhaar) ledger.",
+  "city": "Lucknow",
+  "speaks": ["Hindi", "Urdu"],
+  "avatar": "IQ",
+  "contacts": [
+    { "id": "sharma_ji", "name": "Sharma ji", "rel": "Customer, buys on credit", "lang": "Hindi", "aliases": ["Sharma ji", "Sharma uncle"] },
+    { "id": "sharma_traders", "name": "Sharma Traders", "rel": "Supplier: atta and dal", "lang": "Hindi", "aliases": ["Sharma wale", "Sharma Traders", "supplier"], "upi": "sharmatraders@upi" },
+    { "id": "gupta_ji", "name": "Gupta ji", "rel": "Customer, buys on credit", "lang": "Hindi", "aliases": ["Gupta ji"] },
+    { "id": "bilal", "name": "Bilal", "rel": "Shop helper", "lang": "Hindi", "aliases": ["Bilal"], "upi": "bilal.k@upi" },
+    { "id": "ayesha", "name": "Ayesha", "rel": "Wife", "lang": "Urdu", "aliases": ["Ayesha", "begum"] },
+    { "id": "ammi", "name": "Ammi", "rel": "Mother", "lang": "Urdu", "aliases": ["Ammi"] },
+    { "id": "rakesh", "name": "Rakesh (Parle distributor)", "rel": "Supplier: biscuits", "lang": "Hindi", "aliases": ["Rakesh", "Parle wale", "biscuit wale"], "upi": "rakesh.dist@upi" },
+    { "id": "medical", "name": "Lucknow Medical Store", "rel": "Chemist", "lang": "Hindi", "aliases": ["medical wale", "chemist"] }
+  ],
+  "events": [
+    { "day": 0, "time": "11:00", "contact": "sharma_traders", "text": "Kal 20 bori atta aur 10 dal bhej rahe hain. Bill ₹38,400." },
+    { "day": 0, "time": "10:20", "contact": "sharma_ji", "text": "Took ration worth ₹1,200 on credit" },
+    { "day": 0, "time": "09:00", "contact": "ayesha", "text": "Ammi ki BP ki dawai khatam ho gayi hai." },
+    { "day": -1, "time": "16:30", "contact": "rakesh", "text": "Bhai, naya scheme hai: 10 carton pe 1 free." },
+    { "day": -1, "time": "08:05", "contact": "bilal", "text": "Dukaan khol di, bhaiya." }
+  ],
+  "memory": [
+    { "fact": "Sharma ji (customer) settles his credit on Sundays", "src": "from the ledger" },
+    { "fact": "Suppliers are paid by UPI after delivery", "src": "from payments" },
+    { "fact": "Bilal opens the shop at 8 AM", "src": "from messages" },
+    { "fact": "Ammi's BP medicine comes from Lucknow Medical Store", "src": "from messages" }
+  ],
+  "calendar": [
+    { "title": "Atta and dal delivery from Sharma Traders", "day": 1, "time": "12:00", "contact": "sharma_traders" }
+  ],
+  "ledger": [
+    { "contact": "sharma_ji", "amount": 1200, "note": "Ration on credit", "day": 0 },
+    { "contact": "gupta_ji", "amount": 650, "note": "Oil and sugar on credit", "day": -2 }
+  ]
+}

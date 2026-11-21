@@ -1,0 +1,45 @@
+{
+  "id": "aditya",
+  "name": "Aditya Rao",
+  "age": 29,
+  "about": "Product manager in Kondapur, Hyderabad. Talks in Hinglish; Telugu with family.",
+  "city": "Hyderabad",
+  "speaks": ["Hinglish", "Telugu", "English"],
+  "avatar": "AR",
+  "contacts": [
+    { "id": "santosh", "name": "Santosh Anna", "rel": "Delivery partner", "lang": "Telugu", "aliases": ["Anna", "Santosh anna", "delivery wale"] },
+    { "id": "mehta", "name": "Dr. Mehta's Clinic", "rel": "Your doctor", "lang": "English", "aliases": ["Mehta ji", "Dr Mehta", "doctor", "clinic"] },
+    { "id": "mehta_uncle", "name": "Mehta Uncle", "rel": "Neighbour", "lang": "Hindi", "aliases": ["Mehta uncle"] },
+    { "id": "rahul_v", "name": "Rahul Verma", "rel": "Office colleague", "lang": "English", "aliases": ["Rahul"] },
+    { "id": "rahul_k", "name": "Rahul Kulkarni", "rel": "Cousin", "lang": "Marathi", "aliases": ["Rahul", "Rahul dada"] },
+    { "id": "amma", "name": "Amma", "rel": "Mother", "lang": "Telugu", "aliases": ["Amma", "Mom"] },
+    { "id": "shankar", "name": "Shankar", "rel": "Rapido driver", "lang": "Hindi", "aliases": ["Shankar bhaiya", "Rapido bhaiya"], "upi": "shankar.rides@upi" },
+    { "id": "shankar_rao", "name": "Shankar Rao", "rel": "Gym trainer", "lang": "Telugu", "aliases": ["Shankar sir", "trainer"], "upi": "shankarrao.fit@upi" },
+    { "id": "lakshmi", "name": "Lakshmi akka", "rel": "House help", "lang": "Telugu", "aliases": ["Lakshmi", "akka"], "upi": "lakshmi.akka@upi" },
+    { "id": "priya", "name": "Priya", "rel": "Wife", "lang": "Hindi", "aliases": ["Priya"] },
+    { "id": "hdfc_caller", "name": "Unknown caller (said HDFC)", "rel": "Unverified caller", "lang": "Hindi", "aliases": ["HDFC wale", "bank wale"] }
+  ],
+  "events": [
+    { "day": 0, "time": "15:15", "contact": "hdfc_caller", "text": "Called saying they are from HDFC and asked you to 'update KYC' urgently" },
+    { "day": 0, "time": "15:02", "contact": "santosh", "text": "Parcel ke liye ghar pe koi hai? 10 min mein pahunch raha hoon." },
+    { "day": 0, "time": "13:10", "contact": "priya", "text": "Dinner bahar karein aaj?" },
+    { "day": 0, "time": "11:20", "contact": "mehta", "text": "Your appointment is confirmed for tomorrow, 10 AM. Please bring your previous reports." },
+    { "day": 0, "time": "09:40", "contact": "shankar", "text": "Sir, drop ho gaya. ₹250 pending hai, UPI kar dena." },
+    { "day": -1, "time": "18:30", "contact": "rahul_v", "text": "Can we sync on the Q4 review this weekend?" },
+    { "day": -2, "time": "20:05", "contact": "rahul_k", "text": "Dada, Pune la kadhi yetoy?" },
+    { "day": -1, "time": "19:00", "contact": "lakshmi", "text": "Repu 8 ki vastanu." },
+    { "day": -3, "time": "07:00", "contact": "shankar_rao", "text": "Monday 6 AM session confirmed." }
+  ],
+  "memory": [
+    { "fact": "Dr. Mehta's Clinic is your doctor", "src": "from a call" },
+    { "fact": "Appointments: remind 1 hour before", "src": "your setting" },
+    { "fact": "You always carry previous reports to the doctor", "src": "from 3 calls" },
+    { "fact": "Santosh Anna and Lakshmi akka prefer Telugu", "src": "from messages" },
+    { "fact": "You ride to Amma's house in Kukatpally by Rapido", "src": "from 4 trips" }
+  ],
+  "calendar": [
+    { "title": "Dr. Mehta appointment", "day": 1, "time": "10:00", "contact": "mehta" },
+    { "title": "Lakshmi akka comes", "day": 1, "time": "08:00", "contact": "lakshmi" }
+  ],
+  "ledger": []
+}

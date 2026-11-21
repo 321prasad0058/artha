@@ -1,0 +1,36 @@
+{
+  "id": "meenakshi",
+  "name": "Meenakshi Sundaram",
+  "age": 67,
+  "about": "Retired teacher in Mylapore, Chennai. Speaks Tamil and English; a frequent target of scam calls.",
+  "city": "Chennai",
+  "speaks": ["Tamil", "English"],
+  "avatar": "MS",
+  "contacts": [
+    { "id": "karthik", "name": "Karthik", "rel": "Son, in New Jersey", "lang": "English", "aliases": ["Karthik", "kanna"] },
+    { "id": "priya_d", "name": "Priya", "rel": "Daughter, in Bengaluru", "lang": "Tamil", "aliases": ["Priya", "ponnu"] },
+    { "id": "dr_ramesh", "name": "Dr. Ramesh", "rel": "Heart doctor", "lang": "English", "aliases": ["doctor", "Ramesh doctor", "Dr Ramesh"] },
+    { "id": "auto_ramesh", "name": "Auto Ramesh", "rel": "Auto driver", "lang": "Tamil", "aliases": ["Ramesh", "auto Ramesh", "auto"], "upi": "ramesh.auto@upi" },
+    { "id": "selvi", "name": "Selvi", "rel": "House help", "lang": "Tamil", "aliases": ["Selvi"], "upi": "selvi.m@upi" },
+    { "id": "medicals", "name": "Mylapore Medicals", "rel": "Chemist", "lang": "Tamil", "aliases": ["medical shop", "pharmacy", "medicals"] },
+    { "id": "pension_caller", "name": "Unknown caller (said pension office)", "rel": "Unverified caller", "lang": "Tamil", "aliases": ["pension office", "bank"] }
+  ],
+  "events": [
+    { "day": 0, "time": "16:40", "contact": "pension_caller", "text": "Said your pension KYC expired and asked for Aadhaar and an OTP" },
+    { "day": 0, "time": "09:00", "contact": "dr_ramesh", "text": "Review on Monday 5 PM. Continue the BP tablets." },
+    { "day": 0, "time": "08:10", "contact": "auto_ramesh", "text": "Amma, naalaikku kaalaila temple-ku 6 manikku varen." },
+    { "day": -1, "time": "07:30", "contact": "karthik", "text": "Amma, I'll call on Sunday 8 PM your time." },
+    { "day": -1, "time": "11:00", "contact": "selvi", "text": "Amma, naalaikku 9 manikku varen." }
+  ],
+  "memory": [
+    { "fact": "BP tablets at 9 AM and 9 PM", "src": "your setting" },
+    { "fact": "Talks to Karthik every Sunday evening", "src": "from calls" },
+    { "fact": "Auto Ramesh takes you to Kapaleeshwarar temple on Sunday mornings", "src": "from 6 trips" },
+    { "fact": "Dr. Ramesh is your heart doctor", "src": "from calls" }
+  ],
+  "calendar": [
+    { "title": "Dr. Ramesh review", "day": 2, "time": "17:00", "contact": "dr_ramesh" },
+    { "title": "Temple with Auto Ramesh", "day": 1, "time": "06:00", "contact": "auto_ramesh" }
+  ],
+  "ledger": []
+}
