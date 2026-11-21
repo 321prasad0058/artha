@@ -10,11 +10,18 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { jsonCall } from '../openai.js';
 import { labelOf } from '../pipeline/normalize.js';
-import type { BookEntry, Persona, State } from '../types.js';
+import type { BookEntry, Contact, Persona, State } from '../types.js';
+import { saveUser } from '../store.js';
 
 const ROOT = process.env.ARTHA_ROOT || process.cwd();
 const BUCKET = process.env.ARTHA_BUCKET;
 export const SCOPES = ['https://www.googleapis.com/auth/gmail.readonly'];
+/** Signing up with Google: who you are, plus read-only mail. */
+export const SIGNUP_SCOPES = ['openid', 'email', 'profile', ...SCOPES];
+export async function userInfo(access: string) {
+  const r = await fetch('https://openidconnect.googleapis.com/v1/userinfo', { headers: { Authorization: `Bearer ${access}` } });
+  return (await r.json()) as { email: string; name?: string; given_name?: string; picture?: string };
+}
 const G = 'https://gmail.googleapis.com/gmail/v1/users/me';
 
 // ---------- sign-in
@@ -133,6 +140,33 @@ export async function extract(mails: Mail[], p: Persona, now = new Date()): Prom
   return out.flatMap(o => o.items);
 }
 
+// ---------- building a NEW user's profile from their own mail: who they are, and who's who in their life
+const PROFILE = { type: 'object', additionalProperties: false, required: ['name', 'age', 'city', 'about', 'speaks', 'contacts'], properties: {
+  name: { type: 'string' }, age: { type: 'number' }, city: { type: 'string' }, about: { type: 'string' }, speaks: { type: 'array', items: { type: 'string' } },
+  contacts: { type: 'array', items: { type: 'object', additionalProperties: false, required: ['name', 'email', 'rel', 'lang', 'aliases', 'about'], properties: {
+    name: { type: 'string' }, email: { type: 'string' }, rel: { type: 'string' }, lang: { type: 'string' }, aliases: { type: 'array', items: { type: 'string' } }, about: { type: 'string' } } } } } };
+const PROFILE_INSTRUCTIONS = `From a person's own emails, work out who THEY are and who's who in their life, for Artha (their assistant).
+- name: the user's real name as others address them ("Aarav Deshmukh"). age: best guess, 0 if unknown. city: where they live now. about: one line, at most 25 words: work, home town, family, languages.
+- speaks: languages the user reads or writes in, most used first ("Marathi", "Hindi", "English").
+- contacts: every person or business that matters (family, friends, colleagues, landlord, doctor, bank, society...). One entry per real person, even if they wrote twice.
+  name: as they sign or are known ("Aai", "Sayali Tai", "Rohit Sharma"). rel: their relationship to the user, 3 to 8 words, specific enough to tell two people with the same name apart ("Friend, weekend trekking" vs "Colleague, backend team").
+  lang: the language they write to the user in. aliases: 1 to 3 names the user would SAY for them ("Aai", "Mom"; "Tai", "Sayali"; "Rohit"). about: one line of what matters about them.
+Never include OTPs, passwords, card or account numbers.`;
+export async function buildProfile(mails: Mail[], p: Persona, now = new Date()): Promise<Persona> {
+  const sent = (m: Mail) => new Date(Number(m.date) || Date.parse(m.date)).toISOString().slice(0, 10);
+  const out = await jsonCall<{ name: string; age: number; city: string; about: string; speaks: string[]; contacts: (Contact & { email: string })[] }>({ name: 'profile', instructions: PROFILE_INSTRUCTIONS, schema: PROFILE,
+    input: `TODAY: ${now.toISOString().slice(0, 10)}\nACCOUNT: ${p.email ?? ''}\nEMAILS:\n${mails.map(m => JSON.stringify({ from: `${m.fromName} <${m.from}>`, sent: sent(m), subject: m.subject, body: (m.body ?? '').slice(0, 1200) })).join('\n')}` });
+  const contacts = [...p.contacts];
+  for (const c of out.contacts) {
+    const id = `c-${crypto.createHash('sha1').update((c.email || c.name).toLowerCase()).digest('hex').slice(0, 8)}`;
+    if (contacts.some(x => x.id === id)) continue;
+    contacts.push({ id, name: c.name, rel: c.rel, lang: c.lang || 'English', aliases: [...new Set([...(c.aliases ?? []), c.name.split(' ')[0]])].filter(x => x.length > 2 && !/^(dr|mr|mrs|ms|shri)\.?$/i.test(x) && !(/business|bank|clinic|society|store|team/i.test(c.rel) && x.split(' ').length === 1 && !c.name.toLowerCase().startsWith(x.toLowerCase() + ' ') === false && x.length < 6)).slice(0, 4), about: c.about });
+  }
+  const name = out.name || p.name;
+  return { ...p, name, age: out.age || p.age, city: out.city || p.city, about: out.about || p.about, speaks: out.speaks?.length ? out.speaks : p.speaks,
+    avatar: name.split(/\s+/).map(w => w[0]).join('').slice(0, 2).toUpperCase(), contacts };
+}
+
 // ---------- filing into the person's state
 const slug = (s: string) => `g-${crypto.createHash('sha1').update(s.toLowerCase()).digest('hex').slice(0, 10)}`;
 export function file(state: State, p: Persona, mails: Mail[], items: Item[]) {
@@ -176,7 +210,8 @@ export function file(state: State, p: Persona, mails: Mail[], items: Item[]) {
 }
 
 // ---------- the sync, as progress events
-export async function* syncEvents(state: State, p: Persona, now = new Date()): AsyncGenerator<Record<string, unknown>> {
+export async function* syncEvents(state: State, p0: Persona, now = new Date()): AsyncGenerator<Record<string, unknown>> {
+  let p = p0;
   const saved = await loadToken(p.id);
   if (!saved) { yield { t: 'error', error: 'Gmail is not connected' }; return; }
   const token = await accessToken(saved.refresh);
@@ -201,6 +236,14 @@ export async function* syncEvents(state: State, p: Persona, now = new Date()): A
   const otp = kept.filter(m => triage(m) === 'otp');
   kept = kept.filter(m => triage(m) === 'keep');                       // OTP mails are dropped here, before any model sees them
   yield { t: 'progress', stage: 'read', n: kept.length, otp: otp.length };
+  // a user created from Gmail: learn who they are and who's who first, so mail is filed against real contacts
+  if (p.source === 'gmail' && kept.length) {
+    yield { t: 'progress', stage: 'profile' };
+    p = await buildProfile(kept, p, now);
+    await saveUser(p);
+    for (const c of p.contacts) state.threads[c.id] ??= [];
+    yield { t: 'profile', name: p.name, city: p.city, about: p.about, speaks: p.speaks, contacts: p.contacts.length };
+  }
   // 3. extraction and filing
   const items = kept.length ? await extract(kept, p, now) : [];
   yield { t: 'progress', stage: 'understood', n: items.filter(x => x.keep).length };

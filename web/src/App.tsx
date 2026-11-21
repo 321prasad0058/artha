@@ -195,10 +195,85 @@ function Highlight({ text, marks }: { text: string; marks: { text: string; cls: 
   return <>{out}</>;
 }
 
+/** The first screen: your own Artha (from Gmail) or a sample person. Skipped for demo links (?p=, ?say=). */
+function shouldWelcome() {
+  const q = new URLSearchParams(location.search);
+  if (q.has('p') || q.has('say')) return false;
+  try { return sessionStorage.getItem('artha.welcomed') !== '1'; } catch { return true; }
+}
+function Welcome({ me, samples, onPick }: { me: PersonaInfo | null; samples: PersonaInfo[]; onPick: (id: string) => void }) {
+  const ref = useEnter<HTMLDivElement>(true);
+  return (
+    <div className="welcome" role="dialog" aria-label="Start with Artha">
+      <div className="welcome-in" ref={ref}>
+        <header className="w-head"><span className="w-mark">A</span><div><h1>Artha</h1><p>Bas ishaara kaafi hai.</p></div></header>
+        {me && <button className="w-me" onClick={() => onPick(me.id)}><span className="av lg ink">{me.avatar}</span><span><b>Continue as {me.name.split(' ')[0]}</b><small>{me.email}</small></span><I n="send" /></button>}
+        <div className="w-grid">
+          <section className="w-card w-own">
+            <span className="w-tag">For you</span>
+            <h2>Set up Artha for you</h2>
+            <p>Connect your Gmail once. Artha learns who your people are, your plans and bills, and the languages you use with each of them, so a short voice note is enough.</p>
+            <ul>
+              <li><I n="shield" />Read-only. Promotions and OTP mails are never read.</li>
+              <li><I n="brain" />Everything stays in your own private space. Disconnect any time and it is forgotten.</li>
+            </ul>
+            <a className="btn btn-primary w-google" href={`${API_BASE}/api/auth/google`}><span className="g-logo" aria-hidden="true">G</span>Continue with Google</a>
+          </section>
+          <section className="w-card">
+            <span className="w-tag soft">Try first</span>
+            <h2>Explore a sample person</h2>
+            <p>See how Artha works with a ready-made life: their contacts, chats, khata and plans.</p>
+            <div className="w-people">{samples.map(p => (
+              <button key={p.id} onClick={() => onPick(p.id)}><span className="av ink">{p.avatar}</span><span><b>{p.name.split(' ')[0]}</b><small>{p.city}</small></span></button>))}</div>
+          </section>
+        </div>
+      </div>
+    </div>
+  );
+}
+/** Right after signing in with Google: read the mail, learn who you are and who's who, file plans and bills. */
+function SetupScreen({ pid, onDone }: { pid: string; onDone: (s: State | null) => void }) {
+  const STEPS = ['Reading your mail', 'Learning who you are', 'Learning who\'s who', 'Filing plans, bills and facts'];
+  const [step, setStep] = useState(0); const [line, setLine] = useState(''); const [who, setWho] = useState<{ name: string; city: string; about: string; contacts: number } | null>(null);
+  const [stats, setStats] = useState<Record<string, number> | null>(null); const [err, setErr] = useState('');
+  const final = useRef<State | null>(null);
+  useEffect(() => {
+    api.gmailSync(pid, e => {
+      if (e.t === 'progress') {
+        if (e.stage === 'list') setLine(`${e.n} mails from the last 90 days`);
+        if (e.stage === 'triage') setLine(`${e.kept} worth reading · ${e.skipped} newsletters and promotions skipped`);
+        if (e.stage === 'read') { setStep(1); setLine(`${e.n} mails read${e.otp ? ` · ${e.otp} OTP mail${e.otp > 1 ? 's' : ''} ignored` : ''}`); }
+        if (e.stage === 'profile') setStep(1);
+        if (e.stage === 'understood') setStep(3);
+      } else if (e.t === 'profile') { setWho(e); setStep(2); }
+      else if (e.t === 'done') setStats(e.stats);
+      else if (e.t === 'state') final.current = e.state;
+      else if (e.t === 'error') setErr(e.error);
+    }).catch(e => setErr(e.message));
+  }, [pid]);
+  const done = !!stats;
+  return (
+    <div className="welcome setup" role="dialog" aria-label="Setting up Artha">
+      <div className="welcome-in">
+        <header className="w-head"><span className="w-mark">A</span><div><h1>{who ? `Namaste, ${who.name.split(' ')[0]}` : 'Setting up your Artha'}</h1><p>{who?.about || 'This takes about a minute.'}</p></div></header>
+        <ol className="s-steps">{STEPS.map((t, i) => <li key={t} className={done || i < step ? 'ok' : i === step ? 'now' : ''}><span>{done || i < step ? <I n="check" /> : i + 1}</span>{t}</li>)}</ol>
+        {line && !done && <p className="s-line"><span className="g-spin" />{line}</p>}
+        {done && <div className="s-stats">{[['contacts', who?.contacts ?? 0, 'people in your life'], ['plans', stats!.plans, 'plans'], ['money', stats!.money, 'bills & payments'], ['facts', stats!.facts, 'things remembered']].map(([k, v, l]) => <div key={String(k)}><b>{v as number}</b><span>{l}</span></div>)}</div>}
+        {err && <p className="bad">{err}</p>}
+        {(done || err) && <button className="btn btn-primary" onClick={() => onDone(final.current)}>{done ? 'Start talking' : 'Continue'}</button>}
+      </div>
+    </div>
+  );
+}
+
 /* ================= APP ================= */
 export default function App() {
   const [personas, setPersonas] = useState<PersonaInfo[]>([]);
-  const [pid, setPid] = useState<string>(() => { try { return localStorage.getItem('artha.p') || 'aditya'; } catch { return 'aditya'; } });
+  const [pid, setPid] = useState<string>(() => { const q = new URLSearchParams(location.search).get('p'); if (q) return q; try { return localStorage.getItem('artha.p') || 'aditya'; } catch { return 'aditya'; } });
+  // the user's own Artha (created by signing in with Google), remembered on this device
+  const [me, setMe] = useState<PersonaInfo | null>(null);
+  const [welcome, setWelcome] = useState(shouldWelcome);
+  const [setup, setSetup] = useState(() => { const q = new URLSearchParams(location.search); return q.get('new') === '1' && (q.get('p') ?? '').startsWith('u-'); });
   const [pstate, setPstate] = useState<State | null>(null);
   const [intro, setIntro] = useState(shouldShowIntro);
   const endIntro = useCallback(() => setIntro(false), []);
@@ -216,19 +291,26 @@ export default function App() {
   const voice = useRef<HTMLAudioElement | null>(null);
   const feed = useRef<HTMLDivElement>(null);
 
-  const persona = personas.find(p => p.id === pid);
+  const allPeople = me ? [...personas.filter(p => p.id !== me.id), me] : personas;
+  const persona = allPeople.find(p => p.id === pid);
   const myRuns = runs[pid] ?? [];
   const busy = myRuns.some(r => !r.result && !r.error);
   const orbMode: OrbMode = rec ? 'listening' : busy ? 'thinking' : speaking ? 'speaking' : myRuns.at(-1)?.result ? 'done' : 'idle';
   const say = useCallback((t: string) => { setToast(t); window.clearTimeout((say as any)._t); (say as any)._t = window.setTimeout(() => setToast(''), 2400); }, []);
 
   useEffect(() => { api.personas().then(setPersonas).catch(e => say(e.message)); api.samples().then(setSamples); }, [say]);
+  const loadMe = useCallback((id?: string) => {
+    let mine = id; try { mine = mine ?? localStorage.getItem('artha.me') ?? undefined; } catch { /* */ }
+    if (!mine) return;
+    api.persona(mine).then(p => { setMe(p); try { localStorage.setItem('artha.me', p.id); } catch { /* */ } }).catch(() => {});
+  }, []);
+  useEffect(() => { loadMe(pid.startsWith('u-') ? pid : undefined); }, []);   // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { try { localStorage.setItem('artha.p', pid); } catch { /* private mode */ } setPstate(null); setOpenChat(null); api.state(pid).then(setPstate).catch(e => say(e.message)); }, [pid, say]);
   // ?p=imran&say=... runs a typed note on load (handy for demos and screenshots)
   const autoRan = useRef(false);
   useEffect(() => {
     const q = new URLSearchParams(location.search);
-    if (q.get('p') && q.get('p') !== pid && personas.some(x => x.id === q.get('p'))) { setPid(q.get('p')!); return; }
+    if (q.get('p') && q.get('p') !== pid && allPeople.some(x => x.id === q.get('p'))) { setPid(q.get('p')!); return; }
     if (!autoRan.current && pstate && personas.length && q.get('say')) { autoRan.current = true; fromText(q.get('say')!); }
   }, [personas, pstate]); // eslint-disable-line react-hooks/exhaustive-deps
   const scrollDown = () => requestAnimationFrame(() => setTimeout(() => feed.current?.scrollTo({ top: feed.current.scrollHeight, behavior: 'smooth' }), 60));
@@ -443,13 +525,20 @@ export default function App() {
       {menu && (
         <div className="menu-bg" onClick={() => setMenu(false)}>
           <div className="menu" role="dialog" aria-label="Choose who to test as" onClick={e => e.stopPropagation()}>
-            <h4>Test as</h4>
+            {me && <><h4>You</h4>
+              <button aria-current={me.id === pid} onClick={() => { setPid(me.id); setMenu(false); setTab('artha'); }}>
+                <span className="av lg ink">{me.avatar}</span><span><b>{me.name}</b><small>{me.email ?? 'Your Gmail'} · {me.speaks.join(', ')}</small></span>
+              </button></>}
+            <h4>Sample people</h4>
             {personas.map(p => (
               <button key={p.id} aria-current={p.id === pid} onClick={() => { setPid(p.id); setMenu(false); setTab('artha'); }}>
                 <span className="av lg ink">{p.avatar}</span><span><b>{p.name}</b><small>{p.city} · {p.speaks.join(', ')}</small></span>
               </button>))}
+            <button className="link reset" onClick={() => { setMenu(false); setWelcome(true); }}><I n="back" />Back to start</button>
           </div>
         </div>)}
+      {welcome && !setup && <Welcome me={me} samples={personas} onPick={id => { setPid(id); setWelcome(false); setTab('artha'); try { sessionStorage.setItem('artha.welcomed', '1'); } catch { /* */ } }} />}
+      {setup && <SetupScreen pid={pid} onDone={(st) => { if (st) applyState(st); loadMe(pid); setSetup(false); setWelcome(false); history.replaceState(null, '', `${location.pathname}?p=${pid}`); try { sessionStorage.setItem('artha.welcomed', '1'); } catch { /* */ } }} />}
       {toast && <div className="toast" role="status">{toast}</div>}
     </div>
   );
@@ -636,7 +725,11 @@ function Chats({ persona, state, open, setOpen, onSwitch }: { persona?: PersonaI
 function GmailCard({ pid, onState }: { pid: string; onState: (s: State) => void }) {
   const [st, setSt] = useState<Awaited<ReturnType<typeof api.gmailStatus>> | null>(null);
   const [busy, setBusy] = useState(''); const [err, setErr] = useState('');
-  const load = useCallback(() => api.gmailStatus(pid).then(setSt).catch(() => setSt(null)), [pid]);
+  const load = useCallback(() => api.gmailStatus(pid).then(x => { setSt(x); return x; }).catch(() => { setSt(null); return null; }), [pid]);
+  // your own Gmail: new mail is read quietly when you come back (last sync over 30 minutes ago)
+  useEffect(() => { if (!pid.startsWith('u-') || new URLSearchParams(location.search).has('new')) return;
+    load().then(x => { if (x?.connected && (!x.lastSync || Date.now() - Date.parse(x.lastSync) > 30 * 60e3)) syncRef.current?.(); }); }, [pid]);   // eslint-disable-line react-hooks/exhaustive-deps
+  const syncRef = useRef<() => void>();
   const sync = useCallback(async () => {
     setErr(''); setBusy('Opening your mail…');
     try {
@@ -648,10 +741,11 @@ function GmailCard({ pid, onState }: { pid: string; onState: (s: State) => void 
     } catch (e: any) { setErr(e.message); }
     setBusy(''); load();
   }, [pid, onState, load]);
+  syncRef.current = sync;
   useEffect(() => {
     load();
     const q = new URLSearchParams(location.search);
-    if (q.get('gmail') === 'connected') { history.replaceState(null, '', `${location.pathname}?p=${pid}`); sync(); }
+    if (q.get('gmail') === 'connected' && q.get('new') !== '1') { history.replaceState(null, '', `${location.pathname}?p=${pid}`); sync(); }
     else if (q.get('gmail') === 'failed') { setErr('Gmail was not connected. Try again.'); history.replaceState(null, '', `${location.pathname}?p=${pid}`); }
   }, [pid]);   // eslint-disable-line react-hooks/exhaustive-deps
   if (!st?.configured) return null;

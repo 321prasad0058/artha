@@ -4,13 +4,14 @@ import path from 'node:path';
 import { MODELS, speechStream, transcribe } from './openai.js';
 import { hintWords } from './pipeline/candidates.js';
 import { understand } from './pipeline/understand.js';
-import { loadState, persona, personas, resetState, saveState } from './store.js';
+import { ensurePersona, loadState, persona, personas, resetState, saveState, saveUser } from './store.js';
+import crypto from 'node:crypto';
 import { file, habitsOf, learnHabit, personCard, space, voicePeople, TTL_MS } from './context/space.js';
 import { embedQueryAndPending } from './context/embed.js';
 import { romanize } from './pipeline/translit.js';
 import type { Action, BookEntry, Mode, Persona, Result, State } from './types.js';
 import { scanImage } from './pipeline/scan.js';
-import { authUrl, checkState, dropToken, exchangeCode, googleConfigured, loadToken, profile, saveToken, syncEvents } from './connectors/gmail.js';
+import { SIGNUP_SCOPES, authUrl, checkState, dropToken, exchangeCode, googleConfigured, loadToken, profile, saveToken, syncEvents, userInfo } from './connectors/gmail.js';
 
 /** The person's contacts plus everyone first heard in their voice notes, so "Anand Patil" is known next time. */
 function withKnownPeople(p: Persona): Persona {
@@ -94,6 +95,7 @@ export async function* noteEvents(req: Req): AsyncGenerator<Record<string, unkno
   const isAudio = /^audio\//.test(req.headers['content-type'] ?? '');
   const b = isAudio ? {} as any : parse(req.body);
   const pid = String((isAudio ? req.query.get('p') : b.p) ?? '');
+  await ensurePersona(pid);
   const mode = ((isAudio ? req.query.get('mode') : b.mode) ?? 'artha') as Mode;
   const base = persona(pid);
   const statePromise = loadState(base.id);
@@ -156,6 +158,7 @@ export async function* noteEvents(req: Req): AsyncGenerator<Record<string, unkno
 /** Gmail sync as progress events; the result is saved into the person's context space at the end. */
 export async function* gmailSyncEvents(req: Req): AsyncGenerator<Record<string, unknown>> {
   const b = parse(req.body);
+  await ensurePersona(String(b.p ?? ''));
   const base = persona(String(b.p ?? ''));
   const state = await loadState(base.id);
   for await (const e of syncEvents(state, withKnownPeople(base))) yield e;
@@ -174,6 +177,8 @@ function origin(req: Req) {
 export async function handle(req: Req): Promise<Res> {
   try {
     const { method, path: p, query } = req;
+    // users created from Gmail are loaded on demand
+    { let pid = query.get('p') ?? ''; if (!pid && method === 'POST' && /json/.test(req.headers['content-type'] ?? '')) { try { pid = parse(req.body).p ?? ''; } catch { /* not json */ } } await ensurePersona(String(pid)); }
 
     if (p === '/api/health') return json(200, { ok: true, models: MODELS });
 
@@ -241,6 +246,34 @@ export async function handle(req: Req): Promise<Res> {
       if (!googleConfigured()) return json(400, { error: 'Gmail is not set up on this server yet' });
       const pid = persona(query.get('p') ?? '').id;
       return { status: 302, headers: { location: authUrl(pid, `${process.env.ARTHA_PUBLIC_URL || origin(req)}/api/gmail/callback`) }, body: '' };
+    }
+    // Sign up with Google: Artha builds a new user from their own mail
+    if (p === '/api/auth/google' && method === 'GET') {
+      if (!googleConfigured()) return json(400, { error: 'Google sign-in is not set up on this server yet' });
+      return { status: 302, headers: { location: authUrl('new', `${process.env.ARTHA_PUBLIC_URL || origin(req)}/api/gmail/callback`, SIGNUP_SCOPES) }, body: '' };
+    }
+    if (p === '/api/persona' && method === 'GET') {
+      const x = persona(query.get('p') ?? '');
+      return json(200, { id: x.id, name: x.name, age: x.age, about: x.about, city: x.city, speaks: x.speaks, avatar: x.avatar, contacts: x.contacts, source: x.source ?? 'sample', email: x.email });
+    }
+    if (p === '/api/gmail/callback' && method === 'GET' && checkState(query.get('state') ?? '') === 'new') {
+      const back = process.env.ARTHA_PUBLIC_URL || origin(req);
+      if (!query.get('code')) return { status: 302, headers: { location: `${back}/?signup=failed` }, body: '' };
+      const tok = await exchangeCode(query.get('code')!, `${back}/api/gmail/callback`);
+      const me = await userInfo(tok.access_token);
+      const id = `u-${crypto.createHmac('sha256', process.env.ARTHA_TOKEN_KEY ?? 'artha').update(me.email.toLowerCase()).digest('hex').slice(0, 14)}`;
+      await ensurePersona(id);
+      let isNew = false;
+      try { persona(id); } catch {
+        isNew = true;
+        const name = me.name || me.email.split('@')[0];
+        await saveUser({ id, source: 'gmail', email: me.email, name, age: 0, about: '', city: '', speaks: ['English'], avatar: name.split(/\s+/).map(w => w[0]).join('').slice(0, 2).toUpperCase(), contacts: [], events: [], memory: [], calendar: [], ledger: [] });
+      }
+      const prev = await loadToken(id);
+      const refresh = tok.refresh_token ?? prev?.refresh;
+      if (!refresh) return { status: 302, headers: { location: `${back}/?signup=failed` }, body: '' };
+      await saveToken(id, { refresh, email: me.email, at: nowIso() });
+      return { status: 302, headers: { location: `${back}/?p=${id}&gmail=connected${isNew ? '&new=1' : ''}` }, body: '' };
     }
     if (p === '/api/gmail/callback' && method === 'GET') {
       const pid = checkState(query.get('state') ?? '');

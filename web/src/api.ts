@@ -2,7 +2,7 @@ import type { Action, Contact, Mode, Result, State } from '../../server/types';
 import type { Scan } from '../../server/pipeline/scan';
 export type { Scan };
 
-export type PersonaInfo = { id: string; name: string; age: number; about: string; city: string; speaks: string[]; avatar: string; contacts: Contact[] };
+export type PersonaInfo = { id: string; name: string; age: number; about: string; city: string; speaks: string[]; avatar: string; contacts: Contact[]; source?: string; email?: string };
 export type Sample = { id: string; persona: string; text: string; lang: string; label: string; file: string; synthetic: boolean };
 
 /** Where the API lives: the same site (CloudFront, or the local server). */
@@ -44,6 +44,7 @@ export const api = {
     }
     if (buf.trim()) onEvent(JSON.parse(buf));
   },
+  persona: (p: string) => call<PersonaInfo>(`${API_BASE}/api/persona?p=${encodeURIComponent(p)}`),
   gmailStatus: (p: string) => call<{ configured: boolean; connected: boolean; email: string; lastSync: string; stats: Record<string, number> | null }>(`${API_BASE}/api/gmail/status?p=${encodeURIComponent(p)}`),
   gmailDisconnect: (p: string) => post<{ state: State }>('/api/gmail/disconnect', { p }),
   /** Gmail sync, streamed: progress events, then done (stats) and state. */

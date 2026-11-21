@@ -1,6 +1,8 @@
 /** A person in the user's world. "about" is what makes them THEM (two Ayush: the cricket friend vs the teammate). */
 export type Contact = { id: string; name: string; rel: string; lang: string; aliases: string[]; upi?: string; about?: string };
 export type Persona = {
+  /** 'gmail' = a real user whose profile Artha built from their own mail */
+  source?: 'gmail'; email?: string;
   id: string; name: string; age: number; about: string; city: string; speaks: string[]; avatar: string;
   contacts: Contact[];
   events: { day: number; time: string; contact: string; text: string }[];
