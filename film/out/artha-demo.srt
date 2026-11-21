@@ -15,117 +15,127 @@ For them, voice is the way in.
 Listen to a real one.
 
 5
+00:00:13,601 --> 00:00:17,702
+मेहता जी वाला अपॉइंटमेंट परसों शाम को शिफ्ट करवा दो।
+Get the Mehta ji appointment moved to the day after tomorrow, evening.
+
+6
 00:00:18,002 --> 00:00:23,175
 Six seconds. A doctor, a day, a time, and a job to do.
 
-6
+7
 00:00:23,525 --> 00:00:31,757
 A speech model hears every word. But who is Mehta ji? When is parso? What does shift karwa do mean?
 
-7
+8
 00:00:32,107 --> 00:00:38,289
 The base model's answer: a vague suggestion. No doctor, no call, nothing done.
 
-8
+9
 00:00:39,389 --> 00:00:41,375
 We built Artha for four people.
 
-9
+10
 00:00:41,725 --> 00:00:47,919
 Aditya, in Hyderabad. Two Rahuls in his phone, and a mother who speaks Telugu.
 
-10
+11
 00:00:48,269 --> 00:00:54,285
 Sunita, in Pune. To her, tai could mean her house help, or her sister.
 
-11
+12
 00:00:54,635 --> 00:01:00,236
 Imran, in Lucknow. His customer and his supplier are both called Sharma.
 
-12
+13
 00:01:00,586 --> 00:01:05,829
 And Meenakshi, in Chennai, who gets a scam call almost every week.
 
-13
+14
 00:01:06,179 --> 00:01:10,335
 Four languages. One habit. They speak in hints.
 
-14
+15
 00:01:11,435 --> 00:01:17,284
 Equal already answers your calls. Next, it turns voice notes into actions.
 
-15
+16
 00:01:17,634 --> 00:01:23,192
 That needs a layer that understands what people mean. That's Artha.
 
-16
+17
 00:01:23,542 --> 00:01:25,508
 Bas ishaara kaafi hai. A hint is enough.
 
-17
+18
 00:01:26,608 --> 00:01:28,634
 Aditya sends the same note.
 
-18
+19
 00:01:28,984 --> 00:01:35,202
 Artha knows Mehta ji is his doctor, and parso shaam is Monday at six.
 
-19
+20
 00:01:35,552 --> 00:01:41,178
 So it offers to call the clinic, with a reminder an hour before. That's his habit.
 
-20
+21
 00:01:42,278 --> 00:01:46,196
 When a name fits two people, Artha doesn't interrogate you.
 
-21
+22
 00:01:46,546 --> 00:01:52,569
 Meeting means work, so it picks Rahul Verma, and keeps the cousin one tap away.
 
-22
+23
 00:01:53,669 --> 00:01:59,518
 He tells his mother he'll come for lunch. Artha writes to her in Telugu, and answers him out loud.
 
-23
+24
+00:01:59,868 --> 00:02:03,022
+అమ్మ కోసం తెలుగు మెసేజ్ సిద్ధంగా ఉంది.
+The message for Amma is ready, in Telugu.
+
+25
 00:02:03,822 --> 00:02:12,628
 For Imran, dhai hazaar likh do means two thousand five hundred rupees on Sharma ji's account. The customer, not the supplier.
 
-24
+26
 00:02:13,728 --> 00:02:21,379
 And when a caller asks Meenakshi for her OTP, Artha stops it before any AI sees the digits.
 
-25
+27
 00:02:22,479 --> 00:02:27,183
 Here's how. Speech recognition, hinted with your contacts' names.
 
-26
+28
 00:02:27,533 --> 00:02:34,933
 Code that turns parso, dhai sau and repu madhyanam into exact dates and amounts.
 
-27
+29
 00:02:35,283 --> 00:02:40,375
 A personal knowledge base that pulls up only the people and facts that matter.
 
-28
+30
 00:02:40,725 --> 00:02:48,039
 One model call that can only pick real contacts. And rules, in code, for money and OTPs.
 
-29
+31
 00:02:49,139 --> 00:02:55,243
 We tested twenty-nine recordings in seven languages, with every answer written first.
 
-30
+32
 00:02:55,593 --> 00:03:03,099
 The base model got seventeen percent completely right. With the whole profile pasted in, seventy-nine.
 
-31
+33
 00:03:03,449 --> 00:03:05,348
 Artha got ninety-seven.
 
-32
+34
 00:03:06,848 --> 00:03:14,739
 Calls today. Messaging next. Experts after. Artha gives each of them the meaning behind the words.
 
-33
+35
 00:03:15,089 --> 00:03:17,504
 Artha. Bas ishaara kaafi hai.

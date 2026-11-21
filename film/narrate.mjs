@@ -53,7 +53,7 @@ for (const b of S.beats) {
   }
   if (b.clip) {
     const d = dur(b.file);
-    clips.push({ id: b.id, clip: b.clip, file: b.file, start: t, end: t + d, scene: scene.id });
+    clips.push({ id: b.id, clip: b.clip, file: b.file, start: t, end: t + d, scene: scene.id, caption: b.caption, gloss: b.gloss });
     t += d + (b.gap ?? 0.4);
   } else {
     const d = dur(`${B}/vo/${b.id}.wav`);
@@ -65,6 +65,7 @@ scene.end = t;
 const total = t + 0.4;
 fs.writeFileSync(`${B}/timeline.json`, JSON.stringify({ total, lines, clips, scenes }, null, 1));
 const ts = s => { const ms = Math.round(s * 1000); const h = Math.floor(ms / 3600000), m = Math.floor(ms / 60000) % 60, sec = Math.floor(ms / 1000) % 60; return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')},${String(ms % 1000).padStart(3, '0')}`; };
-fs.writeFileSync('film/out/artha-demo.srt', lines.map((l, i) => `${i + 1}\n${ts(l.start)} --> ${ts(l.end)}\n${l.text}\n`).join('\n'));
+const subs = [...lines.map(l => ({ start: l.start, end: l.end, text: l.text })), ...clips.filter(c => c.caption).map(c => ({ start: c.start, end: c.end + .3, text: `${c.caption}\n${c.gloss}` }))].sort((a, b) => a.start - b.start);
+fs.writeFileSync('film/out/artha-demo.srt', subs.map((l, i) => `${i + 1}\n${ts(l.start)} --> ${ts(l.end)}\n${l.text}\n`).join('\n'));
 console.log(`timeline: ${total.toFixed(1)}s, ${lines.length} lines, ${clips.length} clips, ${scenes.length} scenes`);
 for (const s of scenes) console.log(`  ${s.id.padEnd(8)} ${s.start.toFixed(1).padStart(6)} → ${s.end.toFixed(1)}`);

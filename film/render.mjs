@@ -28,6 +28,17 @@ try {
       await page.screenshot({ path: `film/build/stills/t${s}.jpg`, type: 'jpeg', quality: 85 });
       console.log('still', s);
     }
+  } else if (mode === 'range') {
+    // re-render only frames inside given windows, e.g. "13.4-17.9,118-122"; existing frames elsewhere are kept
+    const fps = 30;
+    for (const w of arg.split(',')) {
+      const [a, b] = w.split('-').map(Number);
+      for (let i = Math.floor(a * fps); i <= Math.ceil(b * fps); i++) {
+        await page.evaluate(t => window.__seek(t), i / fps);
+        await page.screenshot({ path: `film/build/frames/f${String(i).padStart(5, '0')}.jpg`, type: 'jpeg', quality: 92, optimizeForSpeed: true });
+      }
+      console.log('re-rendered', w);
+    }
   } else {
     const fps = Number(arg ?? 30);
     const dir = 'film/build/frames';

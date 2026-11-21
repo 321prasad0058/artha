@@ -29,7 +29,9 @@
    "clip": "a2",
    "file": "web/public/clips/a2.mp3",
    "id": "C1",
-   "gap": 0.6
+   "gap": 0.6,
+   "caption": "मेहता जी वाला अपॉइंटमेंट परसों शाम को शिफ्ट करवा दो।",
+   "gloss": "Get the Mehta ji appointment moved to the day after tomorrow, evening."
   },
   {
    "id": "L5",
@@ -130,7 +132,9 @@
    "clip": "reply",
    "file": "film/build/reply-a6.mp3",
    "id": "C2",
-   "gap": 0.6
+   "gap": 0.6,
+   "caption": "అమ్మ కోసం తెలుగు మెసేజ్ సిద్ధంగా ఉంది.",
+   "gloss": "The message for Amma is ready, in Telugu."
   },
   {
    "scene": "demo4",

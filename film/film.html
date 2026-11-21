@@ -22,6 +22,8 @@ html,body{width:1920px;height:1080px;overflow:hidden;background:var(--bg);color:
 #progress{left:0;bottom:0;height:4px;background:linear-gradient(90deg,var(--accent2),var(--cyan));width:0}
 #cap{left:50%;bottom:46px;transform:translateX(-50%);max-width:1640px;text-align:center;font-size:32px;line-height:1.35;font-weight:500;padding:12px 26px;border-radius:16px;background:rgba(8,10,16,.72);color:#fff;backdrop-filter:blur(6px)}
 #cap:empty{display:none}
+#cap .native{display:block;font-size:38px;font-weight:600}
+#cap .gloss{display:block;font-size:26px;color:#c3c8d6;margin-top:4px}
 .tag{position:absolute;font-family:var(--mono);font-size:17px;color:var(--dim);letter-spacing:.04em}
 h1,h2,h3{font-weight:600;letter-spacing:-.035em;line-height:1.05}
 .big{font-size:104px}
@@ -393,7 +395,11 @@ tl.to('#fin', { opacity: 1, y: -10, duration: 1 }, T('L33'));
 tl.set({}, {}, TL.total);
 
 /* ---------- per-frame state ---------- */
-const capFor = t => TL.lines.find(l => t >= l.start - .05 && t <= l.end + .15)?.text ?? '';
+const capFor = t => {
+  const c = TL.clips.find(x => x.caption && t >= x.start - .05 && t <= x.end + .3);
+  if (c) return `<span class="native">${c.caption}</span><span class="gloss">${c.gloss}</span>`;
+  return TL.lines.find(l => t >= l.start - .05 && t <= l.end + .15)?.text ?? '';
+};
 const sceneFor = t => TL.scenes.find(s => t >= s.start && t < s.end) ?? TL.scenes.at(-1);
 const bars = [...document.querySelectorAll('#bigwave i')];
 window.__duration = TL.total;
@@ -404,7 +410,7 @@ window.__seek = async t => {
   renderer.render(scene3, cam);
   const sc = sceneFor(t);
   $('#chapter').textContent = sc.label;
-  $('#cap').textContent = capFor(t);
+  $('#cap').innerHTML = capFor(t);
   $('#progress').style.width = `${(t / TL.total) * 100}%`;
   // the problem clip: waveform follows playback
   const playing = t >= clip.start && t <= clip.end;
