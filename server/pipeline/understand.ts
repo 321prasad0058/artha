@@ -86,6 +86,7 @@ Also
 - If the requested calendar entry or reminder ALREADY EXISTS in TIMELINE at that time, do not add it again: say in "reply" that it is already there. This never removes a message: "bol do / bolo / sang / sanga / cheppu / sollu / tell" ALWAYS means a message to that person.
 - CANCEL: if the user cancels something that is still PROPOSED (not done), just confirm it is dropped and return NO actions. Only if it was DONE, create what undoes it (for example a call or message to cancel).
 - A follow-up that changes one thing (time, day, person) re-plans ONLY that action. Do not repeat other actions from earlier turns.
+- REPEAT OR TRANSLATE: if the user asks to hear the previous answer again, in another language ("English mein batao", "इंग्लिश में बताइए", "Marathit sang", "say it in Hindi"), slower, shorter or in more detail, redo Artha's LAST answer from CONVERSATION (its reply AND its answer points, same facts, same order) in the asked language and script. Never reply only "Sure, I'll speak in English": give the answer itself. "language" = the asked language. No actions.
 - FOLLOW-UPS: short notes often continue the CONVERSATION. "Calendar mein daal do / add karo / add it" = add the latest proposed thing as a calendar entry with the same time and person; if that thing is marked "already in calendar", say it is already there. "Time 5 baje kar do / change to Monday" = the same action again with the new time. "Usko / unko / uska / unka / unki / tyala / tyancha / avanga / him / her / their" = the person in the latest turn ("Unka kitna baaki hai?" right after a note about Salma Begum = Salma Begum's balance; do not ask). "Cancel karo / rehne do" = cancel what was just set up. Use the people, times and amounts from CONVERSATION; do not ask again for things it already has.
 - PEOPLE CARDS "habits" come from what the user actually confirmed before (for example "reach by: call (3×)"): prefer them when the note does not say. FROM MEMORY is background: use it to understand references to older things ("wahi jo pichle hafte bola tha").
 - heard_gist: what the USER said, as a short headline of at most 8 words, in the language and script they spoke ("Pawar doctor appointment, kal 11 baje"). heard_points: 1 to 6 key facts from the note, each at most 5 words, in that same language, with kind: person (who, as the user named them), when (day/time from CODE_VALUES), money ("₹1,200 lene hain"), item (goods, quantity), task (what to do), place, question (what they asked). Long rambling notes get the SAME short treatment: only what matters.
@@ -159,14 +160,19 @@ function otpWarning(transcript: string, p: Persona, state: State) {
 }
 
 /** Fill in what the model no longer writes: the recipient's language, date labels, the spoken reply. */
+/** The answer's points as one spoken line: "label: text. label: text." */
+export const pointsSpeech = (pts: { label?: string; text?: string }[] = []) =>
+  pts.filter(x => x?.text).slice(0, 6).map(x => (x.label ? `${x.label}: ${x.text}` : String(x.text)).replace(/[.।]+$/, '')).join('. ');
+
 function expand(out: PlanOut, p: Persona): PlanOut {
-  out.reply_speech = out.reply;
+  const said = pointsSpeech(out.reply_points);
+  out.reply_speech = said ? `${out.reply.replace(/[.।:]+$/, '')}. ${said}.` : out.reply;
   out.mentions = (out.mentions ?? []).map(m => ({ ...m, value: (m as any).value ?? '', candidates: (m.candidates ?? []).map(c => ({ ...c, why: (c as any).why ?? '' })) }));
   out.actions = (out.actions ?? []).map(a => ({ ...a, language: a.language || (p.contacts.find(c => c.id === a.contact_id)?.lang ?? ''), gloss: a.gloss ?? '',
     when_label: a.when_label || (a.when_iso && !Number.isNaN(Date.parse(a.when_iso)) ? labelOf(a.when_iso) : ''), why: a.why ?? '' }));
   return out;
 }
-export type NoteEvent = { t: 'gist'; heard: { gist: string; points: { kind: string; text: string }[] } } | { t: 'say'; text: string };
+export type NoteEvent = { t: 'gist'; heard: { gist: string; points: { kind: string; text: string }[] } } | { t: 'say'; text: string; more?: boolean };
 
 type PlanOut = { reply_points?: { label: string; text: string }[]; language: string; heard_gist?: string; heard_points?: { kind: string; text: string }[]; mentions: Mention[]; actions: Action[]; clarify_question: string; learn: string[]; reply: string; reply_speech: string };
 
@@ -265,7 +271,7 @@ export async function understand(args: { persona: Persona; state: State; transcr
     cards.length ? `PEOPLE CARDS (structured, from the user's context space: who they are, what the user calls them, last contact, money, next plan, habits learned from what the user confirmed):\n${cards.map(c => JSON.stringify(c)).join('\n')}` : '',
     memories.length ? `FROM MEMORY (older things that mean the same as this note, found by meaning; use if relevant, ignore if not):\n${memories.join('\n')}` : '',
     kb.pending.length ? `AMOUNTS THEY ASKED FOR (code found these in their own messages): ${kb.pending.map(x => `${x.name}: ₹${x.amount.toLocaleString('en-IN')} ("${x.said}")`).join('; ')}` : '',
-    `CONVERSATION (latest last; follow-ups refer to this):\n${turns.length ? turns.map(t => `- ${Math.round((now.getTime() - Date.parse(t.at)) / 60000)} min ago, user said: "${t.said}"\n  people: ${t.people.map(x => `${x.name} [${x.id}]`).join(', ') || 'none'}\n  actions: ${t.actions.map(a => `${a.id} ${a.type} ${a.contact_id ? `→ ${a.contact_name} [${a.contact_id}] ` : ''}${a.title || a.text ? `"${(a.title || a.text).slice(0, 80)}" ` : ''}${a.when_iso ? `at ${a.when_iso} ` : ''}${a.amount_inr ? `₹${a.amount_inr} ` : ''}· ${a.status.toUpperCase()}`).join(' | ') || 'none'}${t.reply ? `\n  Artha replied: "${t.reply.slice(0, 200)}"` : ''}`).join('\n') : '- (new conversation)'}`,
+    `CONVERSATION (latest last; follow-ups refer to this):\n${turns.length ? turns.map(t => `- ${Math.round((now.getTime() - Date.parse(t.at)) / 60000)} min ago, user said: "${t.said}"\n  people: ${t.people.map(x => `${x.name} [${x.id}]`).join(', ') || 'none'}\n  actions: ${t.actions.map(a => `${a.id} ${a.type} ${a.contact_id ? `→ ${a.contact_name} [${a.contact_id}] ` : ''}${a.title || a.text ? `"${(a.title || a.text).slice(0, 80)}" ` : ''}${a.when_iso ? `at ${a.when_iso} ` : ''}${a.amount_inr ? `₹${a.amount_inr} ` : ''}· ${a.status.toUpperCase()}`).join(' | ') || 'none'}${t.reply ? `\n  Artha replied: "${t.reply.slice(0, 200)}"` : ''}${t.reply_points?.length ? `\n  answer points: ${t.reply_points.map(x => `${x.label}: ${x.text}`).join(' | ').slice(0, 600)}` : ''}`).join('\n') : '- (new conversation)'}`,
     `TIMELINE (structured, upcoming): ${JSON.stringify([...state.calendar.filter(c => Date.parse(c.when_iso) > now.getTime() - 3600e3).map(c => ({ what: c.title, with: c.contact ?? null, at: c.when_iso })), ...state.reminders.map(r => ({ what: `reminder: ${r.title}`, at: r.when_iso }))].slice(0, 12))}`,
     `PREFERENCES AND HABITS:\n${state.memory.filter(m => !m.learned).map(m => `- ${m.fact}`).join('\n') || '- none'}`,
     `CORRECTIONS THE USER MADE (always follow): ${JSON.stringify(state.memory.filter(m => m.kind === 'alias').map(m => ({ said: m.mention, topic: m.topic ?? 'any', means: m.about })))}`,
@@ -296,6 +302,8 @@ export async function understand(args: { persona: Persona; state: State; transcr
     if (!args.onEvent) return;
     if (k === 'heard_points') args.onEvent({ t: 'gist', heard: { gist: String(seen.heard_gist ?? ''), points: (v as any[]).filter(x => x?.text).slice(0, 6) } });
     if (k === 'reply' && !spoke && v && !seen.clarify_question) { spoke = true; args.onEvent({ t: 'say', text: String(v) }); }
+    // the points follow the headline in the same voice, as soon as they are written
+    if (k === 'reply_points' && spoke && Array.isArray(v) && pointsSpeech(v)) args.onEvent({ t: 'say', text: pointsSpeech(v), more: true });
   };
   let out = expand(args.onEvent
     ? await jsonStream<PlanOut>({ name: 'artha_plan', instructions: ARTHA_INSTRUCTIONS, input, schema: planSchema(null), onField })

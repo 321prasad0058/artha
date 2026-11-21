@@ -40,7 +40,7 @@ CREATE TABLE IF NOT EXISTS alias(entity_id TEXT NOT NULL, phrase TEXT NOT NULL, 
   PRIMARY KEY(entity_id, phrase, topic));
 CREATE TABLE IF NOT EXISTS fact(id TEXT PRIMARY KEY, text TEXT NOT NULL, kind TEXT, subject TEXT, src TEXT, at INT, learned INT, mention TEXT, topic TEXT,
   last_used INT, uses INT DEFAULT 0, expires_at INT);
-CREATE TABLE IF NOT EXISTS turn(id TEXT PRIMARY KEY, at INT NOT NULL, said TEXT, people TEXT, reply TEXT, expires_at INT);
+CREATE TABLE IF NOT EXISTS turn(id TEXT PRIMARY KEY, at INT NOT NULL, said TEXT, people TEXT, reply TEXT, expires_at INT, points TEXT);
 CREATE TABLE IF NOT EXISTS action(id TEXT PRIMARY KEY, turn_id TEXT NOT NULL, type TEXT, entity_id TEXT, contact_name TEXT, title TEXT, text TEXT,
   when_iso TEXT, when_label TEXT, amount INT, status TEXT, expires_at INT);
 CREATE TABLE IF NOT EXISTS event(id TEXT PRIMARY KEY, source TEXT NOT NULL, entity_id TEXT, me INT, text TEXT, via TEXT, at INT, data TEXT, expires_at INT);
@@ -83,6 +83,7 @@ export function space(user: string): DatabaseSync {
     db.exec(SCHEMA);
     try { db.exec('ALTER TABLE entity ADD COLUMN about TEXT'); } catch { /* already there */ }
     try { db.exec('ALTER TABLE entity ADD COLUMN email TEXT'); } catch { /* already there */ }
+    try { db.exec('ALTER TABLE turn ADD COLUMN points TEXT'); } catch { /* already there */ }   // an answer's points, for "say it in English"
     open.set(user, db);
   }
   const last = Number((db.prepare(`SELECT v FROM meta WHERE k='swept'`).get() as any)?.v ?? 0);
@@ -121,6 +122,7 @@ export function readState(db: DatabaseSync, p: Persona): State {
   for (const e of all(`SELECT * FROM event WHERE source='chat' ORDER BY at, id`)) (threads[e.entity_id] ??= []).push({ me: !!e.me, text: e.text, at: new Date(e.at).toISOString(), ...(e.via ? { via: e.via } : {}) });
   const turns: Turn[] = all(`SELECT * FROM turn ORDER BY at`).map(t => ({
     id: t.id, at: new Date(t.at).toISOString(), said: t.said, people: JSON.parse(t.people || '[]'), reply: t.reply,
+    ...(t.points ? { reply_points: JSON.parse(t.points) } : {}),
     actions: all(`SELECT * FROM action WHERE turn_id = ? ORDER BY rowid`, t.id).map(a => ({ id: a.id, type: a.type, contact_id: a.entity_id ?? '', contact_name: a.contact_name ?? '', title: a.title ?? '', text: a.text ?? '', when_iso: a.when_iso ?? '', when_label: a.when_label ?? '', amount_inr: a.amount ?? 0, status: a.status })),
   }));
   const carried = all(`SELECT party, amount FROM balance WHERE kind='credit'`).map(b => ({ contact: b.party, amount: b.amount, note: 'Carried forward', at: '' }));
@@ -180,11 +182,11 @@ export function writeState(db: DatabaseSync, s: State, p: Persona) {
     const led = db.prepare(`INSERT OR REPLACE INTO ledger(id, entity_id, amount, note, at, expires_at) VALUES(?,?,?,?,?,?)`);
     s.ledger.filter(l => l.note !== 'Carried forward').forEach((l, i) => { const at = ms(l.at); led.run(hash(`led${l.contact}${l.at}${i}`), l.contact, l.amount, l.note, at, exp(at)); });
 
-    const turn = db.prepare(`INSERT OR REPLACE INTO turn(id, at, said, people, reply, expires_at) VALUES(?,?,?,?,?,?)`);
+    const turn = db.prepare(`INSERT OR REPLACE INTO turn(id, at, said, people, reply, expires_at, points) VALUES(?,?,?,?,?,?,?)`);
     const act = db.prepare(`INSERT OR REPLACE INTO action(id, turn_id, type, entity_id, contact_name, title, text, when_iso, when_label, amount, status, expires_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)`);
     for (const t of s.turns ?? []) {
       const at = ms(t.at);
-      turn.run(t.id, at, t.said, JSON.stringify(t.people), t.reply, exp(at));
+      turn.run(t.id, at, t.said, JSON.stringify(t.people), t.reply, exp(at), t.reply_points?.length ? JSON.stringify(t.reply_points) : null);
       for (const a of t.actions) act.run(a.id, t.id, a.type, a.contact_id || null, a.contact_name, a.title, a.text, a.when_iso, a.when_label, a.amount_inr, a.status, exp(at));
     }
     const book = db.prepare(`INSERT OR REPLACE INTO book(id, turn, at, day, kind, party, entity_id, item, amount, status, said, expires_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)`);

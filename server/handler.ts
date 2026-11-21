@@ -29,7 +29,7 @@ const voiceCache = new Map<string, Buffer>();
  */
 export async function speakFor(pid: string, raw: string): Promise<{ cached?: Buffer; stream?: ReadableStream<Uint8Array>; done?: (b: Buffer) => void } | { error: string }> {
   const who = persona(pid);
-  const text = raw.slice(0, 400);
+  const text = raw.slice(0, 600);
   if (!text) return { error: 'Nothing to say' };
   const key = `${who.id}:${text}`;
   const hit = voiceCache.get(key);
@@ -62,6 +62,7 @@ function recordTurn(state: State, who: Persona, result: Result, said: string, fo
       ...(result.refs ?? []).map((r, i) => ({ id: `${turnId}:ref${i + 1}`, type: r.type, contact_id: r.contact_id, contact_name: who.contacts.find(c => c.id === r.contact_id)?.name ?? '', title: `${r.title} (already in calendar)`, text: '', when_iso: r.when_iso, when_label: '', amount_inr: 0, status: 'done' as const })),
     ],
     reply: result.reply,
+    ...(result.reply_points?.length ? { reply_points: result.reply_points.slice(0, 6) } : {}),
   };
   // The khata book: every ledger line is written down now (not confirmed yet), so later notes can ask about it or correct it.
   const book = (state.book ??= []);
@@ -116,18 +117,20 @@ export async function* noteEvents(req: Req): AsyncGenerator<Record<string, unkno
   let result: Awaited<ReturnType<typeof understand>> | null = null, failed: Error | null = null;
   // inline voice: the moment the spoken line is written, generate it and send the audio in this same stream
   const inlineVoice = (isAudio ? req.query.get('voice') : b.voice) === 'inline';
-  let voiceJob: Promise<void> = Promise.resolve();
+  // Lines play back to back as ONE audio stream (the headline first, then the answer's points). Each line's voice starts
+  // generating the moment it is written; its audio is sent once the line before it has finished.
+  let voiceChain: Promise<void> = Promise.resolve(), voiceStarted = false;
   const speakNow = (text: string) => {
-    voiceJob = (async () => {
+    const ready = speakFor(base.id, text).catch(e => ({ error: String(e) }));
+    voiceChain = voiceChain.then(async () => {
       try {
-        const v = await speakFor(base.id, text);
+        const v = await ready;
         if ('error' in v) return;
-        push({ t: 'audio_start', ms: at() });
+        if (!voiceStarted) { voiceStarted = true; push({ t: 'audio_start', ms: at() }); }
         if (v.cached) push({ t: 'audio', b64: v.cached.toString('base64') });
         else { const parts: Buffer[] = []; for await (const c of v.stream as any) { const buf = Buffer.from(c); parts.push(buf); push({ t: 'audio', b64: buf.toString('base64') }); } v.done!(Buffer.concat(parts)); }
-        push({ t: 'audio_end', ms: at() });
-      } catch { push({ t: 'audio_end', failed: true, ms: at() }); }
-    })();
+      } catch { /* a line that fails to speak is skipped; the text is on screen */ }
+    });
   };
   const job = understand({ persona: who, state, transcript, mode, forced: b.forced ?? {}, ctx, onEvent: e => { push({ ...e, ms: at() }); if (e.t === 'say' && inlineVoice) speakNow(e.text); } })
     .then(r => { result = r; }, e => { failed = e; }).finally(() => wake?.());
@@ -138,6 +141,8 @@ export async function* noteEvents(req: Req): AsyncGenerator<Record<string, unkno
     wake = null;
   }
   await job;
+  // every line has been queued by now: close the audio stream after the last one
+  const voiceJob = voiceChain.then(() => { if (voiceStarted) push({ t: 'audio_end', ms: at() }); });
   while (queue.length) yield queue.shift()!;
   if (failed) { yield { t: 'error', error: (failed as Error).message, ms: at() }; return; }
   const r = result!;
