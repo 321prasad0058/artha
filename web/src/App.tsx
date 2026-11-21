@@ -213,16 +213,18 @@ const GoogleG = () => (
 );
 function Welcome({ me, samples, onPick }: { me: PersonaInfo | null; samples: PersonaInfo[]; onPick: (id: string) => void }) {
   const ref = useEnter<HTMLDivElement>(true);
+  const [showSamples, setShowSamples] = useState(false);
   return (
     <div className="welcome" role="dialog" aria-label="Start with Artha">
+      <div className="w-aurora" aria-hidden="true"><i /><i /><i /></div>
       <div className="welcome-in" ref={ref}>
+        <header className="w-brand2"><div className="w-lockup"><img src="/icon.svg" alt="" className="w-logo" /><h1 className="w-word">artha <i>ai</i></h1></div><p>Bas ishaara kaafi hai.</p></header>
         <section className="w-sign">
-          <div className="w-top"><span className="w-mark">A</span><div><b>Artha</b><small>Bas ishaara kaafi hai.</small></div></div>
           {me && (<>
             <button className="w-me" onClick={() => onPick(me.id)}><span className="av lg ink">{me.avatar}</span><span><b>Continue as {me.name.split(' ')[0]}</b><small>{me.email}</small></span><I n="send" /></button>
             <div className="w-or"><span>or use another account</span></div>
           </>)}
-          <div className="w-lead"><h1>{me ? 'Sign in' : 'Set up your Artha'}</h1><p>Connect Gmail once. Artha learns your people, plans and dues, so a short voice note is enough.</p></div>
+          <div className="w-lead"><h2>{me ? <>Sign in to <span className="hl">Artha AI</span></> : <>Set up your <span className="hl">Artha AI</span></>}</h2><p>Connect Gmail once. Artha learns your people, plans and dues, so a short voice note is enough.</p></div>
           <a className="g-btn" href={`${API_BASE}/api/auth/google`}><GoogleG /><span>Continue with Google</span></a>
           <ul className="w-trust">
             <li><I n="shield" /><span><b>Read-only.</b> Never sends, deletes or changes mail.</span></li>
@@ -230,12 +232,14 @@ function Welcome({ me, samples, onPick }: { me: PersonaInfo | null; samples: Per
             <li><I n="brain" /><span><b>Facts, not emails.</b> Keeps notes like “rent due 5 Dec”.</span></li>
             <li><I n="trash" /><span><b>Yours to remove.</b> Disconnect or delete any time.</span></li>
           </ul>
-          <p className="w-fine">In testing, Google shows “unverified app”. Choose <b>Advanced → Go to Artha</b>.</p>
+          <p className="w-fine">In testing, Google shows “unverified app”. Choose <b>Advanced → Go to Artha AI</b>.</p>
         </section>
         <section className="w-samples">
-          <div className="w-samples-h"><b>Or explore a sample person</b><span>No sign-in needed</span></div>
-          <div className="w-people">{samples.map(p => (
-            <button key={p.id} onClick={() => onPick(p.id)}><span className="av ink">{p.avatar}</span><span><b>{p.name.split(' ')[0]}</b><small>{p.city} · {p.speaks[0]}</small></span></button>))}</div>
+          {!showSamples ? <button className="w-more" onClick={() => setShowSamples(true)}>Or explore a sample person, no sign-in needed</button> : (<>
+            <div className="w-samples-h"><b>Sample people</b><button className="link" onClick={() => setShowSamples(false)}>Hide</button></div>
+            <div className="w-people">{samples.map(p => (
+              <button key={p.id} onClick={() => onPick(p.id)}><span className="av ink">{p.avatar}</span><span><b>{p.name.split(' ')[0]}</b><small>{p.city} · {p.speaks[0]}</small></span></button>))}</div>
+          </>)}
         </section>
       </div>
     </div>
@@ -265,7 +269,7 @@ function SetupScreen({ pid, onDone }: { pid: string; onDone: (s: State | null) =
   return (
     <div className="welcome setup" role="dialog" aria-label="Setting up Artha">
       <div className="welcome-in">
-        <header className="w-head"><span className="w-mark">A</span><div><h1>{who ? `Namaste, ${who.name.split(' ')[0]}` : 'Setting up your Artha'}</h1><p>{who?.about || 'This takes about a minute.'}</p></div></header>
+        <header className="w-head"><img src="/icon.svg" alt="" className="w-mark-img" /><div><h1>{who ? `Namaste, ${who.name.split(' ')[0]}` : 'Setting up your Artha'}</h1><p>{who?.about || 'This takes about a minute.'}</p></div></header>
         <ol className="s-steps">{STEPS.map((t, i) => <li key={t} className={done || i < step ? 'ok' : i === step ? 'now' : ''}><span>{done || i < step ? <I n="check" /> : i + 1}</span>{t}</li>)}</ol>
         {line && !done && <p className="s-line"><span className="g-spin" />{line}</p>}
         {done && <div className="s-stats">{[['contacts', who?.contacts ?? 0, 'people in your life'], ['plans', stats!.plans, 'plans'], ['money', stats!.money, 'bills & payments'], ['facts', stats!.facts, 'things remembered']].map(([k, v, l]) => <div key={String(k)}><b>{v as number}</b><span>{l}</span></div>)}</div>}
@@ -576,7 +580,7 @@ export default function App() {
     <div className="app">
       {intro && <Intro onDone={endIntro} />}
       <header className="top">
-        <div className="brand"><img className="logo" src="/icon.svg" alt="" /><b>Artha</b></div>
+        <div className="brand"><img className="logo" src="/icon.svg" alt="" /><b className="wordmark">artha <i>ai</i></b></div>
         <nav className="topnav" aria-label="Views">
           {([['artha', 'Artha'], ['chats', 'Chats'], ['results', 'Results'], ['about', 'About']] as const).map(([t, l]) => (
             <button key={t} className={t === 'chats' ? 'only-mid' : ''} aria-current={tab === t || (t === 'artha' && tab === 'memory') ? 'page' : undefined} onClick={() => go(t)}>{l}</button>))}

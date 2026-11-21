@@ -65,11 +65,11 @@ void main(){
 }`;
 
 const PALETTE: Record<OrbMode, [string, string, string]> = {
-  idle: ['#3550e6', '#8a63ff', '#3fd0ff'],
-  listening: ['#e0457b', '#ff8a5b', '#ffd166'],
-  thinking: ['#4054ff', '#b36bff', '#3fe0d0'],
-  speaking: ['#3a4dff', '#9b6bff', '#45e0ff'],
-  done: ['#2f4fe0', '#7a5cff', '#5fd3ff'],
+  idle: ['#12b84b', '#6fe89a', '#d2ff61'],
+  listening: ['#8fd400', '#d2ff61', '#ffd84d'],
+  thinking: ['#0b8f4a', '#2fd6a0', '#baff29'],
+  speaking: ['#00b140', '#5ee08a', '#d2ff61'],
+  done: ['#0f7a40', '#3cd070', '#a6f05a'],
 };
 
 export function Orb({ mode, level, size = 320 }: { mode: OrbMode; level: number; size?: number }) {
