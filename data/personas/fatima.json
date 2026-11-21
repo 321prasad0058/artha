@@ -1,0 +1,52 @@
+{
+  "id": "fatima",
+  "name": "Fatima Sheikh",
+  "age": 42,
+  "about": "Runs Zoya Boutique from home in Mehdipatnam, Hyderabad: blouse and bridal stitching with one karigar. Speaks Urdu and Dakhni Hindi, a little English.",
+  "city": "Hyderabad",
+  "speaks": ["Urdu", "Hindi", "Hinglish"],
+  "avatar": "FS",
+  "contacts": [
+    { "id": "salma_c", "name": "Salma Begum", "rel": "Customer: bridal order (lehenga + 2 blouses)", "about": "Her daughter's wedding is on 6 Dec; order ₹18,000, ₹5,000 advance paid; trial fitting pending", "lang": "Urdu", "aliases": ["Salma", "Salma ji", "Salma Begum"] },
+    { "id": "salma_apa", "name": "Salma Apa", "rel": "Sister-in-law (husband's sister)", "about": "Lives in Tolichowki; comes for Friday lunch; loves mutton biryani", "lang": "Urdu", "aliases": ["Salma", "Apa", "Salma apa"] },
+    { "id": "javed", "name": "Javed", "rel": "Karigar (tailor) who works for you", "about": "₹350 per blouse, paid every Saturday; doing Salma Begum's lehenga", "lang": "Hindi", "aliases": ["Javed", "Javed bhai", "karigar"], "upi": "javed.tailor@ybl" },
+    { "id": "akbar", "name": "Akbar", "rel": "Husband", "about": "Works at a pharma company in Jeedimetla", "lang": "Urdu", "aliases": ["Akbar", "Zoya ke abbu"] },
+    { "id": "zoya", "name": "Zoya", "rel": "Daughter, 16, Class 11", "about": "Tuition ends at 6 PM on weekdays", "lang": "Hinglish", "aliases": ["Zoya", "beti"] },
+    { "id": "rehana", "name": "Rehana Fabrics", "rel": "Fabric supplier, Begum Bazaar", "about": "You owe ₹3,200 from last month; georgette and zari thread", "lang": "Urdu", "aliases": ["Rehana", "kapde wale", "Begum Bazaar wale"], "upi": "rehanafabrics@okaxis" },
+    { "id": "anjali", "name": "Anjali Reddy", "rel": "Customer: 3 office blouses", "about": "Needs them by Tuesday for a conference; prefers English on WhatsApp", "lang": "English", "aliases": ["Anjali", "Anjali madam"] },
+    { "id": "shoaib", "name": "Shoaib", "rel": "Delivery boy", "about": "Picks up and drops finished orders", "lang": "Hindi", "aliases": ["Shoaib", "delivery wala"] },
+    { "id": "dr_farah", "name": "Dr. Farah", "rel": "Doctor (thyroid)", "about": "Prescribed Thyronorm 50", "lang": "Urdu", "aliases": ["Farah", "doctor", "Dr Farah"] },
+    { "id": "bijli_caller", "name": "Unknown caller (said electricity board)", "rel": "Unverified caller", "lang": "Hindi", "aliases": ["bijli wale", "electricity wale"] }
+  ],
+  "events": [
+    { "day": 0, "time": "13:50", "contact": "shoaib", "text": "Baaji, Anjali madam ke blouse kab uthane hain?" },
+    { "day": 0, "time": "12:40", "contact": "rehana", "text": "Aapka 8 meter georgette aa gaya. Purana ₹3,200 baaki hai." },
+    { "day": 0, "time": "11:30", "contact": "javed", "text": "Baaji, Salma Begum ka lehenga 60% ho gaya. Zari ka dhaaga khatam, 2 reel chahiye." },
+    { "day": 0, "time": "10:05", "contact": "salma_c", "text": "Fatima ji, trial kab rakhenge? Shaadi 6 tareekh ko hai, tension ho raha hai." },
+    { "day": 0, "time": "09:00", "contact": "zoya", "text": "Ammi tuition ke baad Nida ke ghar jaungi, 7 tak aa jaungi." },
+    { "day": -1, "time": "18:00", "contact": "salma_apa", "text": "Jumme ko lunch pe aa rahi hoon, biryani bana rahe na?" },
+    { "day": -1, "time": "15:20", "contact": "anjali", "text": "Hi Fatima, can my 3 blouses be ready by Tuesday? I have a conference." },
+    { "day": -2, "time": "20:30", "contact": "akbar", "text": "Bijli ka bill ₹2,340 aaya hai, pay kar dena." },
+    { "day": -3, "time": "11:15", "contact": "dr_farah", "text": "Thyroid reports normal. Continue Thyronorm 50 every morning." },
+    { "day": 0, "time": "15:05", "contact": "bijli_caller", "text": "Called saying the power will be cut tonight unless you pay ₹1,200 on a link and share the OTP" }
+  ],
+  "memory": [
+    { "fact": "Salma Begum is a customer: bridal order of ₹18,000, ₹5,000 advance paid, her daughter's wedding is on 6 Dec", "src": "your orders", "about": "salma_c" },
+    { "fact": "Salma Apa is Akbar's sister; she comes for lunch on Fridays and loves mutton biryani", "src": "you told Artha", "about": "salma_apa" },
+    { "fact": "Javed charges ₹350 per blouse and is paid every Saturday", "src": "your payments", "about": "javed" },
+    { "fact": "Your rates: simple blouse ₹800, with lining and work ₹1,500, bridal lehenga from ₹12,000", "src": "you told Artha" },
+    { "fact": "You owe Rehana Fabrics ₹3,200 from last month", "src": "your chats", "about": "rehana" },
+    { "fact": "Anjali Reddy prefers WhatsApp messages in English", "src": "your chats", "about": "anjali" },
+    { "fact": "Thyronorm 50 every morning before breakfast", "src": "Dr. Farah", "about": "dr_farah" },
+    { "fact": "Zoya's tuition ends at 6 PM on weekdays", "src": "you told Artha", "about": "zoya" }
+  ],
+  "calendar": [
+    { "title": "Trial fitting: Salma Begum (bridal)", "day": 2, "time": "16:00", "contact": "salma_c" },
+    { "title": "Anjali's 3 blouses due", "day": 3, "time": "11:00", "contact": "anjali" },
+    { "title": "Friday lunch: Salma Apa", "day": 6, "time": "13:00", "contact": "salma_apa" }
+  ],
+  "ledger": [
+    { "contact": "salma_c", "amount": 13000, "note": "Bridal order balance (₹18,000 − ₹5,000 advance)", "day": -10 },
+    { "contact": "anjali", "amount": 2400, "note": "3 office blouses", "day": -1 }
+  ]
+}

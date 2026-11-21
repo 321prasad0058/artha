@@ -41,8 +41,20 @@ function tableFor(ch: string): Table | null {
 }
 
 /** Rough, readable romanisation. Good enough for matching, not for display to linguists. */
+/** Bengali and Gurmukhi mirror the Devanagari block (same order, offset 0x80 / 0x100), so map them across first. */
+function toDeva(s: string): string {
+  return s.replace(/[\u0980-\u09FF\u0A00-\u0A7F]/g, ch => {
+    const c = ch.codePointAt(0)!;
+    if (c === 0x0A70) return 'ं';          // Gurmukhi tippi
+    if (c === 0x0A71) return '';           // addak (doubles the next consonant)
+    if (c === 0x0A72) return 'अ'; if (c === 0x0A73) return 'उ';
+    if (c === 0x09CE) return 'त्';         // Bengali khanda ta
+    return String.fromCodePoint(c - (c < 0x0A00 ? 0x80 : 0x100));
+  });
+}
+
 export function romanize(input: string): string {
-  const chars = [...input.normalize('NFC')];
+  const chars = [...toDeva(input.normalize('NFC'))];
   let out = '';
   for (let i = 0; i < chars.length; i++) {
     const ch = chars[i];

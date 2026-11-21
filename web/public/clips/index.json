@@ -152,5 +152,137 @@
   "file": "m5.mp3",
   "synthetic": true,
   "sample": true
+ },
+ {
+  "id": "r1",
+  "persona": "rohan",
+  "text": "Ayush ko bol do kal match 7 baje hai, bat le aana.",
+  "script": "आयुष को बोल दो कल मैच सात बजे है, बैट ले आना।",
+  "lang": "Hinglish",
+  "label": "Ayush: cricket",
+  "file": "r1.mp3",
+  "synthetic": true,
+  "sample": true
+ },
+ {
+  "id": "r2",
+  "persona": "rohan",
+  "text": "Ayush ko bolo standup se pehle dashboard fix push kar de.",
+  "script": "आयुष को बोलो स्टैंडअप से पहले डैशबोर्ड फिक्स पुश कर दे।",
+  "lang": "Hinglish",
+  "label": "Ayush: standup",
+  "file": "r2.mp3",
+  "synthetic": true,
+  "sample": true
+ },
+ {
+  "id": "r3",
+  "persona": "rohan",
+  "text": "Kapoor uncle ko is mahine ka rent bhej do.",
+  "script": "कपूर अंकल को इस महीने का रेंट भेज दो।",
+  "lang": "Hinglish",
+  "label": "Rent",
+  "file": "r3.mp3",
+  "synthetic": true,
+  "sample": true
+ },
+ {
+  "id": "f1",
+  "persona": "fatima",
+  "text": "Salma ko bolo trial Monday chaar baje rakhte hain.",
+  "script": "सलमा को बोलो ट्रायल मंडे चार बजे रखते हैं।",
+  "lang": "Urdu",
+  "label": "Salma: trial",
+  "file": "f1.mp3",
+  "synthetic": true,
+  "sample": true
+ },
+ {
+  "id": "f2",
+  "persona": "fatima",
+  "text": "Salma ko bolo Jumme ko biryani bana rahi hoon, zaroor aana.",
+  "script": "सलमा को बोलो जुम्मे को बिरयानी बना रही हूँ, ज़रूर आना।",
+  "lang": "Urdu",
+  "label": "Salma: biryani",
+  "file": "f2.mp3",
+  "synthetic": true,
+  "sample": true
+ },
+ {
+  "id": "f3",
+  "persona": "fatima",
+  "text": "Javed ko bolo zari ki do reel le aaye.",
+  "script": "जावेद को बोलो ज़री की दो रील ले आए।",
+  "lang": "Hindi",
+  "label": "Javed: zari",
+  "file": "f3.mp3",
+  "synthetic": true,
+  "sample": true
+ },
+ {
+  "id": "g1",
+  "persona": "gurpreet",
+  "text": "Balwinder nu aath hazaar diesel advance bhej do.",
+  "script": "ਬਲਵਿੰਦਰ ਨੂੰ ਅੱਠ ਹਜ਼ਾਰ ਡੀਜ਼ਲ ਐਡਵਾਂਸ ਭੇਜ ਦਿਓ।",
+  "lang": "Punjabi",
+  "label": "Diesel advance",
+  "file": "g1.mp3",
+  "synthetic": true,
+  "sample": true
+ },
+ {
+  "id": "g2",
+  "persona": "gurpreet",
+  "text": "Balwinder Mama ji nu dasso Sunday gyaraan vaje aa jaavange.",
+  "script": "ਬਲਵਿੰਦਰ ਮਾਮਾ ਜੀ ਨੂੰ ਦੱਸੋ ਐਤਵਾਰ ਗਿਆਰਾਂ ਵਜੇ ਆ ਜਾਵਾਂਗੇ।",
+  "lang": "Punjabi",
+  "label": "Mama ji",
+  "file": "g2.mp3",
+  "synthetic": true,
+  "sample": true
+ },
+ {
+  "id": "g3",
+  "persona": "gurpreet",
+  "text": "Agarwal ji nu bolo kal Jaipur di gaadi free hai.",
+  "script": "ਅਗਰਵਾਲ ਜੀ ਨੂੰ ਬੋਲੋ ਕੱਲ੍ਹ ਜੈਪੁਰ ਦੀ ਗੱਡੀ ਫ੍ਰੀ ਹੈ।",
+  "lang": "Punjabi",
+  "label": "Jaipur load",
+  "file": "g3.mp3",
+  "synthetic": true,
+  "sample": true
+ },
+ {
+  "id": "n1",
+  "persona": "ananya",
+  "text": "Riya ko bolo papers aadha aadha kar lete hain, Monday tak.",
+  "script": "रिया को बोलो पेपर्स आधा आधा कर लेते हैं, मंडे तक।",
+  "lang": "Hinglish",
+  "label": "Riya: papers",
+  "file": "n1.mp3",
+  "synthetic": true,
+  "sample": true
+ },
+ {
+  "id": "n2",
+  "persona": "ananya",
+  "text": "Riya ko bolo kal dance class drop main kar dungi.",
+  "script": "रिया को बोलो कल डांस क्लास ड्रॉप मैं कर दूँगी।",
+  "lang": "Hinglish",
+  "label": "Riya: dance",
+  "file": "n2.mp3",
+  "synthetic": true,
+  "sample": true
+ },
+ {
+  "id": "n3",
+  "persona": "ananya",
+  "text": "Lakshmi di ke bolo porshu theke ele cholbe.",
+  "script": "লক্ষ্মীদিকে বলো পরশু থেকে এলে চলবে।",
+  "lang": "Bengali",
+  "label": "Lakshmi-di",
+  "file": "n3.mp3",
+  "synthetic": true,
+  "sample": true
  }
 ]

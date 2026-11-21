@@ -51,13 +51,14 @@ const ARTHA_INSTRUCTIONS = `You are the understanding stage of Artha, an assista
 People
 - Choose people ONLY by id from CANDIDATES. For every person mentioned, list up to 3 candidate ids with a score from 0 to 1 (a mention's scores add up to at most 1) and a short reason.
 - Use relationship, recent activity, the topic of the note and MEMORY to separate people with the same name. If two still fit about equally, give them close scores and do not pick one arbitrarily.
+- SAME NAME, DIFFERENT PEOPLE (two Ayush, two Riya): decide by what the note is ABOUT and each person's relation/about (cricket, party, trip → the friend; standup, dashboard, appraisal → the colleague), then CONVERSATION (who we were just talking about), then CORRECTIONS. If nothing separates them, give them close scores (0.45/0.45) so Artha asks once with buttons: never guess on a true tie, and never ask when the note makes it clear. For a QUESTION about a shared name ("Ayush ka birthday?"), if only one of them has that information in the facts, answer about that one and say their full name; ask only if both have it.
 - Honour FORCED choices exactly.
 
 Values
 - Use CODE_VALUES exactly for dates, times and amounts when they apply. Write when_iso as ISO 8601 with +05:30, and when_label in plain words like "Mon 23 Nov, 6:00 PM".
 
 Actions
-- message: write "text" as the exact words the RECIPIENT will read, in their preferred language (their "lang"): Telugu in Telugu script, Tamil in Tamil script, Hindi, Marathi and Urdu in simple Roman script, English in English. Short, natural, respectful for the relationship, addressed to them ("Anna, ..."). Put the English meaning in "gloss".
+- message: write "text" as the exact words the RECIPIENT will read, in their preferred language (their "lang"): Telugu in Telugu script, Tamil in Tamil script, Hindi, Marathi, Urdu, Bengali and Punjabi in simple Roman script, English in English. Short, natural, respectful for the relationship, addressed to them ("Anna, ..."). Put the English meaning in "gloss".
 - call: when something must be arranged or changed with someone (rescheduling, asking, booking). Put the outcome wanted in "goal" (for Artha), AND in "text" a short message to that person in their language that could be sent instead of calling.
 - reminder or calendar: for times the user must remember or plans they made.
 - payment: only when the user asks to pay or send money; set amount_inr. If the user gives no amount, use the amount that person asked for in AMOUNTS THEY ASKED FOR. Payments always wait for the user's confirmation, so don't hold back for that.
@@ -83,7 +84,7 @@ Also
 - If the requested calendar entry or reminder ALREADY EXISTS in TIMELINE at that time, do not add it again: say in "reply" that it is already there. This never removes a message: "bol do / bolo / sang / sanga / cheppu / sollu / tell" ALWAYS means a message to that person.
 - CANCEL: if the user cancels something that is still PROPOSED (not done), just confirm it is dropped and return NO actions. Only if it was DONE, create what undoes it (for example a call or message to cancel).
 - A follow-up that changes one thing (time, day, person) re-plans ONLY that action. Do not repeat other actions from earlier turns.
-- FOLLOW-UPS: short notes often continue the CONVERSATION. "Calendar mein daal do / add karo / add it" = add the latest proposed thing as a calendar entry with the same time and person; if that thing is marked "already in calendar", say it is already there. "Time 5 baje kar do / change to Monday" = the same action again with the new time. "Usko / unko bhi bata do / tell him too" = the people in the latest turn. "Cancel karo / rehne do" = cancel what was just set up. Use the people, times and amounts from CONVERSATION; do not ask again for things it already has.
+- FOLLOW-UPS: short notes often continue the CONVERSATION. "Calendar mein daal do / add karo / add it" = add the latest proposed thing as a calendar entry with the same time and person; if that thing is marked "already in calendar", say it is already there. "Time 5 baje kar do / change to Monday" = the same action again with the new time. "Usko / unko / uska / unka / unki / tyala / tyancha / avanga / him / her / their" = the person in the latest turn ("Unka kitna baaki hai?" right after a note about Salma Begum = Salma Begum's balance; do not ask). "Cancel karo / rehne do" = cancel what was just set up. Use the people, times and amounts from CONVERSATION; do not ask again for things it already has.
 - PEOPLE CARDS "habits" come from what the user actually confirmed before (for example "reach by: call (3×)"): prefer them when the note does not say. FROM MEMORY is background: use it to understand references to older things ("wahi jo pichle hafte bola tha").
 - heard_gist: what the USER said, as a short headline of at most 8 words, in the language and script they spoke ("Pawar doctor appointment, kal 11 baje"). heard_points: 1 to 6 key facts from the note, each at most 5 words, in that same language, with kind: person (who, as the user named them), when (day/time from CODE_VALUES), money ("₹1,200 lene hain"), item (goods, quantity), task (what to do), place, question (what they asked). Long rambling notes get the SAME short treatment: only what matters.
 - mentions: list ONLY people mentioned, using the exact words from the transcript.
@@ -168,6 +169,15 @@ export async function understand(args: { persona: Persona; state: State; transcr
       norm.entities.push({ text: '(same day as the plan being discussed)', kind: 'date', label: labelOf(iso, false), iso });
     }
   }
+  // A bare hour ("7 baje") on a day that already has a plan with the same hour takes that plan's morning/evening.
+  if (norm.when && !/\b(subah|savere|morning|sakali|kaalai|dopahar|dupari|afternoon|shaam|sham|evening|raat|ratri|night|am|pm)\b/i.test(roman)) {
+    const day = norm.when.iso.slice(0, 10), hh = Number(norm.when.iso.slice(11, 13));
+    const plan = state.calendar.find(c => c.when_iso.slice(0, 10) === day && Number(new Date(c.when_iso).toLocaleString('en-GB', { hour: '2-digit', hourCycle: 'h23', timeZone: 'Asia/Kolkata' })) % 12 === hh % 12);
+    if (plan) {
+      const ph = Number(new Date(plan.when_iso).toLocaleString('en-GB', { hour: '2-digit', hourCycle: 'h23', timeZone: 'Asia/Kolkata' }));
+      if (ph !== hh) { const iso = `${day}T${String(ph).padStart(2, '0')}${norm.when.iso.slice(13)}`; norm.when = { iso, label: labelOf(iso) }; norm.entities.push({ text: `(same time as “${plan.title}”)`, kind: 'time', label: labelOf(iso), iso }); }
+    }
+  }
   const msMeaning = Date.now() - t;
 
   t = Date.now();
@@ -193,7 +203,7 @@ export async function understand(args: { persona: Persona; state: State; transcr
       memories = hits.map(h => `- [${h.kind}${h.at ? `, ${Math.max(0, Math.round((now.getTime() - h.at) / 864e5))}d ago` : ''}, match ${h.sim.toFixed(2)}] ${h.text.replace(/\n/g, ' · ').slice(0, 220)}`);
     }
   }
-  const contactInfo = filled.map(c => { const k = p.contacts.find(x => x.id === c.id)!; return { id: k.id, name: k.name, relation: k.rel, lang: k.lang, called: k.aliases, code_score: Number(c.score.toFixed(2)), code_reason: c.why }; });
+  const contactInfo = filled.map(c => { const k = p.contacts.find(x => x.id === c.id)!; return { id: k.id, name: k.name, relation: k.rel, ...(k.about ? { about: k.about } : {}), lang: k.lang, called: k.aliases, code_score: Number(c.score.toFixed(2)), code_reason: c.why }; });
   const input = [
     `TODAY: ${istNowLabel(now)} (Asia/Kolkata)`,
     `USER: ${p.name}, ${p.age}, ${p.city}. ${p.about}`,

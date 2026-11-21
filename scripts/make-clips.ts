@@ -20,6 +20,10 @@ const VOICE: Record<string, { voice: string; who: Record<string, string> }> = {
   aditya: { voice: 'ash', who: { default: 'a 29-year-old man from Hyderabad who speaks Hindi and Hinglish like a native', Telugu: 'a 29-year-old man from Hyderabad, a native Telugu speaker' } },
   sunita: { voice: 'sage', who: { default: 'a 54-year-old woman from Pune, a native Marathi speaker' } },
   imran: { voice: 'onyx', who: { default: 'a 38-year-old shopkeeper from Lucknow who speaks Hindi and Urdu like a native' } },
+  rohan: { voice: 'verse', who: { default: 'a 27-year-old man from Gurugram who speaks Hinglish like a native Delhi-NCR speaker' } },
+  fatima: { voice: 'nova', who: { default: 'a 42-year-old woman from Hyderabad Old City who speaks Urdu and Dakhni Hindi like a native' } },
+  gurpreet: { voice: 'echo', who: { default: 'a 51-year-old Sikh transporter from Ludhiana, a native Punjabi speaker' } },
+  ananya: { voice: 'coral', who: { default: 'a 35-year-old schoolteacher from Kolkata who speaks Hindi with a light Bengali accent', Bengali: 'a 35-year-old woman from Kolkata, a native Bengali speaker' } },
   meenakshi: { voice: 'shimmer', who: { default: 'a 67-year-old retired teacher from Chennai, a native Tamil speaker', English: 'a 67-year-old retired teacher from Chennai speaking Indian English' } },
 };
 const TEMPO = 1.2;

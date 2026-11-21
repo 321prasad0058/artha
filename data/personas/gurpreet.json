@@ -1,0 +1,48 @@
+{
+  "id": "gurpreet",
+  "name": "Gurpreet Singh",
+  "age": 51,
+  "about": "Owns Singh Roadlines in Ludhiana: 4 trucks on the Ludhiana–Delhi and Ludhiana–Jaipur routes. Speaks Punjabi and Hindi; doesn't read long English.",
+  "city": "Ludhiana",
+  "speaks": ["Punjabi", "Hindi", "Hinglish"],
+  "avatar": "GS",
+  "contacts": [
+    { "id": "bittu", "name": "Balwinder 'Bittu'", "rel": "Driver of truck PB10 HT 4471 (Delhi route)", "about": "Your driver for 8 years; takes diesel advance before every Delhi trip, usually ₹8,000", "lang": "Punjabi", "aliases": ["Balwinder", "Bittu", "Bittu driver"], "upi": "bittu.driver@ybl" },
+    { "id": "mama", "name": "Balwinder Mama ji", "rel": "Maternal uncle (Mama ji) in Jalandhar", "about": "Your mother's brother; Paath at his house on Sunday", "lang": "Punjabi", "aliases": ["Balwinder", "Mama ji", "Mamaji"] },
+    { "id": "kuldeep", "name": "Kuldeep", "rel": "Driver of truck PB10 GK 2209 (Jaipur route)", "about": "Jaipur route; his truck needs a clutch plate", "lang": "Punjabi", "aliases": ["Kuldeep", "Kuldeep driver"], "upi": "kuldeep.d@ybl" },
+    { "id": "harman", "name": "Harman", "rel": "Son, studying in Brampton, Canada", "about": "Fee deadline 30 Nov, CAD 4,200", "lang": "Punjabi", "aliases": ["Harman", "puttar", "munda"] },
+    { "id": "jaspreet", "name": "Jaspreet", "rel": "Wife", "about": "Keeps the house accounts", "lang": "Punjabi", "aliases": ["Jaspreet", "Jassi"] },
+    { "id": "raju", "name": "Raju Mechanic", "rel": "Truck mechanic, Transport Nagar", "about": "Quoted ₹14,500 for the clutch plate on PB10 GK 2209", "lang": "Hindi", "aliases": ["Raju", "mistri", "mechanic"], "upi": "raju.motors@okaxis" },
+    { "id": "agarwal", "name": "Agarwal ji (Agarwal Logistics)", "rel": "Broker who gives loads", "about": "Pays freight 15 days after delivery; offered a Jaipur load", "lang": "Hindi", "aliases": ["Agarwal", "Agarwal ji", "broker"] },
+    { "id": "pump", "name": "HP Petrol Pump, Ferozepur Road", "rel": "Diesel on credit account", "about": "Account settled on the 1st of every month", "lang": "Punjabi", "aliases": ["pump", "petrol pump", "HP wale"] },
+    { "id": "ca", "name": "Mehra CA", "rel": "Chartered accountant (GST)", "about": "Needs all bilty (lorry receipts) for GST", "lang": "Hindi", "aliases": ["CA", "CA sahab", "Mehra ji"] }
+  ],
+  "events": [
+    { "day": 0, "time": "11:00", "contact": "raju", "text": "PB10 GK 2209 da clutch plate badalna painda, ₹14,500 lagega." },
+    { "day": 0, "time": "09:10", "contact": "agarwal", "text": "Kal Jaipur ke liye 18 ton ka load hai, ₹42,000 bhada. Gaadi free hai?" },
+    { "day": 0, "time": "08:20", "contact": "kuldeep", "text": "Jaipur unload ho gaya ji, wapsi da load mil gaya Ludhiana da." },
+    { "day": 0, "time": "06:40", "contact": "bittu", "text": "Sardar ji Panipat cross kar liya, 2 vaje tak Delhi pahunch jaavanga. Diesel advance ₹8,000 chahida." },
+    { "day": -1, "time": "21:30", "contact": "harman", "text": "Papa, fees di last date 30 Nov hai, CAD 4,200." },
+    { "day": -1, "time": "19:00", "contact": "mama", "text": "Gurpreet, Sunday nu Jalandhar aa jao, Paath rakhya hai." },
+    { "day": -2, "time": "10:00", "contact": "pump", "text": "Is mahine da diesel khata ₹1,86,000 ho gaya, 1 tareekh nu clear karna." },
+    { "day": -3, "time": "16:00", "contact": "ca", "text": "GST return 20 tareekh tak, saari bilty bhej do." }
+  ],
+  "memory": [
+    { "fact": "Balwinder 'Bittu' is your driver on the Delhi route (PB10 HT 4471) for 8 years", "src": "your contacts", "about": "bittu" },
+    { "fact": "Balwinder Mama ji is your mother's brother in Jalandhar", "src": "your contacts", "about": "mama" },
+    { "fact": "Drivers get diesel advance by UPI before each trip; Bittu usually needs ₹8,000 for Delhi", "src": "your payments", "about": "bittu" },
+    { "fact": "Kuldeep drives PB10 GK 2209 on the Jaipur route", "src": "your contacts", "about": "kuldeep" },
+    { "fact": "Agarwal ji pays freight 15 days after delivery", "src": "your payments", "about": "agarwal" },
+    { "fact": "Diesel account at the HP pump is settled on the 1st of every month", "src": "your payments", "about": "pump" },
+    { "fact": "Harman's university fees go by wire transfer from HDFC", "src": "you told Artha", "about": "harman" },
+    { "fact": "Reply to Gurpreet in Punjabi-Hindi, short; no long English", "src": "your habit" }
+  ],
+  "calendar": [
+    { "title": "Paath at Balwinder Mama ji's, Jalandhar", "day": 1, "time": "11:00", "contact": "mama" },
+    { "title": "Harman's fee deadline (CAD 4,200)", "day": 9, "time": "10:00", "contact": "harman" },
+    { "title": "Clear diesel account (HP pump)", "day": 10, "time": "10:00", "contact": "pump" }
+  ],
+  "ledger": [
+    { "contact": "agarwal", "amount": 38000, "note": "Freight due: Delhi trip, 14 Nov", "day": -7 }
+  ]
+}

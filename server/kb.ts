@@ -6,11 +6,17 @@ import { findCandidates, soundKey } from './pipeline/candidates.js';
 import { normalise } from './pipeline/normalize.js';
 import { romanize } from './pipeline/translit.js';
 
-export type Topic = 'work' | 'health' | 'delivery' | 'transport' | 'family' | 'home' | 'shop_credit' | 'shop_supply' | 'money' | 'fitness' | 'risk';
+export type Topic = 'work' | 'health' | 'delivery' | 'transport' | 'family' | 'home' | 'shop_credit' | 'shop_supply' | 'money' | 'fitness' | 'risk' | 'social' | 'orders' | 'school';
 
 // What each relationship is about.
 const REL_TAGS: [RegExp, Topic[]][] = [
-  [/office|colleague|client|manager/i, ['work']],
+  [/office|colleague|client|manager|teammate|standup|hr\b|appraisal|broker|accountant|chartered|principal/i, ['work']],
+  [/friend|college|flatmate|cricket|carpool|girlfriend|boyfriend/i, ['social']],
+  [/customer: |bridal|order|blouse|lehenga|karigar|tailor/i, ['orders']],
+  [/teacher|principal|tuition|at your school/i, ['school']],
+  [/uncle|mama|aunt|chacha|bua|mausi|paath/i, ['family']],
+  [/truck|route|lorry|diesel|petrol pump|mechanic/i, ['transport']],
+  [/carpool/i, ['transport']],
   [/doctor|clinic|chemist|pharmac|heart/i, ['health']],
   [/delivery/i, ['delivery']],
   [/rapido|driver|auto/i, ['transport', 'money']],
@@ -23,7 +29,13 @@ const REL_TAGS: [RegExp, Topic[]][] = [
 ];
 // What a note is about, from its words (romanised, any language).
 const NOTE_TOPICS: [RegExp, Topic][] = [
-  [/\b(meeting|meet|office|review|sync|presentation|deck|client|deadline|q4|q3|kaam ka|standup)\b/, 'work'],
+  [/\b(meeting|meet|office|review|sync|presentation|deck|client|deadline|q4|q3|kaam ka|standup|sprint|dashboard|sql|pr|appraisal|leave|self-review|jira|gst|bilty|load|bhada|freight)\b/, 'work'],
+  [/\b(match|cricket|movie|party|trip|goa|weekend|beer|drinks|birthday|bday|hangout|chill|game|stadium)\b/, 'social'],
+  [/\b(trial|fitting|blouse|blouses|lehenga|order|naap|measurement|stitch|stitching|silai|darzi|zari|georgette|fabric|kapda)\b/, 'orders'],
+  [/\b(papers?|copies|copy|exam|test|unit|rehearsal|annual|6b|marks|duty|students?|syllabus)\b/, 'school'],
+  [/\b(dance|nrityangan|carpool|rupkatha)\b/, 'social'],
+  [/\b(diesel|truck|gaadi|route|trip|clutch|tyre|driver|advance)\b/, 'transport'],
+  [/\b(paath|path|mama|mamaji|gurdwara|jalandhar|behala|biryani)\b/, 'family'],
   [/\b(doctor|daktar|appointment|apointment|dawai|davai|dava|medicine|tablet|goli|marunthu|mandu|aushadh|sugar|bp|checkup|clinic|reports?)\b/, 'health'],
   [/\b(parcel|paarsal|order|delivery|courier|packet|dabba)\b/, 'delivery'],
   [/\b(ride|drop|pickup|auto|rapido|cab|gaadi|temple|kovil)\b/, 'transport'],
@@ -46,7 +58,7 @@ export type Retrieved = {
   pending: { id: string; name: string; amount: number; said: string }[];
 };
 
-export function tagsOf(rel: string): Topic[] {
+export function tagsOf(rel: string): Topic[] {   // rel + about
   return REL_TAGS.filter(([re]) => re.test(rel)).flatMap(([, t]) => t);
 }
 export function topicsOf(roman: string): Topic[] {
@@ -81,12 +93,14 @@ export function retrieve(roman: string, p: Persona, s: State, now = new Date(), 
     if (f.topic && topics.length && !topics.includes(f.topic as Topic)) continue;
     const id = f.about[0];
     const c = byId.get(id) ?? { id, name: contact(id).name, rel: contact(id).rel, score: 0, why: '' };
-    c.score = Math.max(c.score, 0.97); note(c, 'You told Artha before');
+    // a choice made for a topic is firm; a choice with no topic is a soft default that a clear topic can override
+    c.score = Math.max(c.score, f.topic ? 0.97 : 0.9); note(c, 'You told Artha before');
     byId.set(id, c); taught.push({ mention: f.mention, id });
   }
   // 2) Topic fit: "meeting" → work contacts, "dawai" → health contacts.
   for (const c of byId.values()) {
-    const fit = tagsOf(contact(c.id).rel).filter(t => topics.includes(t));
+    // relation decides; the about line adds topics but never "family" (a customer's daughter is not your family)
+    const fit = [...new Set([...tagsOf(contact(c.id).rel), ...tagsOf(contact(c.id).about ?? '').filter(t => t !== 'family')])].filter(t => topics.includes(t));
     if (c.score > 0 && fit.length) { c.score = Math.min(0.99, c.score + 0.12); note(c, `Fits the topic (${fit[0].replace('_', ' ')})`); }
   }
   // 3) Shared words with a recent conversation: "Pune kab aa raha hai" → the cousin who asked about Pune.

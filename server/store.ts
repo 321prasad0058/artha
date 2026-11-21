@@ -13,7 +13,7 @@ const BUCKET = process.env.ARTHA_BUCKET;
 let personaCache: Persona[] | null = null;
 export function personas(): Persona[] {
   if (!personaCache) {
-    const order = ['aditya', 'sunita', 'imran', 'meenakshi'];
+    const order = ['aditya', 'sunita', 'imran', 'meenakshi', 'rohan', 'fatima', 'gurpreet', 'ananya'];
     personaCache = fs.readdirSync(PERSONA_DIR).filter(f => f.endsWith('.json'))
       .map(f => JSON.parse(fs.readFileSync(path.join(PERSONA_DIR, f), 'utf8')) as Persona)
       .sort((a, b) => order.indexOf(a.id) - order.indexOf(b.id));
@@ -39,7 +39,7 @@ export function freshState(p: Persona): State {
   for (const e of [...p.events].sort((a, b) => a.day - b.day || a.time.localeCompare(b.time))) threads[e.contact]?.push({ me: false, text: e.text, at: dayIso(e.day, e.time) });
   return {
     persona: p.id,
-    memory: p.memory.map(m => ({ fact: m.fact, src: m.src, at: '' })),
+    memory: p.memory.map(m => ({ fact: m.fact, src: m.src, at: '', ...(m.about ? { about: m.about } : {}) })),
     threads,
     calendar: p.calendar.map(c => { const iso = dayIso(c.day, c.time); return { title: c.title, when_iso: iso, when_label: labelOf(iso), contact: c.contact }; }),
     reminders: [],

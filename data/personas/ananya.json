@@ -1,0 +1,48 @@
+{
+  "id": "ananya",
+  "name": "Ananya Bose",
+  "age": 35,
+  "about": "English teacher at a CBSE school in Salt Lake, Kolkata; mother of Mishti (8). Bengali at home (writes it in Roman script), English and Hindi at work.",
+  "city": "Kolkata",
+  "speaks": ["English", "Bengali", "Hindi"],
+  "avatar": "AB",
+  "contacts": [
+    { "id": "riya_s", "name": "Riya Sen", "rel": "Colleague, Maths teacher at your school", "about": "Co-class-teacher of 6B with you; you split unit-test papers and exam duty", "lang": "English", "aliases": ["Riya", "Riya di"] },
+    { "id": "riya_c", "name": "Riya Chatterjee", "rel": "Parent friend: Rupkatha's mom, dance-class carpool", "about": "You share Mishti's dance-class pickups and drops with her", "lang": "Bengali", "aliases": ["Riya", "Rupkatha's mom"] },
+    { "id": "arnab", "name": "Arnab", "rel": "Husband", "about": "Travels to Bangalore for work Mon–Wed this week", "lang": "Bengali", "aliases": ["Arnab"] },
+    { "id": "mishti", "name": "Mishti", "rel": "Daughter, 8, Class 3", "about": "Allergic to peanuts; dance class at Nrityangan", "lang": "Bengali", "aliases": ["Mishti", "mamoni"] },
+    { "id": "lakshmi_di", "name": "Lakshmi-di", "rel": "House help (cook)", "about": "Paid ₹6,000 on the 1st by UPI; off on Thursdays", "lang": "Bengali", "aliases": ["Lakshmi di", "Lakshmi", "mashi"], "upi": "lakshmidi@ybl" },
+    { "id": "ma", "name": "Ma", "rel": "Mother, lives in Behala", "about": "Sunday lunch at Behala every other week; makes shorshe ilish", "lang": "Bengali", "aliases": ["Ma", "Behala Ma"] },
+    { "id": "dr_ghosh", "name": "Dr. Ghosh", "rel": "Mishti's paediatrician", "about": "Typhoid booster due next week", "lang": "English", "aliases": ["Dr Ghosh", "Ghosh", "doctor"] },
+    { "id": "principal", "name": "Mrs. Dutta", "rel": "School principal", "about": "Annual day rehearsal on Wednesday", "lang": "English", "aliases": ["principal", "Dutta ma'am"] },
+    { "id": "dance", "name": "Nrityangan Dance School", "rel": "Mishti's dance class", "about": "Fee ₹1,800 a month, due by the 25th", "lang": "Bengali", "aliases": ["dance class", "dance school", "Nrityangan"], "upi": "nrityangan@okaxis" },
+    { "id": "customs_caller", "name": "Unknown caller (said courier customs)", "rel": "Unverified caller", "lang": "Hindi", "aliases": ["customs wale", "courier wale"] }
+  ],
+  "events": [
+    { "day": 0, "time": "14:40", "contact": "customs_caller", "text": "Called saying a parcel is stuck at customs; asked you to pay ₹2,999 and share the OTP" },
+    { "day": 0, "time": "13:00", "contact": "principal", "text": "Annual day rehearsal on Wednesday 2 PM. All class teachers please attend." },
+    { "day": 0, "time": "12:15", "contact": "lakshmi_di", "text": "Didi kaal ami ashbo na, meyer jor. Porshu theke ashbo." },
+    { "day": 0, "time": "09:30", "contact": "riya_c", "text": "Tomorrow's dance class: pickup is mine, drop is yours okay? 4 PM." },
+    { "day": 0, "time": "08:10", "contact": "riya_s", "text": "Ananya, the 6B unit test papers need to be checked by Monday. Shall we split them?" },
+    { "day": -1, "time": "20:00", "contact": "ma", "text": "Robibar Behala ashbi? Shorshe ilish korbo." },
+    { "day": -1, "time": "18:20", "contact": "dr_ghosh", "text": "Mishti's typhoid booster is due next week. Please book a slot." },
+    { "day": -1, "time": "16:00", "contact": "dance", "text": "Monthly fee ₹1,800 due by 25 Nov." },
+    { "day": -2, "time": "21:00", "contact": "arnab", "text": "I'll be in Bangalore Mon to Wed for work." }
+  ],
+  "memory": [
+    { "fact": "Riya Sen is your colleague (Maths) and co-class-teacher of 6B", "src": "your contacts", "about": "riya_s" },
+    { "fact": "Riya Chatterjee is Rupkatha's mother; you share dance-class pickups and drops with her", "src": "your chats", "about": "riya_c" },
+    { "fact": "Mishti's dance class is at Nrityangan, 4 to 6 PM", "src": "your calendar", "about": "mishti" },
+    { "fact": "Mishti is allergic to peanuts", "src": "you told Artha", "about": "mishti" },
+    { "fact": "Lakshmi-di is paid ₹6,000 on the 1st by UPI and is off on Thursdays", "src": "your payments", "about": "lakshmi_di" },
+    { "fact": "When Arnab travels, you do Mishti's school drop", "src": "you told Artha", "about": "arnab" },
+    { "fact": "Ma loves shorshe ilish; Sunday lunch at Behala every other week", "src": "your chats", "about": "ma" },
+    { "fact": "Message Ma and Lakshmi-di in Bengali, in Roman script", "src": "your habit" }
+  ],
+  "calendar": [
+    { "title": "Dance class: Riya Chatterjee picks up, you drop", "day": 1, "time": "16:00", "contact": "riya_c" },
+    { "title": "6B unit test papers due (with Riya Sen)", "day": 2, "time": "09:00", "contact": "riya_s" },
+    { "title": "Annual day rehearsal", "day": 4, "time": "14:00", "contact": "principal" }
+  ],
+  "ledger": []
+}

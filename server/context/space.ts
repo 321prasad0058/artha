@@ -34,7 +34,7 @@ const exp = (t: number) => (t ? t + TTL_MS : Date.now() + TTL_MS);
 const SCHEMA = `
 PRAGMA journal_mode=WAL; PRAGMA synchronous=NORMAL;
 CREATE TABLE IF NOT EXISTS meta(k TEXT PRIMARY KEY, v TEXT);
-CREATE TABLE IF NOT EXISTS entity(id TEXT PRIMARY KEY, name TEXT NOT NULL, kind TEXT NOT NULL DEFAULT 'person', rel TEXT, lang TEXT, upi TEXT,
+CREATE TABLE IF NOT EXISTS entity(id TEXT PRIMARY KEY, name TEXT NOT NULL, kind TEXT NOT NULL DEFAULT 'person', rel TEXT, about TEXT, lang TEXT, upi TEXT,
   source TEXT NOT NULL, first_seen INT, last_seen INT, interactions INT DEFAULT 0, expires_at INT);
 CREATE TABLE IF NOT EXISTS alias(entity_id TEXT NOT NULL, phrase TEXT NOT NULL, topic TEXT NOT NULL DEFAULT '', source TEXT, last_used INT, expires_at INT,
   PRIMARY KEY(entity_id, phrase, topic));
@@ -81,6 +81,7 @@ export function space(user: string): DatabaseSync {
     fs.mkdirSync(DIR, { recursive: true });
     db = new DatabaseSync(file(user));
     db.exec(SCHEMA);
+    try { db.exec('ALTER TABLE entity ADD COLUMN about TEXT'); } catch { /* already there */ }
     open.set(user, db);
   }
   const last = Number((db.prepare(`SELECT v FROM meta WHERE k='swept'`).get() as any)?.v ?? 0);
@@ -146,7 +147,10 @@ export function writeState(db: DatabaseSync, s: State, p: Persona) {
     // people: phone contacts never expire (the phone is their source); people heard in voice notes live 90 days from last mention
     const ent = db.prepare(`INSERT INTO entity(id, name, kind, rel, lang, upi, source, first_seen, last_seen, interactions, expires_at) VALUES(?,?,?,?,?,?,?,?,?,0,?)
       ON CONFLICT(id) DO UPDATE SET name=excluded.name, rel=COALESCE(excluded.rel, rel), lang=COALESCE(excluded.lang, lang), upi=excluded.upi`);
-    for (const c of p.contacts) ent.run(c.id, c.name, /shop|store|clinic|traders|office|bank/i.test(c.name) ? 'business' : 'person', c.rel, c.lang, c.upi ?? null, 'contacts', now, null, null);
+    for (const c of p.contacts) {
+      ent.run(c.id, c.name, /shop|store|clinic|traders|office|bank|fabrics|school|pump|logistics/i.test(c.name) ? 'business' : 'person', c.rel, c.lang, c.upi ?? null, 'contacts', now, null, null);
+      if (c.about) db.prepare(`UPDATE entity SET about = ? WHERE id = ?`).run(c.about, c.id);
+    }
     const al = db.prepare(`INSERT INTO alias(entity_id, phrase, topic, source, last_used, expires_at) VALUES(?,?,?,?,?,?) ON CONFLICT DO UPDATE SET last_used=excluded.last_used, expires_at=excluded.expires_at`);
     for (const c of p.contacts) for (const a of c.aliases) al.run(c.id, a, '', 'contacts', null, null);
 
@@ -243,7 +247,7 @@ export function personCard(db: DatabaseSync, id: string, now = Date.now()) {
   const next = db.prepare(`SELECT title, when_label FROM cal WHERE entity_id = ? AND when_iso > ? ORDER BY when_iso LIMIT 1`).get(id, new Date(now).toISOString()) as any;
   const habits = (db.prepare(`SELECT key, value, n FROM habit WHERE entity_id = ? AND n >= 1 ORDER BY n DESC LIMIT 4`).all(id) as any[]);
   return {
-    id, name: e.name, kind: e.kind, relation: e.rel, lang: e.lang, source: e.source,
+    id, name: e.name, kind: e.kind, relation: e.rel, ...(e.about ? { about: e.about } : {}), lang: e.lang, source: e.source,
     called: called.map(c => (c.topic ? `${c.phrase} (${c.topic})` : c.phrase)),
     interactions: e.interactions,
     last: last.map(x => `${x.me ? 'you' : 'them'}: ${String(x.text).slice(0, 70)} (${Math.max(0, Math.round((now - x.at) / 864e5))}d ago)`),

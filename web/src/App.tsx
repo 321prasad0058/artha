@@ -4,6 +4,7 @@ import { romanize } from '../../server/pipeline/translit';
 import type { Action, Result, State } from '../../server/types';
 import { api, type PersonaInfo, type Sample, type Scan } from './api';
 import { Orb, type OrbMode } from './Orb';
+import { Intro, shouldShowIntro } from './Intro';
 import { startRecording, type Recording } from './recorder';
 
 /* ---------------- icons ---------------- */
@@ -195,6 +196,8 @@ export default function App() {
   const [personas, setPersonas] = useState<PersonaInfo[]>([]);
   const [pid, setPid] = useState<string>(() => { try { return localStorage.getItem('artha.p') || 'aditya'; } catch { return 'aditya'; } });
   const [pstate, setPstate] = useState<State | null>(null);
+  const [intro, setIntro] = useState(shouldShowIntro);
+  const endIntro = useCallback(() => setIntro(false), []);
   const [samples, setSamples] = useState<Sample[]>([]);
   const [tab, setTab] = useState<Tab>('artha');
   const [runs, setRuns] = useState<Record<string, Run[]>>({});
@@ -352,6 +355,7 @@ export default function App() {
 
   return (
     <div className="app">
+      {intro && <Intro onDone={endIntro} />}
       <header className="top">
         <div className="brand"><img className="logo" src="/icon.svg" alt="" /><b>Artha</b></div>
         <nav className="topnav" aria-label="Views">

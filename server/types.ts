@@ -1,9 +1,10 @@
-export type Contact = { id: string; name: string; rel: string; lang: string; aliases: string[]; upi?: string };
+/** A person in the user's world. "about" is what makes them THEM (two Ayush: the cricket friend vs the teammate). */
+export type Contact = { id: string; name: string; rel: string; lang: string; aliases: string[]; upi?: string; about?: string };
 export type Persona = {
   id: string; name: string; age: number; about: string; city: string; speaks: string[]; avatar: string;
   contacts: Contact[];
   events: { day: number; time: string; contact: string; text: string }[];
-  memory: { fact: string; src: string }[];
+  memory: { fact: string; src: string; about?: string }[];
   calendar: { title: string; day: number; time: string; contact?: string }[];
   ledger: { contact: string; amount: number; note: string; day: number }[];
 };

@@ -1,0 +1,56 @@
+{
+  "id": "rohan",
+  "name": "Rohan Mehra",
+  "age": 27,
+  "about": "Data analyst at a fintech in Cyber City, Gurugram. Hinglish with friends, English at work, Hindi-Punjabi with family. Shares a flat in Sector 45.",
+  "city": "Gurugram",
+  "speaks": ["Hinglish", "English", "Hindi"],
+  "avatar": "RM",
+  "contacts": [
+    { "id": "ayush_s", "name": "Ayush Sharma", "rel": "College friend from DTU, Sunday cricket", "about": "Friend since DTU; plays cricket with you every Sunday at Tau Devi Lal stadium; owes you ₹1,500 from the Goa trip", "lang": "Hinglish", "aliases": ["Ayush", "Ayush bhai", "Shamu"], "upi": "ayush.sharma@okaxis" },
+    { "id": "ayush_g", "name": "Ayush Gupta", "rel": "Colleague, data engineering team", "about": "Works with you on the payments dashboard; daily standup at 10 AM; reviews your SQL", "lang": "English", "aliases": ["Ayush", "AG"] },
+    { "id": "neha", "name": "Neha", "rel": "Girlfriend", "about": "Vegetarian, works in Noida, likes quiet cafes", "lang": "Hinglish", "aliases": ["Neha"] },
+    { "id": "mummy", "name": "Mummy", "rel": "Mother, in Jalandhar", "about": "Calls every Sunday evening; wants you home for Lohri", "lang": "Hindi", "aliases": ["Mummy", "Mom", "Maa"] },
+    { "id": "kapoor", "name": "Mr. Kapoor", "rel": "Landlord", "about": "Rent ₹28,000 + ₹2,500 maintenance, due by the 5th", "lang": "Hindi", "aliases": ["Kapoor uncle", "landlord", "makaan malik"], "upi": "kapoor.rent@okhdfc" },
+    { "id": "vikram", "name": "Vikram", "rel": "Gym trainer at Cult", "about": "Leg day on Sundays and Wednesdays, 7 AM", "lang": "Hinglish", "aliases": ["Vikram", "trainer", "coach"] },
+    { "id": "kabir", "name": "Kabir", "rel": "Flatmate", "about": "Splits wifi, electricity and the cook 50-50 with you", "lang": "Hinglish", "aliases": ["Kabir"], "upi": "kabir.k@okicici" },
+    { "id": "priya_hr", "name": "Priya Nair", "rel": "HR business partner at office", "about": "Handles your appraisal and leave", "lang": "English", "aliases": ["Priya", "HR"] },
+    { "id": "priya_c", "name": "Priya Mehra", "rel": "Cousin sister, in Pune", "about": "Her engagement is on 13 Dec in Pune", "lang": "Hinglish", "aliases": ["Priya", "Priya didi", "didi"] },
+    { "id": "dr_khanna", "name": "Dr. Khanna", "rel": "Dentist", "about": "Root canal follow-up", "lang": "English", "aliases": ["dentist", "Khanna", "Dr Khanna"] },
+    { "id": "airtel_caller", "name": "Unknown caller (said Airtel)", "rel": "Unverified caller", "lang": "Hindi", "aliases": ["Airtel wale"] }
+  ],
+  "events": [
+    { "day": 0, "time": "14:20", "contact": "airtel_caller", "text": "Called saying your SIM will be blocked today and asked for an OTP to 'verify'" },
+    { "day": 0, "time": "13:30", "contact": "kapoor", "text": "Beta, is mahine ka rent ₹28,000 aur maintenance ₹2,500. 5 tareekh tak kar dena." },
+    { "day": 0, "time": "12:05", "contact": "neha", "text": "Dinner tonight? Sector 29 wala Burma Burma try karna hai." },
+    { "day": 0, "time": "10:40", "contact": "ayush_s", "text": "Bhai Sunday match pakka? 7 baje Tau Devi Lal. Bat le aana." },
+    { "day": 0, "time": "09:15", "contact": "ayush_g", "text": "Can you push the payments dashboard fix before standup on Monday? Product is asking." },
+    { "day": -1, "time": "23:10", "contact": "kabir", "text": "Bro wifi bill ₹1,178 maine pay kar diya, apna half bhej de." },
+    { "day": -1, "time": "21:10", "contact": "ayush_s", "text": "Goa wale ₹1,500 salary aate hi bhejta hoon, sorry yaar." },
+    { "day": -1, "time": "19:20", "contact": "mummy", "text": "Beta Diwali pe nahi aaya, Lohri pe toh aa ja. Tickets dekh le." },
+    { "day": -1, "time": "17:45", "contact": "priya_hr", "text": "Hi Rohan, your appraisal discussion is on Tuesday at 3 PM. Please fill the self-review by Monday." },
+    { "day": -2, "time": "20:00", "contact": "priya_c", "text": "Rohan, Pune kab aa raha hai? Meri engagement 13 Dec ko hai!" },
+    { "day": -2, "time": "08:30", "contact": "vikram", "text": "Kal leg day, 7 AM sharp. Skip mat karna." },
+    { "day": -3, "time": "11:00", "contact": "dr_khanna", "text": "Reminder: root canal follow-up on Wednesday at 6 PM." }
+  ],
+  "memory": [
+    { "fact": "Ayush Sharma is your college friend from DTU; you play cricket with him every Sunday at 7 AM", "src": "your chats", "about": "ayush_s" },
+    { "fact": "Ayush Sharma's birthday is 3 December; he loves chole bhature from Sitaram", "src": "you told Artha", "about": "ayush_s" },
+    { "fact": "Ayush Gupta is your teammate on the payments dashboard; standup is at 10 AM on weekdays", "src": "your calendar", "about": "ayush_g" },
+    { "fact": "Priya Nair is HR at your office; Priya Mehra is your cousin in Pune", "src": "your contacts" },
+    { "fact": "Neha is vegetarian and doesn't like loud places", "src": "you told Artha", "about": "neha" },
+    { "fact": "Rent ₹28,000 + ₹2,500 maintenance goes to Mr. Kapoor by UPI by the 5th", "src": "your payments", "about": "kapoor" },
+    { "fact": "You split bills with Kabir 50-50", "src": "your payments", "about": "kabir" },
+    { "fact": "Mummy likes a call every Sunday evening", "src": "your calls", "about": "mummy" },
+    { "fact": "Reminders 30 minutes before work meetings", "src": "your habit" }
+  ],
+  "calendar": [
+    { "title": "Sunday cricket with Ayush Sharma", "day": 1, "time": "07:00", "contact": "ayush_s" },
+    { "title": "Standup (payments dashboard)", "day": 2, "time": "10:00", "contact": "ayush_g" },
+    { "title": "Appraisal discussion with Priya Nair", "day": 3, "time": "15:00", "contact": "priya_hr" },
+    { "title": "Dentist follow-up: Dr. Khanna", "day": 4, "time": "18:00", "contact": "dr_khanna" }
+  ],
+  "ledger": [
+    { "contact": "ayush_s", "amount": 1500, "note": "Goa trip share", "day": -20 }
+  ]
+}

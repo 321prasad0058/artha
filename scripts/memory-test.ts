@@ -7,9 +7,11 @@ process.loadEnvFile('.env');
 const call = async (path: string, body: unknown, method = 'POST') => JSON.parse(String((await handle({ method, path, query: new URLSearchParams(method === 'GET' ? (body as any) : {}), headers: {}, body: Buffer.from(method === 'GET' ? '' : JSON.stringify(body)) })).body));
 const p = process.argv[2] ?? 'sunita';
 const TELL: Record<string, string[]> = {
+  rohan: ['Neha ka birthday 14 February hai, yaad rakhna.', 'Ayush Gupta ab Bangalore office shift ho gaya hai, standup ab online hota hai.', 'Kabir ko bol do wifi ka 589 bhej diya.'],
   sunita: ['मी खात्यात काही गोष्टी ॲड करायला सांगतोय. बाराशे रुपये आनंद पाटील सप्लायरकडून घ्यायचे आहेत, आणि पाच हजार सुनील शर्मा सप्लायरला द्यायचे. पाच किलो राईस विकला सहाशे रुपयांना.', 'Rohit la sanga, pudhchya shanivari mi Bengaluru la yetey.'],
 };
 const ASK: Record<string, string[]> = {
+  rohan: ['Neha ka birthday kab hai?', 'Ayush Gupta abhi kaha baithta hai?', 'Kabir ko maine kya bola tha?', 'Ayush ko bolo standup link bhej de.'],
   sunita: ['Anand Patil kadun kiti paise ghyayche aahet?', 'सुनील शर्मांना किती द्यायचे आहेत?', 'Rohit la mi kay sangitla hota?', 'Anand Patil la phone kara, paise kadhi denar te vichara.'],
 };
 await call('/api/reset', { p });
