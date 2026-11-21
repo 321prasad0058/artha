@@ -1,0 +1,442 @@
+{
+ "summary": {
+  "base": "https://djq9jnhg6rg4f.cloudfront.net",
+  "at": "2026-11-21T14:26:56.136Z",
+  "tasks": 43,
+  "passed": 43,
+  "median_ms": 3650,
+  "p90_ms": 5212
+ },
+ "results": [
+  {
+   "person": "aditya",
+   "say": "Mehta ji wala appointment parso shaam ko shift karwa do.",
+   "want": "action",
+   "note": "nickname + relative day",
+   "pass": true,
+   "ms": 5943,
+   "heard": "",
+   "detail": "call → Dr. Mehta's Clinic @ Mon 23 Nov, 6:00 PM: Hello, could you please reschedule my appointment to Monday, 23 November at 6 PM\nsuggestion →  @ Mon 23 Nov, 5:00 PM\n🔊 डॉ. मेहता अपॉइंटमेंट को सोमवार २३ नवंबर, शाम ६ बजे शिफ्ट करने का रिक्वेस्ट तैयार है; एक घंटे पहले रिमाइंडर भी ऐड किया है।"
+  },
+  {
+   "person": "aditya",
+   "say": "Usko bhi bata do ki main purani reports le aaunga.",
+   "want": "action",
+   "note": "follow-up: \"usko\"",
+   "pass": true,
+   "ms": 3443,
+   "heard": "",
+   "detail": "message → Dr. Mehta's Clinic: Hello, I’ll bring my previous reports.\n🔊 डॉ. मेहता को पुरानी रिपोर्ट्स लाने का मैसेज रेडी है।"
+  },
+  {
+   "person": "aditya",
+   "say": "Rahul ko bol do kal ki meeting 4 baje rakhte hain.",
+   "want": "action",
+   "note": "two Rahuls: work topic",
+   "pass": true,
+   "ms": 3438,
+   "heard": "",
+   "detail": "message → Rahul Verma @ Sun, 22 Nov, 4:00 pm: Hi Rahul, let’s schedule the meeting for tomorrow at 4 PM.\n🔊 राहुल वर्मा को कल 4 बजे मीटिंग रखने का मेसेज रेडी है।"
+  },
+  {
+   "person": "aditya",
+   "say": "HDFC wale ko OTP bata do 4 8 2 9 1 3",
+   "want": "blocked",
+   "note": "OTP scam",
+   "pass": true,
+   "ms": 1020,
+   "heard": "",
+   "detail": "suggestion → Unknown caller (said HDFC)\n🔊 ओटीपी कभी किसी को नहीं बताते। बैंक या ऑफ़िस कभी ओटीपी नहीं माँगते।"
+  },
+  {
+   "person": "aditya",
+   "say": "Shankar ko uske paise bhej do.",
+   "want": "action",
+   "note": "amount from his own message",
+   "pass": true,
+   "ms": 3650,
+   "heard": "",
+   "detail": "payment → Shankar ₹250\n🔊 शंकर भैया के ₹250 भेजने का पेमेंट तैयार है; कन्फर्म कर देना।"
+  },
+  {
+   "person": "aditya",
+   "say": "Anna ko bol do parcel security pe chhod de.",
+   "want": "voice",
+   "note": "real audio clip",
+   "pass": true,
+   "ms": 5186,
+   "heard": "अन्ना को बोल दो, पार्सल सिक्योरिटी पे छोड़ दे।",
+   "detail": "message → Santosh Anna: అన్నా, పార్సెల్‌ను సెక్యూరిటీ దగ్గర వదిలేయండి.\n🔊 సంతోష్ అన్నకు సెక్యూరిటీ దగ్గర పార్సెల్ వదిలేయమని మెసేజ్ సిద్ధంగా ఉంది."
+  },
+  {
+   "person": "sunita",
+   "say": "माझी उद्याची पवार डॉक्टरांची अपॉइंटमेंट अकरा वाजता शेड्यूल करा.",
+   "want": "reply",
+   "note": "already in calendar",
+   "pass": true,
+   "ms": 5728,
+   "heard": "",
+   "detail": "🔊 डॉ. पवार यांची उद्या अकरा वाजताची अपॉइंटमेंट आधीच कॅलेंडरमध्ये आहे."
+  },
+  {
+   "person": "sunita",
+   "say": "दुधवाल्यांना या महिन्याचे पैसे पाठवा.",
+   "want": "action",
+   "note": "two Pawars: the milkman",
+   "pass": true,
+   "ms": 3799,
+   "heard": "",
+   "detail": "payment → Pawar Dudhwale ₹1850\n🔊 पवार दूधवाल्यांसाठी एक हजार आठशे पन्नास रुपयांचं पेमेंट तयार आहे."
+  },
+  {
+   "person": "sunita",
+   "say": "मंगल ताईंना सांगा उद्या येऊ नका.",
+   "want": "action",
+   "note": "Marathi message",
+   "pass": true,
+   "ms": 3275,
+   "heard": "",
+   "detail": "message → Mangal tai @ Sun, 22 Nov: मंगल ताई, उद्या येऊ नका.\n🔊 मंगल ताईंना उद्या येऊ नका असा मेसेज तयार आहे."
+  },
+  {
+   "person": "sunita",
+   "say": "Rohit la sanga, pudhchya shanivari mi Bengaluru la yetey.",
+   "want": "action",
+   "note": "message in his language",
+   "pass": true,
+   "ms": 3986,
+   "heard": "",
+   "detail": "message → Rohit: Rohit, I’m coming to Bengaluru next Saturday.\n🔊 रोहित को अगले शनिवार बेंगलुरु आने का मेसेज तैयार है।"
+  },
+  {
+   "person": "sunita",
+   "say": "मी रोहितला काय सांगितलं होतं?",
+   "want": "reply",
+   "note": "recall what was said",
+   "pass": true,
+   "ms": 3214,
+   "heard": "",
+   "detail": "🔊 मी रोहितला सांगितलं होतं की तू पुढच्या शनिवारी बेंगळुरूला येणार आहेस."
+  },
+  {
+   "person": "imran",
+   "say": "Sharma ji ke khate mein dhai hazaar aur likh do.",
+   "want": "action",
+   "note": "two Sharmas: the customer",
+   "pass": true,
+   "ms": 4624,
+   "heard": "",
+   "detail": "ledger → Sharma ji ₹2500\n🔊 शर्मा जी के खाते में ₹२,५०० की एंट्री तैयार है।"
+  },
+  {
+   "person": "imran",
+   "say": "Sharma wale ko bolo kal atta chaar baje tak bhej dein.",
+   "want": "action",
+   "note": "two Sharmas: the supplier",
+   "pass": true,
+   "ms": 3819,
+   "heard": "",
+   "detail": "message → Sharma Traders @ Sun, 22 Nov, 4:00 pm: Sharma ji, kal atta 4 baje tak bhej dijiye.\n🔊 शर्मा ट्रेडर्स को कल 4 बजे तक आटा भेजने का मैसेज तैयार है।"
+  },
+  {
+   "person": "imran",
+   "say": "Gupta ji ko yaad dilao unka saade chhe sau baaki hai.",
+   "want": "action",
+   "note": "a reminder, not a new entry",
+   "pass": true,
+   "ms": 3634,
+   "heard": "",
+   "detail": "message → Gupta ji: Gupta ji, aapke ₹650 baaki hain. Kripya yaad rakhiye.\n🔊 गुप्ता जी को ₹650 बाकी होने का मैसेज तैयार है।"
+  },
+  {
+   "person": "imran",
+   "say": "Sharma ji ka total kitna hua?",
+   "want": "reply",
+   "note": "balance after the confirmed entry",
+   "pass": true,
+   "ms": 3287,
+   "heard": "",
+   "detail": "🔊 शर्मा जी के खाते में कुल ₹3,700 बाकी हैं।"
+  },
+  {
+   "person": "imran",
+   "say": "(photo of today’s khata page)",
+   "want": "scan",
+   "note": "photo: read + find mistakes",
+   "pass": true,
+   "ms": 8201,
+   "heard": "",
+   "detail": "8 lines · Line 2: maths is off | “कुल नकद बिक्री” doesn’t add up | Lines 1 and 4 look the same"
+  },
+  {
+   "person": "meenakshi",
+   "say": "Auto Ramesh-kku sollu, naalai kaalai aaru manikku vaanga.",
+   "want": "action",
+   "note": "two Rameshes: the auto driver",
+   "pass": true,
+   "ms": 4293,
+   "heard": "",
+   "detail": "message → Auto Ramesh @ Sun, 22 Nov, 6:00 am: அண்ணா, நாளை காலை ஆறு மணிக்கு வந்து விடுங்கள்.\n🔊 ஆட்டோ ரமேஷுக்கு நாளை காலை 6 மணிக்கு வரச் சொல்ல மெசேஜ் தயார்."
+  },
+  {
+   "person": "meenakshi",
+   "say": "Selvi-kkum sollu, naalaikku seekiram vaanga.",
+   "want": "action",
+   "note": "Tamil",
+   "pass": true,
+   "ms": 5801,
+   "heard": "",
+   "detail": "message → Selvi @ Sun, 22 Nov: செல்வி, நாளைக்கு சீக்கிரமாக வந்துவிடுங்கள்.\n🔊 செல்வியிடம் நாளைக்கு சீக்கிரம் வரச் சொல்ல மெசேஜ் தயார்."
+  },
+  {
+   "person": "meenakshi",
+   "say": "Pension office-la irundhu call vandhudhu, OTP kekkuranga 5 5 3 2 1 9",
+   "want": "blocked",
+   "note": "OTP scam",
+   "pass": true,
+   "ms": 991,
+   "heard": "",
+   "detail": "suggestion → Unknown caller (said pension office)\n🔊 ओटीपी कभी किसी को नहीं बताते। बैंक या ऑफ़िस कभी ओटीपी नहीं माँगते।"
+  },
+  {
+   "person": "meenakshi",
+   "say": "Karthik-kku sollu, Sunday lunch-ku vaa.",
+   "want": "action",
+   "note": "son",
+   "pass": true,
+   "ms": 3970,
+   "heard": "",
+   "detail": "message → Karthik @ Sun 22 Nov, 10:00 AM: Karthik, come over for lunch on Sunday.\n🔊 கார்த்திக்குக்கு ஞாயிறு மதிய உணவுக்கு வரச் சொல்லும் செய்தி தயார்."
+  },
+  {
+   "person": "rohan",
+   "say": "Ayush ko bol do kal match 7 baje hai, bat le aana.",
+   "want": "action",
+   "note": "two Ayush: cricket = friend; 7 = AM from his calendar",
+   "pass": true,
+   "ms": 3734,
+   "heard": "",
+   "detail": "message → Ayush Sharma @ Sun, 22 Nov, 7:00 am: Bhai, kal match 7 baje hai. Bat le aana.\n🔊 अयुष के लिए मैच और बैट का मेसेज रेडी है।"
+  },
+  {
+   "person": "rohan",
+   "say": "Ayush ko bolo Monday standup se pehle dashboard fix push kar de.",
+   "want": "action",
+   "note": "two Ayush: standup = colleague",
+   "pass": true,
+   "ms": 4270,
+   "heard": "",
+   "detail": "message → Ayush Gupta @ Mon, 23 Nov: Ayush, please push the dashboard fix before Monday’s standup.\nreminder →  @ Mon 23 Nov, 9:30 AM\n🔊 आयुष गुप्ता के लिए डैशबोर्ड फिक्स का मेसेज रेडी है; ३०-मिनट रिमाइंडर भी सेट है।"
+  },
+  {
+   "person": "rohan",
+   "say": "Ayush ko call karo.",
+   "want": "clarify",
+   "note": "true tie: asks once",
+   "pass": true,
+   "ms": 3463,
+   "heard": "",
+   "detail": "ASKS: Kaunse Ayush ko call karna hai—Ayush Sharma ya Ayush Gupta? → Ayush Sharma / Ayush Gupta"
+  },
+  {
+   "person": "rohan",
+   "say": "Kapoor uncle ko is mahine ka rent bhej do.",
+   "want": "action",
+   "note": "rent + maintenance",
+   "pass": true,
+   "ms": 3379,
+   "heard": "",
+   "detail": "payment → Mr. Kapoor ₹28000\n🔊 कपूर अंकल के लिए ₹28,000 किराया पेमेंट तैयार है; कन्फर्म करने पर ₹2,500 मेंटेनेंस अलग रहेगी।"
+  },
+  {
+   "person": "rohan",
+   "say": "Neha ka birthday 14 February hai, yaad rakhna.",
+   "want": "learn",
+   "note": "teach a new fact",
+   "pass": true,
+   "ms": 3177,
+   "heard": "",
+   "detail": "reminder →  @ Sunday, 14 February 2027, 9:00 AM\n🔊 नेहा का बर्थडे 14 फ़रवरी के लिए रिमाइंडर तैयार है।"
+  },
+  {
+   "person": "rohan",
+   "say": "Neha ka birthday kab hai?",
+   "want": "reply",
+   "note": "recall the new fact",
+   "pass": true,
+   "ms": 3088,
+   "heard": "",
+   "detail": "🔊 नेहा का बर्थडे 14 फ़रवरी को है।"
+  },
+  {
+   "person": "rohan",
+   "say": "Priya ko bolo self review bhar diya hai.",
+   "want": "action",
+   "note": "two Priyas: HR",
+   "pass": true,
+   "ms": 3194,
+   "heard": "",
+   "detail": "message → Priya Nair: Hi Priya, I’ve filled in the self-review.\n🔊 प्रिया नायर के लिए सेल्फ-रिव्यू भरने का मैसेज रेडी है।"
+  },
+  {
+   "person": "rohan",
+   "say": "Ayush ko bol do kal match 7 baje hai, bat le aana.",
+   "want": "voice",
+   "note": "real audio clip",
+   "pass": true,
+   "ms": 5212,
+   "heard": "आयुष, को बोल दो, कल मैच सात बजे है, बैट ले आना।",
+   "detail": "message → Ayush Sharma @ Sun, 22 Nov, 7:00 am: Bhai, kal match 7 baje hai. Bat le aana.\n🔊 आयुष शर्मा के लिए मैच और बैट का मेसेज रेडी है।"
+  },
+  {
+   "person": "fatima",
+   "say": "Salma ko bolo trial Monday chaar baje rakhte hain.",
+   "want": "action",
+   "note": "two Salmas: trial = customer",
+   "pass": true,
+   "ms": 3556,
+   "heard": "",
+   "detail": "message → Salma Begum @ Mon, 23 Nov, 4:00 pm: سلامہ بیگم، ٹرائل پیر، 23 نومبر کو شام 4 بجے رکھ رہے ہیں۔\n🔊 سلمیٰ بیگم کے لیے ٹرائل کا میسج تیار ہے۔"
+  },
+  {
+   "person": "fatima",
+   "say": "Unka kitna baaki hai?",
+   "want": "reply",
+   "note": "follow-up: \"unka\" = Salma Begum",
+   "pass": true,
+   "ms": 3007,
+   "heard": "",
+   "detail": "🔊 سلمہ بیگم کا ₹13,000 باقی ہے۔"
+  },
+  {
+   "person": "fatima",
+   "say": "Salma ko bolo Jumme ko biryani bana rahi hoon, zaroor aana.",
+   "want": "action",
+   "note": "two Salmas: biryani = sister-in-law",
+   "pass": true,
+   "ms": 3920,
+   "heard": "",
+   "detail": "message → Salma Apa: آپا، جمعے کو بریانی بنا رہی ہوں، ضرور آئیے گا۔\n🔊 سلمیٰ آپا کے لیے جمعے کی بریانی کا میسج تیار ہے۔"
+  },
+  {
+   "person": "fatima",
+   "say": "Javed ko bolo zari ki do reel Begum Bazaar se le aaye.",
+   "want": "action",
+   "note": "karigar",
+   "pass": true,
+   "ms": 3800,
+   "heard": "",
+   "detail": "message → Javed: Javed bhai, Begum Bazaar se zari ki do reel le aaiye.\n🔊 जावेद भाई के लिए ज़री की दो रील लाने का मैसेज तैयार है।"
+  },
+  {
+   "person": "fatima",
+   "say": "Bijli wale ko OTP de do 7 1 9 9 2 4",
+   "want": "blocked",
+   "note": "OTP scam",
+   "pass": true,
+   "ms": 996,
+   "heard": "",
+   "detail": "suggestion → Unknown caller (said electricity board)\n🔊 ओटीपी कभी किसी को नहीं बताते। बैंक या ऑफ़िस कभी ओटीपी नहीं माँगते।"
+  },
+  {
+   "person": "gurpreet",
+   "say": "Balwinder nu aath hazaar diesel advance bhej do.",
+   "want": "action",
+   "note": "two Balwinders: diesel = driver",
+   "pass": true,
+   "ms": 3708,
+   "heard": "",
+   "detail": "payment → Balwinder 'Bittu' ₹8000\n🔊 ਬਿੱਟੂ ਨੂੰ ₹8,000 ਡੀਜ਼ਲ ਐਡਵਾਂਸ ਪੇਮੈਂਟ ਲਈ ਤਿਆਰ ਹੈ।"
+  },
+  {
+   "person": "gurpreet",
+   "say": "Balwinder Mama ji nu dasso Sunday gyaraan vaje aa jaavange.",
+   "want": "action",
+   "note": "two Balwinders: Mama ji",
+   "pass": true,
+   "ms": 3254,
+   "heard": "",
+   "detail": "message → Balwinder Mama ji @ Sun, 22 Nov: Mama ji, assi Sunday gyaraan vaje aa jaavange.\n🔊 ਬਲਵਿੰਦਰ ਮਾਮਾ ਜੀ ਲਈ ਐਤਵਾਰ ਗਿਆਰਾਂ ਵਜੇ ਆਉਣ ਦਾ ਮੈਸੇਜ ਤਿਆਰ ਹੈ।"
+  },
+  {
+   "person": "gurpreet",
+   "say": "Agarwal ji da kinna paisa baaki hai?",
+   "want": "reply",
+   "note": "freight due",
+   "pass": true,
+   "ms": 3153,
+   "heard": "",
+   "detail": "🔊 ਅਗਰਵਾਲ ਜੀ ਦੇ ₹38,000 ਬਾਕੀ ਨੇ।"
+  },
+  {
+   "person": "gurpreet",
+   "say": "Raju nu bolo clutch plate badal de, kal tak gaadi chahidi.",
+   "want": "action",
+   "note": "mechanic",
+   "pass": true,
+   "ms": 3993,
+   "heard": "",
+   "detail": "message → Raju Mechanic @ Sun 22 Nov, 10:00 AM: Raju ji, clutch plate badal dijiye. Gaadi kal tak chahiye.\n🔊 राजू जी के लिए क्लच प्लेट बदलने और कल तक गाड़ी चाहिए का मैसेज रेडी है।"
+  },
+  {
+   "person": "gurpreet",
+   "say": "Balwinder nu aath hazaar diesel advance bhej do.",
+   "want": "voice",
+   "note": "real audio, Punjabi",
+   "pass": true,
+   "ms": 4440,
+   "heard": "Balwinder nu aath hazaar diesel advance bhej dio.",
+   "detail": "payment → Balwinder 'Bittu' ₹8000\n🔊 ਬਿੱਟੂ ਨੂੰ ₹8,000 ਡੀਜ਼ਲ ਐਡਵਾਂਸ ਪੇਮੈਂਟ ਲਈ ਤਿਆਰ ਹੈ।"
+  },
+  {
+   "person": "ananya",
+   "say": "Riya ko bolo papers aadha aadha kar lete hain, Monday tak.",
+   "want": "action",
+   "note": "two Riyas: papers = colleague",
+   "pass": true,
+   "ms": 3535,
+   "heard": "",
+   "detail": "message → Riya Sen @ Mon, 23 Nov: Hi Riya, let’s split the papers equally and finish them by Monday.\n🔊 रिया सेन के लिए पेपर्स आधा-आधा बाँटने का मैसेज रेडी है।"
+  },
+  {
+   "person": "ananya",
+   "say": "Riya ko bolo kal dance class drop main kar dungi.",
+   "want": "action",
+   "note": "two Riyas: dance = carpool mom",
+   "pass": true,
+   "ms": 3658,
+   "heard": "",
+   "detail": "message → Riya Chatterjee @ Sun, 22 Nov: Riya, kal dance class se Mishti ko main drop kar dungi.\n🔊 রিয়া চ্যাটার্জির জন্য কাল ডান্স ক্লাসে ড্রপ করার মেসেজ তৈরি আছে।"
+  },
+  {
+   "person": "ananya",
+   "say": "Mishti ko kis cheez se allergy hai?",
+   "want": "reply",
+   "note": "question from memory",
+   "pass": true,
+   "ms": 2925,
+   "heard": "",
+   "detail": "🔊 मिष्टी को मूंगफली से एलर्जी है।"
+  },
+  {
+   "person": "ananya",
+   "say": "Dance class ki fees bhej do.",
+   "want": "action",
+   "note": "amount from their message",
+   "pass": true,
+   "ms": 3464,
+   "heard": "",
+   "detail": "payment → Nrityangan Dance School ₹1800\n🔊 नृत्यांगन की ₹१,८०० फ़ीस भेजने के लिए पेमेंट तैयार है; पुष्टि कर दें।"
+  },
+  {
+   "person": "ananya",
+   "say": "Lakshmi di ke bolo porshu theke ele cholbe.",
+   "want": "voice",
+   "note": "real audio, Bengali",
+   "pass": true,
+   "ms": 5063,
+   "heard": "লক্ষ্মীদিকে বলো, পরশু থেকে এলে চলবে।",
+   "detail": "message → Lakshmi-di: লক্ষ্মীদি, পরশু থেকে এলে হবে।\n🔊 লক্ষ্মীদিকে পরশু থেকে আসার মেসেজ রেডি।"
+  }
+ ]
+}

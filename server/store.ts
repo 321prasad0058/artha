@@ -56,21 +56,29 @@ async function s3() {
   const mod: any = await import('@aws-sdk/client-s3' as string);
   return { mod, client: new mod.S3Client({}) };
 }
+const etags = new Map<string, string>();   // the S3 version this Lambda's local copy matches
 async function pull(id: string) {
   if (!BUCKET) return;
   try {
     const { mod, client } = await s3();
+    // a warm Lambda usually already holds the latest copy: check its version (fast) before downloading
+    if (etags.has(id) && fs.existsSync(file(id))) {
+      const h = await client.send(new mod.HeadObjectCommand({ Bucket: BUCKET, Key: `context/${id}.db` })).catch(() => null);
+      if (h?.ETag && h.ETag === etags.get(id)) return;
+    }
     const r = await client.send(new mod.GetObjectCommand({ Bucket: BUCKET, Key: `context/${id}.db` }));
     fs.mkdirSync(path.dirname(file(id)), { recursive: true });
     dropSpace(id);
     fs.writeFileSync(file(id), Buffer.from(await r.Body.transformToByteArray()));
+    if (r.ETag) etags.set(id, r.ETag);
   } catch { /* new user */ }
 }
 async function push(id: string) {
   if (!BUCKET) return;
   const db = space(id); db.exec('PRAGMA wal_checkpoint(TRUNCATE)');
   const { mod, client } = await s3();
-  await client.send(new mod.PutObjectCommand({ Bucket: BUCKET, Key: `context/${id}.db`, Body: fs.readFileSync(file(id)) }));
+  const r = await client.send(new mod.PutObjectCommand({ Bucket: BUCKET, Key: `context/${id}.db`, Body: fs.readFileSync(file(id)) }));
+  if (r.ETag) etags.set(id, r.ETag);
 }
 
 export async function loadState(id: string): Promise<State> {
@@ -90,9 +98,8 @@ export async function loadState(id: string): Promise<State> {
 export async function saveState(s: State): Promise<void> {
   const db = space(s.persona);
   writeState(db, s, persona(s.persona));
-  // locally vectors fill in the background; on Lambda nothing runs after the response, so embed before upload
-  if (BUCKET) await embedPending(db).catch(e => console.warn('embed', e.message));
-  else void embedPending(db).catch(e => console.warn('embed', e.message));
+  // new text gets its vectors with the next note's embedding call (one round trip), so saving never waits
+  if (!BUCKET) void embedPending(db).catch(e => console.warn('embed', e.message));
   await push(s.persona);
 }
 export async function resetState(id: string): Promise<State> {

@@ -2,7 +2,7 @@ import gsap from 'gsap';
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { romanize } from '../../server/pipeline/translit';
 import type { Action, Result, State } from '../../server/types';
-import { api, type PersonaInfo, type Sample, type Scan } from './api';
+import { API_BASE, api, type PersonaInfo, type Sample, type Scan } from './api';
 import { Orb, type OrbMode } from './Orb';
 import { Intro, shouldShowIntro } from './Intro';
 import { startRecording, type Recording } from './recorder';
@@ -28,12 +28,16 @@ const ACT_ICON: Record<string, string> = { message: 'chat', call: 'call', remind
 type Tab = 'artha' | 'chats' | 'memory' | 'results' | 'about';
 type Run = {
   image?: string; scan?: Scan;
+  /** ms from letting go of the orb (or pressing send) to each moment the person notices */
+  times?: { heard?: number; gist?: number; voice?: number; cards?: number };
+  gist?: { gist: string; points: { kind: string; text: string }[] };
   id: number; source: 'mic' | 'sample' | 'typed' | 'photo'; label?: string; audio?: Blob; audioUrl?: string; synthetic?: boolean;
   stage: number; transcript?: string; hearMs?: number; result?: Result; error?: string; startedAt: number; endedAt?: number; replyUrl?: string;
   done: Record<number, string>; busy?: number | null; confirm?: number | null; working?: boolean;
   compare?: { loading: boolean; baseHeard?: string; base?: Result; ctx?: Result; error?: string };
 };
 let seq = 0;
+const SHOW_TIMES = typeof location !== 'undefined' && new URLSearchParams(location.search).has('debug');
 const nonLatin = (s: string) => /[ऀ-෿]/.test(s);
 const first = (n?: string) => n?.split(' ')[0] ?? '';
 const fmtTime = (iso: string) => { const d = new Date(iso); return d.toDateString() === new Date().toDateString() ? d.toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit' }) : d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }); };
@@ -82,7 +86,7 @@ function Heard({ run, res, shown, marks }: { run: Run; res?: Result; shown: stri
   const chips = useRef<HTMLDivElement>(null);
   const audio = useRef<HTMLAudioElement | null>(null);
   const play = () => { if (!run.audioUrl) return; audio.current?.pause(); audio.current = new Audio(run.audioUrl); audio.current.play().catch(() => {}); };
-  const h = res?.heard;
+  const h = res?.heard ?? run.gist;
   useLayoutEffect(() => { if (h && chips.current) gsap.from(chips.current.children, { y: 8, opacity: 0, scale: .96, duration: .45, stagger: .06, ease: 'power3.out' }); }, [!!h]);
   return (
     <div className={`me ${h ? 'has-gist' : ''} ${run.image ? 'photo' : ''}`}>
@@ -238,25 +242,30 @@ export default function App() {
   });
 
   /* ---------- Artha talks back ---------- */
-  function playUrl(url: string) {
+  function playUrl(url: string, onStart?: () => void) {
     voice.current?.pause();
     const a = new Audio(url);
+    if (onStart) a.addEventListener('playing', onStart, { once: true });
     a.playbackRate = 1.12; (a as any).preservesPitch = true;
     a.onplay = () => setSpeaking(true);
     a.onended = a.onpause = a.onerror = () => setSpeaking(false);
     voice.current = a;
     a.play().catch(() => setSpeaking(false));
   }
+  /** Speak a line now (streamed audio); onStart fires when the first sound plays. */
+  function speakText(runId: number, text: string, onStart?: () => void) {
+    if (!text || !voiceOn) return;
+    const url = `${API_BASE}/api/speak?p=${encodeURIComponent(pid)}&text=${encodeURIComponent(text.slice(0, 400))}`;
+    update(runId, { replyUrl: url });
+    playUrl(url, onStart);
+  }
   async function speakReply(runId: number, r: Result, force = false) {
     const text = r.reply_speech || r.reply;
     if (!text || (!voiceOn && !force)) return;
-    try {
-      const res = await fetch('/api/speak', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ p: pid, text }) });
-      if (!res.ok) return;
-      const url = URL.createObjectURL(await res.blob());
-      update(runId, { replyUrl: url });
-      playUrl(url);
-    } catch { /* voice is a bonus; the text is on screen */ }
+    // Streamed: the audio element starts playing as the first bytes arrive, while the rest is still being generated.
+    const url = `${API_BASE}/api/speak?p=${encodeURIComponent(pid)}&text=${encodeURIComponent(text.slice(0, 400))}`;
+    update(runId, { replyUrl: url });
+    playUrl(url);
   }
   const toggleVoice = () => setVoiceOn(v => { const n = !v; try { localStorage.setItem('artha.voice', n ? 'on' : 'off'); } catch { /* */ } if (!n) voice.current?.pause(); return n; });
 
@@ -264,21 +273,47 @@ export default function App() {
   async function process(run: Run) {
     setRuns(all => ({ ...all, [pid]: [...(all[pid] ?? []), run] }));
     setTab('artha'); scrollDown();
+    // One streamed request. Each piece shows the moment it arrives; Artha starts speaking before the cards are done.
+    const t0 = performance.now();
+    const mark = (k: keyof NonNullable<Run['times']>) => update(run.id, r => (r.times?.[k] ? {} : { times: { ...r.times, [k]: Math.round(performance.now() - t0) } }));
+    let failed = '', spoke = false;
+    // the voice arrives inside the same stream when this browser can play streamed MP3 (MediaSource); else it is fetched
+    const MS: any = (window as any).ManagedMediaSource ?? (window as any).MediaSource;
+    const inline = voiceOn && !!MS?.isTypeSupported?.('audio/mpeg');
+    let player: { push: (b64: string) => void; end: () => void } | null = null;
+    const startPlayer = () => {
+      const ms = new MS(); const a = new Audio(); (a as any).disableRemotePlayback = true;
+      a.src = URL.createObjectURL(ms); a.playbackRate = 1.12; (a as any).preservesPitch = true;
+      const pending: Uint8Array[] = []; let sb: any = null, ended = false;
+      const pump = () => { if (!sb || sb.updating) return; if (pending.length) sb.appendBuffer(pending.shift()); else if (ended && ms.readyState === 'open') ms.endOfStream(); };
+      ms.addEventListener('sourceopen', () => { sb = ms.addSourceBuffer('audio/mpeg'); sb.addEventListener('updateend', pump); pump(); }, { once: true });
+      a.addEventListener('playing', () => { mark('voice'); setSpeaking(true); }, { once: true });
+      a.onended = a.onpause = () => setSpeaking(false);
+      voice.current?.pause(); voice.current = a; a.play().catch(() => {});
+      return { push: (b64: string) => { pending.push(Uint8Array.from(atob(b64), c => c.charCodeAt(0))); pump(); }, end: () => { ended = true; pump(); } };
+    };
+    if (!run.audio) update(run.id, { stage: 1 });
     try {
-      let transcript = run.transcript ?? '';
-      if (run.audio) {
-        const h = await api.transcribe(pid, run.audio, 'artha');
-        transcript = h.text;
-        update(run.id, { transcript, hearMs: h.ms, stage: 1 });
-        if (!transcript) throw new Error('Nothing was heard. Try again a little closer.');
-      } else update(run.id, { stage: 1 });
-      const t1 = setTimeout(() => update(run.id, r => (r.stage < 2 ? { stage: 2 } : {})), 300);
-      const t2 = setTimeout(() => update(run.id, r => (r.stage < 3 ? { stage: 3 } : {})), 700);
-      const out = await api.understand(pid, transcript, 'artha');
-      clearTimeout(t1); clearTimeout(t2);
-      update(run.id, { result: out.result, stage: 4, endedAt: Date.now() });
-      applyState(out.state); scrollDown();
-      speakReply(run.id, out.result);
+      await api.note(pid, run.audio ? { audio: run.audio, voice: inline } : { transcript: run.transcript, voice: inline }, e => {
+        if (e.t === 'heard') { update(run.id, { transcript: e.text, stage: 1 }); mark('heard'); }
+        else if (e.t === 'gist') { update(run.id, { gist: e.heard, stage: 2 }); mark('gist'); if (!run.audio) mark('heard'); }
+        else if (e.t === 'say') {
+          spoke = true; update(run.id, r => (r.stage < 3 ? { stage: 3 } : {}));
+          if (inline) update(run.id, { replyUrl: `${API_BASE}/api/speak?p=${encodeURIComponent(pid)}&text=${encodeURIComponent(String(e.text).slice(0, 400))}` });
+          else speakText(run.id, e.text, () => mark('voice'));
+        }
+        else if (e.t === 'audio_start') player = startPlayer();
+        else if (e.t === 'audio') player?.push(e.b64);
+        else if (e.t === 'audio_end') player?.end();
+        else if (e.t === 'result') {
+          update(run.id, { result: e.result, transcript: e.transcript ?? run.transcript, stage: 4, endedAt: Date.now() }); mark('cards'); scrollDown();
+          if (e.result.clarify) voice.current?.pause();                 // asking which one: don't talk over the question
+          else if (!spoke) speakText(run.id, e.result.reply_speech || e.result.reply, () => mark('voice'));
+        }
+        else if (e.t === 'state') applyState(e.state);
+        else if (e.t === 'error') failed = e.error;
+      });
+      if (failed) throw new Error(failed);
     } catch (e: any) { update(run.id, { error: e.message, stage: 4, endedAt: Date.now() }); }
   }
   const fromAudio = (audio: Blob, source: Run['source'], label?: string, synthetic?: boolean) =>
@@ -434,9 +469,12 @@ function Note({ run, persona, onAct, onSkip, onAll, onChoose, onCompare, onRepla
     ...res.mentions.filter(m => m.kind === 'person' && m.candidates.length).map(m => ({ text: m.text, cls: 'person', label: [...m.candidates].sort((a, b) => b.score - a.score)[0].name })),
     ...res.entities.map(e => ({ text: nonLatin(res.transcript) ? origOf(res.transcript, e.text) : e.text, cls: e.kind, label: e.label.replace(/^.*→ /, '') })),
   ] : [];
+  const pointsRef = useRef<HTMLUListElement>(null);
+  useLayoutEffect(() => { if (pointsRef.current) gsap.from(pointsRef.current.children, { x: -6, opacity: 0, duration: .35, stagger: .05, ease: 'power2.out' }); }, [res?.reply_points?.length]);
   const ledgerIdx = res?.actions.flatMap((a, i) => (a.type === 'ledger' ? [i] : [])) ?? [];
   const safeLeft = res?.actions.filter((a, i) => ['message', 'calendar', 'reminder', 'ledger'].includes(a.type) && !run.done[i]).length ?? 0;
-  const secs = run.endedAt ? ((run.endedAt - run.startedAt) / 1000).toFixed(1) : null;
+  const T = SHOW_TIMES ? run.times ?? {} : {};   // timings are for us (?debug=1), not for the person using Artha
+  const timeline = ([['Heard', T.heard], ['You said', T.gist], ['Voice', T.voice], ['Cards', T.cards]] as const).filter(([, v]) => v != null) as [string, number][];
   const contact = (id: string) => persona?.contacts.find(x => x.id === id);
 
   return (
@@ -467,9 +505,12 @@ function Note({ run, persona, onAct, onSkip, onAll, onChoose, onCompare, onRepla
             {safeLeft > 1 && !(ledgerIdx.length >= 2 && ledgerIdx.length === res.actions.length) && <button className="btn btn-primary doall" onClick={() => onAll(run)}><I n="check" />Do all</button>}
           </div>)}
 
-        {(res.reply_speech || res.reply) && <button className="say" onClick={onReplay} aria-label="Hear Artha’s reply"><span className="say-i"><I n="speak" /></span><span>{res.reply_speech || res.reply}</span></button>}
+        {(res.reply_speech || res.reply) && (res.reply_points?.length
+          ? <div className="say answer"><button className="say-i" onClick={onReplay} aria-label="Hear Artha’s answer"><I n="speak" /></button>
+              <div className="ans"><b>{res.reply}</b><ul ref={pointsRef}>{res.reply_points.map((x, i) => <li key={i}><span className="pl">{x.label}</span><span>{x.text}</span></li>)}</ul></div></div>
+          : <button className="say" onClick={onReplay} aria-label="Hear Artha’s reply"><span className="say-i"><I n="speak" /></span><span>{res.reply_speech || res.reply}</span></button>)}
         <div className="foot">
-          <span className="dim">{secs ? `${secs}s` : ''}</span>
+          <span className="dim times" title="Time from letting go of the orb">{timeline.map(([k, v]) => <span key={k}>{k} <b>{v.toLocaleString('en-IN')} ms</b></span>)}</span>
           <button className={`foot-btn ${run.compare ? 'on' : ''}`} onClick={() => (run.compare ? null : onCompare(run))}><I n="vs" />Base model</button>
           <button className={`foot-btn ${how ? 'on' : ''}`} onClick={() => setHow(h => !h)}><I n="eye" />How</button>
         </div>

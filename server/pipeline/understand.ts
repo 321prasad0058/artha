@@ -1,6 +1,6 @@
 // The pipeline. Artha mode: code stages + one model call that can only choose saved people.
 // Base modes exist so the same recording can be compared: plain model, and plain model + pasted context.
-import { jsonCall } from '../openai.js';
+import { jsonCall, jsonStream } from '../openai.js';
 import type { Action, Candidate, Mention, Mode, Persona, Result, State } from '../types.js';
 import { retrieve } from '../kb.js';
 import { linksFor } from '../connectors.js';
@@ -13,15 +13,17 @@ import { recall } from '../context/embed.js';
 
 const ACTION_TYPES = ['message', 'call', 'reminder', 'calendar', 'payment', 'ledger', 'suggestion'] as const;
 
+// What the model writes is kept small (every word it writes costs time); code fills in the rest:
+// the recipient's language, readable date labels, and the spoken reply. Fields are ordered so the screen can use them
+// as they stream: "you said" first, then the spoken reply, then the action cards.
 function actionSchema(contactIds: string[] | null) {
   const contact = contactIds ? { type: 'string', enum: [...contactIds, 'none'] } : { type: 'string' };
   return {
     type: 'object', additionalProperties: false,
-    required: ['type', 'contact_id', 'language', 'text', 'gloss', 'goal', 'title', 'when_iso', 'when_label', 'amount_inr', 'predicted', 'why', 'entry_kind', 'party', 'item', 'updates'],
+    required: ['type', 'contact_id', 'text', 'goal', 'title', 'when_iso', 'amount_inr', 'predicted', 'entry_kind', 'party', 'item', 'updates'],
     properties: {
-      type: { type: 'string', enum: ACTION_TYPES }, contact_id: contact, language: { type: 'string' }, text: { type: 'string' }, gloss: { type: 'string' },
-      goal: { type: 'string' }, title: { type: 'string' }, when_iso: { type: 'string' }, when_label: { type: 'string' }, amount_inr: { type: 'number' },
-      predicted: { type: 'boolean' }, why: { type: 'string' },
+      type: { type: 'string', enum: ACTION_TYPES }, contact_id: contact, text: { type: 'string' }, goal: { type: 'string' }, title: { type: 'string' },
+      when_iso: { type: 'string' }, amount_inr: { type: 'number' }, predicted: { type: 'boolean' },
       entry_kind: { type: 'string', enum: ['', 'sale', 'purchase', 'to_receive', 'to_pay', 'received', 'paid', 'credit'] }, party: { type: 'string' }, item: { type: 'string' }, updates: { type: 'string' },
     },
   };
@@ -29,19 +31,19 @@ function actionSchema(contactIds: string[] | null) {
 function planSchema(contactIds: string[] | null) {
   const cand = contactIds ? { type: 'string', enum: [...contactIds, 'none'] } : { type: 'string' };
   return {
-    type: 'object', additionalProperties: false, required: ['language', 'heard_gist', 'heard_points', 'mentions', 'actions', 'clarify_question', 'learn', 'reply', 'reply_speech'],
+    type: 'object', additionalProperties: false, required: ['language', 'heard_gist', 'heard_points', 'mentions', 'clarify_question', 'reply', 'reply_points', 'actions', 'learn'],
     properties: {
       language: { type: 'string' },
       heard_gist: { type: 'string' },
       heard_points: { type: 'array', items: { type: 'object', additionalProperties: false, required: ['kind', 'text'], properties: { kind: { type: 'string', enum: ['person', 'when', 'money', 'item', 'task', 'place', 'question'] }, text: { type: 'string' } } } },
-      mentions: { type: 'array', items: { type: 'object', additionalProperties: false, required: ['text', 'kind', 'value', 'candidates'], properties: {
-        text: { type: 'string' }, kind: { type: 'string', enum: ['person', 'time', 'money', 'event', 'place', 'secret'] }, value: { type: 'string' },
-        candidates: { type: 'array', items: { type: 'object', additionalProperties: false, required: ['id', 'score', 'why'], properties: { id: cand, score: { type: 'number' }, why: { type: 'string' } } } } } } },
-      actions: { type: 'array', items: actionSchema(contactIds) },
+      mentions: { type: 'array', items: { type: 'object', additionalProperties: false, required: ['text', 'kind', 'candidates'], properties: {
+        text: { type: 'string' }, kind: { type: 'string', enum: ['person', 'time', 'money', 'event', 'place', 'secret'] },
+        candidates: { type: 'array', items: { type: 'object', additionalProperties: false, required: ['id', 'score'], properties: { id: cand, score: { type: 'number' } } } } } } },
       clarify_question: { type: 'string' },
-      learn: { type: 'array', items: { type: 'string' } },
       reply: { type: 'string' },
-      reply_speech: { type: 'string' },
+      reply_points: { type: 'array', items: { type: 'object', additionalProperties: false, required: ['label', 'text'], properties: { label: { type: 'string' }, text: { type: 'string' } } } },
+      actions: { type: 'array', items: actionSchema(contactIds) },
+      learn: { type: 'array', items: { type: 'string' } },
     },
   };
 }
@@ -49,16 +51,16 @@ function planSchema(contactIds: string[] | null) {
 const ARTHA_INSTRUCTIONS = `You are the understanding stage of Artha, an assistant for Indian users. You get a short voice note (any mix of Hindi, Marathi, Telugu, Tamil, Urdu and English), already transcribed, plus the user's personal context. Work out who and what they mean, and turn it into actions done on their behalf.
 
 People
-- Choose people ONLY by id from CANDIDATES. For every person mentioned, list up to 3 candidate ids with a score from 0 to 1 (a mention's scores add up to at most 1) and a short reason.
+- Choose people ONLY by id from CANDIDATES. For every person mentioned, list up to 3 candidate ids with a score from 0 to 1 (a mention's scores add up to at most 1).
 - Use relationship, recent activity, the topic of the note and MEMORY to separate people with the same name. If two still fit about equally, give them close scores and do not pick one arbitrarily.
 - SAME NAME, DIFFERENT PEOPLE (two Ayush, two Riya): decide by what the note is ABOUT and each person's relation/about (cricket, party, trip → the friend; standup, dashboard, appraisal → the colleague), then CONVERSATION (who we were just talking about), then CORRECTIONS. If nothing separates them, give them close scores (0.45/0.45) so Artha asks once with buttons: never guess on a true tie, and never ask when the note makes it clear. For a QUESTION about a shared name ("Ayush ka birthday?"), if only one of them has that information in the facts, answer about that one and say their full name; ask only if both have it.
 - Honour FORCED choices exactly.
 
 Values
-- Use CODE_VALUES exactly for dates, times and amounts when they apply. Write when_iso as ISO 8601 with +05:30, and when_label in plain words like "Mon 23 Nov, 6:00 PM".
+- Use CODE_VALUES exactly for dates, times and amounts when they apply. Write when_iso as ISO 8601 with +05:30.
 
 Actions
-- message: write "text" as the exact words the RECIPIENT will read, in their preferred language (their "lang"): Telugu in Telugu script, Tamil in Tamil script, Hindi, Marathi, Urdu, Bengali and Punjabi in simple Roman script, English in English. Short, natural, respectful for the relationship, addressed to them ("Anna, ..."). Put the English meaning in "gloss".
+- message: write "text" as the exact words the RECIPIENT will read, in their preferred language (their "lang"): Telugu in Telugu script, Tamil in Tamil script, Hindi, Marathi, Urdu, Bengali and Punjabi in simple Roman script, English in English. Short, natural, respectful for the relationship, addressed to them ("Anna, ...").
 - call: when something must be arranged or changed with someone (rescheduling, asking, booking). Put the outcome wanted in "goal" (for Artha), AND in "text" a short message to that person in their language that could be sent instead of calling.
 - reminder or calendar: for times the user must remember or plans they made.
 - payment: only when the user asks to pay or send money; set amount_inr. If the user gives no amount, use the amount that person asked for in AMOUNTS THEY ASKED FOR. Payments always wait for the user's confirmation, so don't hold back for that.
@@ -77,10 +79,10 @@ Actions
 Also
 - clarify_question: if two people fit about equally, a short question in the user's own language and script style, otherwise "".
 - learn: 0 to 2 short new facts worth remembering (a changed plan, a new preference). Not things already in MEMORY.
-- reply: one short line to the user, in their own language mix, Roman script, saying what is READY for them ("Amma ke liye message ready hai"). Never say something was sent, paid or done: the user confirms with one tap.
-- reply_speech: the same reply written for reading aloud, in the NATIVE script of the user's language (Devanagari for Hindi, Hinglish, Marathi and Urdu; Telugu script; Tamil script; English stays English). Keep English words like "appointment" in that script too (अपॉइंटमेंट). Short and warm.
+- reply: one short line to the user, saying what is READY for them, written for reading aloud in the NATIVE script of the user's language (Devanagari for Hindi, Hinglish and Marathi; Urdu script for Urdu; Telugu, Tamil, Gurmukhi or Bengali script; English stays English). Keep English words like "appointment" in that script (अपॉइंटमेंट). Short and warm. Never say something was sent, paid or done: the user confirms with one tap.
 - If the user ASKS something (their schedule, a khata balance, what they told you), answer it in "reply" and return NO actions. For khata questions read KHATA BOOK: list the entries asked for (who or what, amount, saved or not yet confirmed) and the totals. If they ask for a day with no entries but entries were recorded in this conversation, give those and say when they were recorded. Never say you cannot see entries that are in KHATA BOOK. If they ask you to tell, repeat or list the entries again, LIST THEM in the reply right away (each entry with amount, then totals); never answer with a question like "should I tell you again?".
-- reply and reply_speech may be up to 4 short sentences when listing entries; otherwise one line.
+- ANSWERS ARE STRUCTURED. When the user asks a question, asks for a list or summary (entries, plans, balances, what they said, who someone is), or the answer has more than one fact: "reply" is ONE short headline (at most 8 words) and "reply_points" holds 2 to 6 points. Each point: "label" = at most 3 words (a time, an amount, a person, an item or a day), "text" = at most 10 words. One fact per point, most important first, totals last. No filler, no repetition of the headline. Example: reply "Aaj ki 4 entries", points [{label:"₹1,250", text:"Nakad bikri"}, {label:"₹480", text:"Rizwan bhai, aata udhaar"}, {label:"Total", text:"Bikri ₹1,250 · Udhaar ₹480"}].
+- For plain actions (a message, a call, a payment) reply_points is [] and reply is one line.
 - If the requested calendar entry or reminder ALREADY EXISTS in TIMELINE at that time, do not add it again: say in "reply" that it is already there. This never removes a message: "bol do / bolo / sang / sanga / cheppu / sollu / tell" ALWAYS means a message to that person.
 - CANCEL: if the user cancels something that is still PROPOSED (not done), just confirm it is dropped and return NO actions. Only if it was DONE, create what undoes it (for example a call or message to cancel).
 - A follow-up that changes one thing (time, day, person) re-plans ONLY that action. Do not repeat other actions from earlier turns.
@@ -88,9 +90,9 @@ Also
 - PEOPLE CARDS "habits" come from what the user actually confirmed before (for example "reach by: call (3×)"): prefer them when the note does not say. FROM MEMORY is background: use it to understand references to older things ("wahi jo pichle hafte bola tha").
 - heard_gist: what the USER said, as a short headline of at most 8 words, in the language and script they spoke ("Pawar doctor appointment, kal 11 baje"). heard_points: 1 to 6 key facts from the note, each at most 5 words, in that same language, with kind: person (who, as the user named them), when (day/time from CODE_VALUES), money ("₹1,200 lene hain"), item (goods, quantity), task (what to do), place, question (what they asked). Long rambling notes get the SAME short treatment: only what matters.
 - mentions: list ONLY people mentioned, using the exact words from the transcript.
-- Keep every "why" under 10 words. Be brief everywhere: speed matters.`;
+- Be brief everywhere: every extra word adds delay for the user.`;
 
-const BASE_INSTRUCTIONS = `Turn this transcribed voice note into a list of actions (message, call, reminder, calendar, payment, ledger, suggestion). Use contact_id for the person's name as you understand it. Fill fields that don't apply with "", 0 or false. reply: a one-line confirmation. reply_speech: "". mentions: people, times and amounts mentioned, with empty candidates. learn: empty. clarify_question: "". heard_gist: "". heard_points: [].`;
+const BASE_INSTRUCTIONS = `Turn this transcribed voice note into a list of actions (message, call, reminder, calendar, payment, ledger, suggestion). Use contact_id for the person's name as you understand it. Fill fields that don't apply with "", 0 or false. reply: a one-line confirmation. reply_speech: "". mentions: people, times and amounts mentioned, with empty candidates. learn: empty. clarify_question: "". heard_gist: "". heard_points: []. reply_points: [].`;
 
 function istNowLabel(now: Date) {
   return now.toLocaleString('en-IN', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', hour: 'numeric', minute: '2-digit', timeZone: 'Asia/Kolkata' });
@@ -117,9 +119,58 @@ function bookSection(state: State, now: Date) {
   return `KHATA BOOK (every entry the user dictated, structured; "day" is the business day the entry is for, "recorded" is when they told Artha; correct an entry by returning it with updates = its id):\n${JSON.stringify(book.map(e => ({ id: e.id, day: e.day, kind: e.kind, party: e.party || '(name not given yet)', item: e.item || undefined, inr: e.amount, status: e.status === 'saved' ? 'saved' : 'not confirmed yet', recorded: e.at.slice(0, 16) })))}\nTOTALS BY DAY (code): ${totals.join(' | ')}`;
 }
 
-type PlanOut = { language: string; heard_gist?: string; heard_points?: { kind: string; text: string }[]; mentions: Mention[]; actions: Action[]; clarify_question: string; learn: string[]; reply: string; reply_speech: string };
+// The OTP warning, in the language the user is speaking (or spoke last). No model sees this note.
+const OTP_WARN: Record<string, [string, string]> = {
+  English: ['Never share an OTP with anyone. Banks and offices never ask for it.', 'Never share an OTP with anyone. Banks and offices never ask for it.'],
+  Hindi: ['OTP kabhi kisi ko nahi batate. Bank ya office kabhi OTP nahi maangte.', 'ओटीपी कभी किसी को नहीं बताते। बैंक या ऑफ़िस कभी ओटीपी नहीं माँगते।'],
+  Marathi: ['OTP कधीही कोणालाही सांगू नका. बँक किंवा ऑफिस कधीच OTP मागत नाहीत.', 'ओटीपी कधीही कोणालाही सांगू नका. बँक किंवा ऑफिस कधीच ओटीपी मागत नाहीत.'],
+  Tamil: ['OTP-ஐ யாரிடமும் சொல்லாதீர்கள். வங்கியோ அலுவலகமோ ஒருபோதும் OTP கேட்க மாட்டார்கள்.', 'ஓடிபி-ஐ யாரிடமும் சொல்லாதீர்கள். வங்கியோ அலுவலகமோ ஒருபோதும் ஓடிபி கேட்க மாட்டார்கள்.'],
+  Telugu: ['OTP ఎవరికీ చెప్పకండి. బ్యాంక్ లేదా ఆఫీస్ ఎప్పుడూ OTP అడగరు.', 'ఓటీపీ ఎవరికీ చెప్పకండి. బ్యాంక్ లేదా ఆఫీస్ ఎప్పుడూ ఓటీపీ అడగరు.'],
+  Punjabi: ['OTP ਕਦੇ ਕਿਸੇ ਨੂੰ ਨਾ ਦੱਸੋ। ਬੈਂਕ ਜਾਂ ਦਫ਼ਤਰ ਕਦੇ OTP ਨਹੀਂ ਮੰਗਦੇ।', 'ਓਟੀਪੀ ਕਦੇ ਕਿਸੇ ਨੂੰ ਨਾ ਦੱਸੋ। ਬੈਂਕ ਜਾਂ ਦਫ਼ਤਰ ਕਦੇ ਓਟੀਪੀ ਨਹੀਂ ਮੰਗਦੇ।'],
+  Bengali: ['OTP কখনও কাউকে বলবেন না। ব্যাংক বা অফিস কখনও OTP চায় না।', 'ওটিপি কখনও কাউকে বলবেন না। ব্যাংক বা অফিস কখনও ওটিপি চায় না।'],
+  Urdu: ['OTP kabhi kisi ko na batayein. Bank ya daftar kabhi OTP nahi maangte.', 'او ٹی پی کبھی کسی کو نہ بتائیں۔ بینک یا دفتر کبھی او ٹی پی نہیں مانگتے۔'],
+};
+/** Which language a note is in: its script first, then telltale words, then the user's previous note, then their first language. */
+export function noteLanguage(text: string, p: Persona, state?: State): string {
+  if (/[஀-௿]/.test(text)) return 'Tamil';
+  if (/[ఀ-౿]/.test(text)) return 'Telugu';
+  if (/[਀-੿]/.test(text)) return 'Punjabi';
+  if (/[ঀ-৿]/.test(text)) return 'Bengali';
+  if (/[؀-ۿ]/.test(text)) return 'Urdu';
+  if (/[ऀ-ॿ]/.test(text)) return p.speaks.includes('Marathi') && /(आहे|करा|सांगा|नका|द्या|मागत|ला\s)/.test(text) ? 'Marathi' : 'Hindi';
+  const t = ` ${text.toLowerCase()} `;
+  if (/\b(sollu|kekkuranga|kekkaraanga|vandhudhu|kudu|kudukkalaama|pannu|irundhu|anuppu|enna)\b/.test(t)) return 'Tamil';
+  if (/\b(cheppu|cheppandi|cheyyi|ivvu|adugutunnaru|pampinchu)\b/.test(t)) return 'Telugu';
+  if (p.speaks.includes('Punjabi') && /\b(nu|dasso|dass|kinna|chahida|deo)\b/.test(t)) return 'Punjabi';
+  if (/\b(sanga|sangaa|kara|aahe|dya|nako)\b/.test(t)) return 'Marathi';
+  if (/\b(ke bolo|dao|chaichhe|bolchhe|ami|tumi)\b/.test(t)) return 'Bengali';
+  if (/\b(ko|bata|batao|de do|dedo|hai|bolo|bol do|wale|wala)\b/.test(t)) return p.speaks.includes('Urdu') ? 'Urdu' : 'Hindi';
+  if (/\b(tell|share|send|give|the|my|asked|asking|code)\b/.test(t)) return 'English';
+  const last = [...(state?.turns ?? [])].reverse().find(x => x.said && !/^\(photo\)/.test(x.said));
+  if (last && last.said !== text) return noteLanguage(last.said, p);
+  const first = p.speaks[0];
+  return first === 'Hinglish' ? 'Hindi' : OTP_WARN[first] ? first : 'Hindi';
+}
+function otpWarning(transcript: string, p: Persona, state: State) {
+  const lang = noteLanguage(transcript, p, state);
+  const [reply, speech] = OTP_WARN[lang] ?? OTP_WARN.Hindi;
+  const typedRoman = lang === 'Hindi' && !/[ऀ-ॿ]/.test(transcript);
+  return { reply: lang === 'Hindi' && !typedRoman ? speech : reply, reply_speech: speech, language: lang };
+}
 
-export async function understand(args: { persona: Persona; state: State; transcript: string; mode: Mode; forced?: Record<string, string>; now?: Date; ctx?: { db: DatabaseSync; query: Promise<Float32Array | null> } }): Promise<Result> {
+/** Fill in what the model no longer writes: the recipient's language, date labels, the spoken reply. */
+function expand(out: PlanOut, p: Persona): PlanOut {
+  out.reply_speech = out.reply;
+  out.mentions = (out.mentions ?? []).map(m => ({ ...m, value: (m as any).value ?? '', candidates: (m.candidates ?? []).map(c => ({ ...c, why: (c as any).why ?? '' })) }));
+  out.actions = (out.actions ?? []).map(a => ({ ...a, language: a.language || (p.contacts.find(c => c.id === a.contact_id)?.lang ?? ''), gloss: a.gloss ?? '',
+    when_label: a.when_label || (a.when_iso && !Number.isNaN(Date.parse(a.when_iso)) ? labelOf(a.when_iso) : ''), why: a.why ?? '' }));
+  return out;
+}
+export type NoteEvent = { t: 'gist'; heard: { gist: string; points: { kind: string; text: string }[] } } | { t: 'say'; text: string };
+
+type PlanOut = { reply_points?: { label: string; text: string }[]; language: string; heard_gist?: string; heard_points?: { kind: string; text: string }[]; mentions: Mention[]; actions: Action[]; clarify_question: string; learn: string[]; reply: string; reply_speech: string };
+
+export async function understand(args: { persona: Persona; state: State; transcript: string; mode: Mode; forced?: Record<string, string>; now?: Date; ctx?: { db: DatabaseSync; query: Promise<Float32Array | null> }; onEvent?: (e: NoteEvent) => void }): Promise<Result> {
   const { persona: p, state, transcript, mode } = args;
   const forced = args.forced ?? {};
   const now = args.now ?? new Date();
@@ -131,7 +182,7 @@ export async function understand(args: { persona: Persona; state: State; transcr
   if (mode !== 'artha') {
     const t = Date.now();
     const ctx = mode === 'base_ctx' ? `\n\nCONTEXT ABOUT THE USER (JSON):\n${JSON.stringify({ name: p.name, city: p.city, contacts: p.contacts, recent: p.events, memory: state.memory.map(m => m.fact), calendar: state.calendar })}` : '';
-    const out = await jsonCall<PlanOut>({ name: 'plan', instructions: BASE_INSTRUCTIONS, input: `Today: ${istNowLabel(now)}.\nVoice note: "${transcript}"${ctx}`, schema: planSchema(null) });
+    const out = expand(await jsonCall<PlanOut>({ name: 'plan', instructions: BASE_INSTRUCTIONS, input: `Today: ${istNowLabel(now)}.\nVoice note: "${transcript}"${ctx}`, schema: planSchema(null) }), p);
     const actions = out.actions.map(a => ({ ...a, contact_name: a.contact_id, contact_id: p.contacts.find(c => c.name.toLowerCase() === a.contact_id.toLowerCase() || c.id === a.contact_id)?.id ?? '' }));
     return empty({ language: out.language, mentions: out.mentions, actions, reply: out.reply, ms: { meaning: 0, who: 0, plan: Date.now() - t } });
   }
@@ -146,8 +197,7 @@ export async function understand(args: { persona: Persona; state: State; transcr
       mentions: [{ text: 'OTP', kind: 'secret', value: 'never shared', candidates: [] }],
       actions: scam ? [{ type: 'suggestion', contact_id: scam.id, contact_name: scam.name, language: '', text: '', gloss: '', goal: '', title: `Mark “${scam.name}” as a likely scam`, when_iso: '', when_label: '', amount_inr: 0, predicted: true, why: 'Real banks and offices never ask for an OTP on a call.' }] : [],
       checks: [{ rule: 'Blocked: an OTP or PIN with digits was found', ok: false }, { rule: 'The digits were hidden before any model or log saw them', ok: true }],
-      reply: 'OTP kabhi kisi ko nahi batate. Bank ya office kabhi OTP nahi maangte.',
-      reply_speech: 'ओटीपी कभी किसी को नहीं बताते। बैंक या ऑफ़िस कभी ओटीपी नहीं माँगते।',
+      ...otpWarning(transcript, p, state),
     });
   }
 
@@ -195,7 +245,7 @@ export async function understand(args: { persona: Persona; state: State; transcr
   if (args.ctx) {
     const ids = [...new Set([...shortlist.filter(c => c.score >= 0.3).slice(0, 4).map(c => c.id), ...talkedAbout.slice(0, 2)])];
     cards = ids.map(id => personCard(args.ctx!.db, id, now.getTime())).filter(Boolean);
-    const q = await args.ctx.query;
+    const q = await Promise.race([args.ctx.query, new Promise<null>(r => setTimeout(() => r(null), 250))]);   // never hold planning up: memories join only if ready
     if (q) {
       const shown = new Set([...turns.map(x => x.id), ...(state.book ?? []).map(b => b.id)]);   // already in CONVERSATION / KHATA BOOK
       const hits = recall(args.ctx.db, q, { people: ids, exclude: shown, k: 6, now: now.getTime() });
@@ -238,14 +288,25 @@ export async function understand(args: { persona: Persona; state: State; transcr
   ].filter(Boolean).join('\n\n');
 
   t = Date.now();
-  let out = await jsonCall<PlanOut>({ name: 'artha_plan', instructions: ARTHA_INSTRUCTIONS, input, schema: planSchema(null) });
+  // streamed when someone is listening: "you said" and the spoken reply go out the moment they are written
+  const seen: Record<string, unknown> = {};
+  let spoke = false;
+  const onField = (k: string, v: unknown) => {
+    seen[k] = v;
+    if (!args.onEvent) return;
+    if (k === 'heard_points') args.onEvent({ t: 'gist', heard: { gist: String(seen.heard_gist ?? ''), points: (v as any[]).filter(x => x?.text).slice(0, 6) } });
+    if (k === 'reply' && !spoke && v && !seen.clarify_question) { spoke = true; args.onEvent({ t: 'say', text: String(v) }); }
+  };
+  let out = expand(args.onEvent
+    ? await jsonStream<PlanOut>({ name: 'artha_plan', instructions: ARTHA_INSTRUCTIONS, input, schema: planSchema(null), onField })
+    : await jsonCall<PlanOut>({ name: 'artha_plan', instructions: ARTHA_INSTRUCTIONS, input, schema: planSchema(null) }), p);
   {
     const tell = /\b(bol ?do|bolo|bolna|bata ?do|batao|sang|sanga|sangaa|saang|cheppu|cheppandi|sollu|sollunga|tell|message|msg)\b/i.test(roman);
     const named = shortlist.filter(c => c.score >= 0.8).map(c => c.id);
     const toldTo = new Set(out.actions.filter(a => a.type === 'message' || a.type === 'call').map(a => a.contact_id));
     const missing = named.filter(id => !toldTo.has(id));
     if (tell && named.length && missing.length === named.length && (!out.clarify_question || named.length === 1)) {
-      out = await jsonCall<PlanOut>({ name: 'artha_plan', instructions: ARTHA_INSTRUCTIONS, input: `${input}\n\nCHECK: the user asked to TELL ${missing.map(id => p.contacts.find(c => c.id === id)?.name).join(', ')} something. Include a message action to them with their exact words in their language.`, schema: planSchema(null) });
+      out = expand(await jsonCall<PlanOut>({ name: 'artha_plan', instructions: ARTHA_INSTRUCTIONS, input: `${input}\n\nCHECK: the user asked to TELL ${missing.map(id => p.contacts.find(c => c.id === id)?.name).join(', ')} something. Include a message action to them with their exact words in their language.`, schema: planSchema(null) }), p);
     }
   } // fixed schema = cached by OpenAI; ids are validated in code below
   const msPlan = Date.now() - t;
@@ -336,6 +397,6 @@ export async function understand(args: { persona: Persona; state: State; transcr
   return {
     mode, transcript, roman, language: out.language, entities: norm.entities, candidates: shortlist, mentions, actions, clarify, blocked: false, checks,
     heard: out.heard_gist ? { gist: out.heard_gist, points: (out.heard_points ?? []).filter(x => x.text).slice(0, 6) } : undefined,
-    learn: clarify ? [] : out.learn.filter(l => l && l.length < 160).slice(0, 2), reply: clarify ? '' : out.reply, reply_speech: clarify ? '' : out.reply_speech, refs, topics: kb.topics, ms: { meaning: msMeaning, who: msWho, plan: msPlan },
+    learn: clarify ? [] : out.learn.filter(l => l && l.length < 160).slice(0, 2), reply: clarify ? '' : out.reply, reply_speech: clarify ? '' : out.reply_speech, reply_points: clarify ? [] : (out.reply_points ?? []).filter(x => x.text).slice(0, 6), refs, topics: kb.topics, ms: { meaning: msMeaning, who: msWho, plan: msPlan },
   };
 }

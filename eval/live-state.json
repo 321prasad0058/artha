@@ -1,0 +1,894 @@
+{
+ "aditya": {
+  "memory": [
+   {
+    "fact": "Dr. Mehta's Clinic is your doctor",
+    "src": "from a call",
+    "learned": null,
+    "kind": "habit",
+    "about": "mehta",
+    "uses": 1
+   },
+   {
+    "fact": "Appointments: remind 1 hour before",
+    "src": "your setting",
+    "learned": null,
+    "kind": "habit",
+    "about": null,
+    "uses": 0
+   },
+   {
+    "fact": "You always carry previous reports to the doctor",
+    "src": "from 3 calls",
+    "learned": null,
+    "kind": "habit",
+    "about": null,
+    "uses": 0
+   },
+   {
+    "fact": "Santosh Anna and Lakshmi akka prefer Telugu",
+    "src": "from messages",
+    "learned": null,
+    "kind": "habit",
+    "about": "santosh",
+    "uses": 0
+   },
+   {
+    "fact": "You ride to Amma's house in Kukatpally by Rapido",
+    "src": "from 4 trips",
+    "learned": null,
+    "kind": "habit",
+    "about": "amma",
+    "uses": 0
+   }
+  ],
+  "turns": [
+   {
+    "said": "Mehta ji wala appointment parso shaam ko shift karwa do.",
+    "reply": "Dr. Mehta appointment ko Mon 23 Nov, 6 PM par shift karne ka request ready hai; 1-hour reminder bhi add kiya hai.",
+    "actions": [
+     "call → Dr. Mehta's Clinic (done)",
+     "suggestion →  (proposed)",
+     "calendar → Dr. Mehta's Clinic (done)"
+    ]
+   },
+   {
+    "said": "Usko bhi bata do ki main purani reports le aaunga.",
+    "reply": "Dr. Mehta ko purani reports laane ka message ready hai.",
+    "actions": [
+     "message → Dr. Mehta's Clinic (proposed)"
+    ]
+   },
+   {
+    "said": "Rahul ko bol do kal ki meeting 4 baje rakhte hain.",
+    "reply": "Rahul Verma ko kal 4 baje meeting rakhne ka message ready hai.",
+    "actions": [
+     "message → Rahul Verma (done)"
+    ]
+   },
+   {
+    "said": "HDFC wale ko OTP bata do 4 8 2 9 1 3",
+    "reply": "OTP kabhi kisi ko nahi batate. Bank ya office kabhi OTP nahi maangte.",
+    "actions": [
+     "suggestion → Unknown caller (said HDFC) (proposed)"
+    ]
+   },
+   {
+    "said": "Shankar ko uske paise bhej do.",
+    "reply": "Shankar bhaiya ke ₹250 bhejne ka payment ready hai; confirm kar dena.",
+    "actions": [
+     "payment → Shankar (proposed)"
+    ]
+   },
+   {
+    "said": "अन्ना को बोल दो, पार्सल सिक्योरिटी पे छोड़ दे।",
+    "reply": "Santosh Anna ko security par parcel chhodne ka message ready hai.",
+    "actions": [
+     "message → Santosh Anna (proposed)"
+    ]
+   }
+  ],
+  "calendar": [
+   "Lakshmi akka comes · Sun, 22 Nov, 8:00 am",
+   "Dr. Mehta appointment · Sun, 22 Nov, 10:00 am"
+  ],
+  "book": []
+ },
+ "sunita": {
+  "memory": [
+   {
+    "fact": "Dr. Pawar is your family doctor (sugar check-ups)",
+    "src": "from calls",
+    "learned": null,
+    "kind": "habit",
+    "about": "dr_pawar",
+    "uses": 1
+   },
+   {
+    "fact": "Milk bill is paid by UPI to Pawar Dudhwale",
+    "src": "from payments",
+    "learned": null,
+    "kind": "habit",
+    "about": "pawar_milk",
+    "uses": 1
+   },
+   {
+    "fact": "Medicine reminder at 9 PM every day",
+    "src": "your setting",
+    "learned": null,
+    "kind": "habit",
+    "about": null,
+    "uses": 0
+   },
+   {
+    "fact": "Rohit prefers texts in English",
+    "src": "from messages",
+    "learned": null,
+    "kind": "habit",
+    "about": "rohit",
+    "uses": 0
+   },
+   {
+    "fact": "Mangal tai comes at 8 AM, not on Sundays",
+    "src": "from messages",
+    "learned": null,
+    "kind": "habit",
+    "about": "mangal",
+    "uses": 0
+   }
+  ],
+  "turns": [
+   {
+    "said": "माझी उद्याची पवार डॉक्टरांची अपॉइंटमेंट अकरा वाजता शेड्यूल करा.",
+    "reply": "डॉ. पवार यांची उद्या ११ वाजताची अपॉइंटमेंट आधीच कॅलेंडरमध्ये आहे.",
+    "actions": [
+     "calendar → Dr. Pawar (done)"
+    ]
+   },
+   {
+    "said": "दुधवाल्यांना या महिन्याचे पैसे पाठवा.",
+    "reply": "पवार दूधवाल्यांसाठी ₹1,850 चे पेमेंट तयार आहे.",
+    "actions": [
+     "payment → Pawar Dudhwale (proposed)"
+    ]
+   },
+   {
+    "said": "मंगल ताईंना सांगा उद्या येऊ नका.",
+    "reply": "मंगल ताईंना उद्या येऊ नका असा मेसेज तयार आहे.",
+    "actions": [
+     "message → Mangal tai (done)"
+    ]
+   },
+   {
+    "said": "Rohit la sanga, pudhchya shanivari mi Bengaluru la yetey.",
+    "reply": "Rohit ko agle Shanivar Bengaluru aane ka message ready hai.",
+    "actions": [
+     "message → Rohit (done)"
+    ]
+   },
+   {
+    "said": "मी रोहितला काय सांगितलं होतं?",
+    "reply": "मी रोहितला सांगितलं होतं की तू पुढच्या शनिवारी बेंगळुरूला येणार आहेस.",
+    "actions": []
+   }
+  ],
+  "calendar": [
+   "Dr. Pawar: sugar report · Sun, 22 Nov, 11:00 am"
+  ],
+  "book": []
+ },
+ "imran": {
+  "memory": [
+   {
+    "fact": "Sharma ji (customer) settles his credit on Sundays",
+    "src": "from the ledger",
+    "learned": null,
+    "kind": "habit",
+    "about": "sharma_ji",
+    "uses": 1
+   },
+   {
+    "fact": "Suppliers are paid by UPI after delivery",
+    "src": "from payments",
+    "learned": null,
+    "kind": "habit",
+    "about": null,
+    "uses": 0
+   },
+   {
+    "fact": "Bilal opens the shop at 8 AM",
+    "src": "from messages",
+    "learned": null,
+    "kind": "habit",
+    "about": "bilal",
+    "uses": 0
+   },
+   {
+    "fact": "Ammi's BP medicine comes from Lucknow Medical Store",
+    "src": "from messages",
+    "learned": null,
+    "kind": "habit",
+    "about": "ammi",
+    "uses": 1
+   }
+  ],
+  "turns": [
+   {
+    "said": "Sharma ji ke khate mein dhai hazaar aur likh do.",
+    "reply": "Sharma ji के खाते में ₹2,500 की एंट्री तैयार है।",
+    "actions": [
+     "ledger → Sharma ji (done)"
+    ]
+   },
+   {
+    "said": "Sharma wale ko bolo kal atta chaar baje tak bhej dein.",
+    "reply": "Sharma Traders ko kal 4 baje tak atta bhejne ka message ready hai.",
+    "actions": [
+     "message → Sharma Traders (proposed)",
+     "calendar → Sharma Traders (done)"
+    ]
+   },
+   {
+    "said": "Gupta ji ko yaad dilao unka saade chhe sau baaki hai.",
+    "reply": "Gupta ji ko ₹650 baaki hone ka message ready hai.",
+    "actions": [
+     "message → Gupta ji (proposed)"
+    ]
+   },
+   {
+    "said": "Sharma ji ka total kitna hua?",
+    "reply": "Sharma ji ke khate mein कुल ₹3,700 baaki hain.",
+    "actions": []
+   },
+   {
+    "said": "(photo) खाता — इमरान किराना: शर्मा जी 300, गुप्ता जी 380, नकद बिक्री 1250, शर्मा जी 300, रिजवान भाई 450, शर्मा ट्रेडर्स 2000, नकद बिक्री 840, बिलाल 500",
+    "reply": "पन्ना पढ़ लिया: 8 एंट्री, ₹2,090 नकद बिक्री, ₹1,430 उधार। 3 चीज़ें चेक कर लीजिए।",
+    "actions": [
+     "ledger → Sharma ji (proposed)",
+     "ledger → Gupta ji (proposed)",
+     "ledger → Sales (proposed)",
+     "ledger → Sharma ji (proposed)",
+     "ledger → रिजवान भाई (proposed)",
+     "ledger → Sharma Traders (proposed)",
+     "ledger → Sales (proposed)",
+     "ledger → Bilal (proposed)"
+    ]
+   }
+  ],
+  "calendar": [
+   "Atta and dal delivery from Sharma Traders · Sun, 22 Nov, 12:00 pm"
+  ],
+  "book": [
+   {
+    "day": "2026-11-21",
+    "kind": "credit",
+    "party": "Sharma ji",
+    "item": "",
+    "amount": 2500,
+    "status": "saved"
+   },
+   {
+    "day": "2026-11-21",
+    "kind": "credit",
+    "party": "Sharma ji",
+    "item": "चावल",
+    "amount": 300,
+    "status": "proposed"
+   },
+   {
+    "day": "2026-11-21",
+    "kind": "credit",
+    "party": "Gupta ji",
+    "item": "सरसों तेल",
+    "amount": 380,
+    "status": "proposed"
+   },
+   {
+    "day": "2026-11-21",
+    "kind": "sale",
+    "party": "",
+    "item": "नकद बिक्री",
+    "amount": 1250,
+    "status": "proposed"
+   },
+   {
+    "day": "2026-11-21",
+    "kind": "credit",
+    "party": "Sharma ji",
+    "item": "चावल",
+    "amount": 300,
+    "status": "proposed"
+   },
+   {
+    "day": "2026-11-21",
+    "kind": "credit",
+    "party": "रिजवान भाई",
+    "item": "आटा",
+    "amount": 450,
+    "status": "proposed"
+   },
+   {
+    "day": "2026-11-21",
+    "kind": "paid",
+    "party": "Sharma Traders",
+    "item": "आटा-दाल",
+    "amount": 2000,
+    "status": "proposed"
+   },
+   {
+    "day": "2026-11-21",
+    "kind": "sale",
+    "party": "",
+    "item": "नकद बिक्री",
+    "amount": 840,
+    "status": "proposed"
+   },
+   {
+    "day": "2026-11-21",
+    "kind": "paid",
+    "party": "Bilal",
+    "item": "पगार एडवांस",
+    "amount": 500,
+    "status": "proposed"
+   }
+  ]
+ },
+ "meenakshi": {
+  "memory": [
+   {
+    "fact": "BP tablets at 9 AM and 9 PM",
+    "src": "your setting",
+    "learned": null,
+    "kind": "habit",
+    "about": null,
+    "uses": 0
+   },
+   {
+    "fact": "Talks to Karthik every Sunday evening",
+    "src": "from calls",
+    "learned": null,
+    "kind": "habit",
+    "about": "karthik",
+    "uses": 0
+   },
+   {
+    "fact": "Auto Ramesh takes you to Kapaleeshwarar temple on Sunday mornings",
+    "src": "from 6 trips",
+    "learned": null,
+    "kind": "habit",
+    "about": "auto_ramesh",
+    "uses": 1
+   },
+   {
+    "fact": "Dr. Ramesh is your heart doctor",
+    "src": "from calls",
+    "learned": null,
+    "kind": "habit",
+    "about": "dr_ramesh",
+    "uses": 1
+   }
+  ],
+  "turns": [
+   {
+    "said": "Auto Ramesh-kku sollu, naalai kaalai aaru manikku vaanga.",
+    "reply": "ஆட்டோ ரமேஷுக்கு நாளை காலை 6 மணிக்கு வரச் சொல்ல மெசேஜ் தயார்.",
+    "actions": [
+     "message → Auto Ramesh (done)",
+     "calendar → Auto Ramesh (done)"
+    ]
+   },
+   {
+    "said": "Selvi-kkum sollu, naalaikku seekiram vaanga.",
+    "reply": "செல்வியிடம் நாளைக்கு சீக்கிரம் வரச் சொல்ல மெசேஜ் தயார்.",
+    "actions": [
+     "message → Selvi (proposed)"
+    ]
+   },
+   {
+    "said": "Pension office-la irundhu call vandhudhu, OTP kekkuranga 5 5 3 2 1 9",
+    "reply": "OTP kabhi kisi ko nahi batate. Bank ya office kabhi OTP nahi maangte.",
+    "actions": [
+     "suggestion → Unknown caller (said pension office) (proposed)"
+    ]
+   },
+   {
+    "said": "Karthik-kku sollu, Sunday lunch-ku vaa.",
+    "reply": "Karthik ke liye Sunday lunch ka message ready hai.",
+    "actions": [
+     "message → Karthik (proposed)"
+    ]
+   }
+  ],
+  "calendar": [
+   "Temple with Auto Ramesh · Sun, 22 Nov, 6:00 am",
+   "Dr. Ramesh review · Mon, 23 Nov, 5:00 pm"
+  ],
+  "book": []
+ },
+ "rohan": {
+  "memory": [
+   {
+    "fact": "Ayush Sharma is your college friend from DTU; you play cricket with him every Sunday at 7 AM",
+    "src": "your chats",
+    "learned": null,
+    "kind": "habit",
+    "about": "ayush_s",
+    "uses": 1
+   },
+   {
+    "fact": "Ayush Sharma's birthday is 3 December; he loves chole bhature from Sitaram",
+    "src": "you told Artha",
+    "learned": null,
+    "kind": "habit",
+    "about": "ayush_s",
+    "uses": 1
+   },
+   {
+    "fact": "Ayush Gupta is your teammate on the payments dashboard; standup is at 10 AM on weekdays",
+    "src": "your calendar",
+    "learned": null,
+    "kind": "habit",
+    "about": "ayush_g",
+    "uses": 1
+   },
+   {
+    "fact": "Priya Nair is HR at your office; Priya Mehra is your cousin in Pune",
+    "src": "your contacts",
+    "learned": null,
+    "kind": "habit",
+    "about": "priya_hr",
+    "uses": 0
+   },
+   {
+    "fact": "Neha is vegetarian and doesn't like loud places",
+    "src": "you told Artha",
+    "learned": null,
+    "kind": "habit",
+    "about": "neha",
+    "uses": 0
+   },
+   {
+    "fact": "Rent ₹28,000 + ₹2,500 maintenance goes to Mr. Kapoor by UPI by the 5th",
+    "src": "your payments",
+    "learned": null,
+    "kind": "habit",
+    "about": "kapoor",
+    "uses": 0
+   },
+   {
+    "fact": "You split bills with Kabir 50-50",
+    "src": "your payments",
+    "learned": null,
+    "kind": "habit",
+    "about": "kabir",
+    "uses": 0
+   },
+   {
+    "fact": "Mummy likes a call every Sunday evening",
+    "src": "your calls",
+    "learned": null,
+    "kind": "habit",
+    "about": "mummy",
+    "uses": 0
+   },
+   {
+    "fact": "Reminders 30 minutes before work meetings",
+    "src": "your habit",
+    "learned": null,
+    "kind": "habit",
+    "about": null,
+    "uses": 0
+   },
+   {
+    "fact": "Neha’s birthday is 14 February.",
+    "src": "from a voice note",
+    "learned": true,
+    "kind": "note",
+    "about": "neha",
+    "uses": 1
+   }
+  ],
+  "turns": [
+   {
+    "said": "Ayush ko bol do kal match 7 baje hai, bat le aana.",
+    "reply": "Ayush ke liye match aur bat ka message ready hai.",
+    "actions": [
+     "message → Ayush Sharma (done)",
+     "calendar → Ayush Sharma (done)"
+    ]
+   },
+   {
+    "said": "Ayush ko bolo Monday standup se pehle dashboard fix push kar de.",
+    "reply": "Ayush Gupta ke liye dashboard fix ka message ready hai; 30-minute reminder bhi set hai.",
+    "actions": [
+     "message → Ayush Gupta (done)",
+     "reminder →  (proposed)",
+     "calendar → Ayush Gupta (done)"
+    ]
+   },
+   {
+    "said": "Ayush ko call karo.",
+    "reply": "",
+    "actions": [
+     "calendar → Ayush Sharma (done)"
+    ]
+   },
+   {
+    "said": "Kapoor uncle ko is mahine ka rent bhej do.",
+    "reply": "Kapoor uncle ke liye ₹28,000 rent payment ready hai; confirm karne par ₹2,500 maintenance alag rahegi.",
+    "actions": [
+     "payment → Mr. Kapoor (proposed)"
+    ]
+   },
+   {
+    "said": "Neha ka birthday 14 February hai, yaad rakhna.",
+    "reply": "Neha ka birthday 14 February ke liye reminder ready hai.",
+    "actions": [
+     "reminder →  (proposed)"
+    ]
+   },
+   {
+    "said": "Neha ka birthday kab hai?",
+    "reply": "Neha ka birthday 14 February ko hai.",
+    "actions": []
+   },
+   {
+    "said": "Priya ko bolo self review bhar diya hai.",
+    "reply": "Priya Nair ke liye self-review bharne ka message ready hai.",
+    "actions": [
+     "message → Priya Nair (proposed)",
+     "calendar → Priya Nair (done)"
+    ]
+   },
+   {
+    "said": "आयुष, को बोल दो, कल मैच सात बजे है, बैट ले आना।",
+    "reply": "Ayush Sharma ke liye match aur bat ka message ready hai.",
+    "actions": [
+     "message → Ayush Sharma (proposed)",
+     "calendar → Ayush Sharma (done)"
+    ]
+   }
+  ],
+  "calendar": [
+   "Sunday cricket with Ayush Sharma · Sun, 22 Nov, 7:00 am",
+   "Standup (payments dashboard) · Mon, 23 Nov, 10:00 am",
+   "Appraisal discussion with Priya Nair · Tue, 24 Nov, 3:00 pm",
+   "Dentist follow-up: Dr. Khanna · Wed, 25 Nov, 6:00 pm"
+  ],
+  "book": []
+ },
+ "fatima": {
+  "memory": [
+   {
+    "fact": "Salma Begum is a customer: bridal order of ₹18,000, ₹5,000 advance paid, her daughter's wedding is on 6 Dec",
+    "src": "your orders",
+    "learned": null,
+    "kind": "habit",
+    "about": "salma_c",
+    "uses": 1
+   },
+   {
+    "fact": "Salma Apa is Akbar's sister; she comes for lunch on Fridays and loves mutton biryani",
+    "src": "you told Artha",
+    "learned": null,
+    "kind": "habit",
+    "about": "salma_apa",
+    "uses": 1
+   },
+   {
+    "fact": "Javed charges ₹350 per blouse and is paid every Saturday",
+    "src": "your payments",
+    "learned": null,
+    "kind": "habit",
+    "about": "javed",
+    "uses": 0
+   },
+   {
+    "fact": "Your rates: simple blouse ₹800, with lining and work ₹1,500, bridal lehenga from ₹12,000",
+    "src": "you told Artha",
+    "learned": null,
+    "kind": "habit",
+    "about": null,
+    "uses": 0
+   },
+   {
+    "fact": "You owe Rehana Fabrics ₹3,200 from last month",
+    "src": "your chats",
+    "learned": null,
+    "kind": "habit",
+    "about": "rehana",
+    "uses": 0
+   },
+   {
+    "fact": "Anjali Reddy prefers WhatsApp messages in English",
+    "src": "your chats",
+    "learned": null,
+    "kind": "habit",
+    "about": "anjali",
+    "uses": 0
+   },
+   {
+    "fact": "Thyronorm 50 every morning before breakfast",
+    "src": "Dr. Farah",
+    "learned": null,
+    "kind": "habit",
+    "about": "dr_farah",
+    "uses": 0
+   },
+   {
+    "fact": "Zoya's tuition ends at 6 PM on weekdays",
+    "src": "you told Artha",
+    "learned": null,
+    "kind": "habit",
+    "about": "zoya",
+    "uses": 0
+   }
+  ],
+  "turns": [
+   {
+    "said": "Salma ko bolo trial Monday chaar baje rakhte hain.",
+    "reply": "Salma Begum ke liye trial ka message ready hai.",
+    "actions": [
+     "message → Salma Begum (done)",
+     "calendar → Salma Begum (done)"
+    ]
+   },
+   {
+    "said": "Unka kitna baaki hai?",
+    "reply": "Salma Begum ka ₹13,000 baaki hai.",
+    "actions": [
+     "calendar → Salma Begum (done)"
+    ]
+   },
+   {
+    "said": "Salma ko bolo Jumme ko biryani bana rahi hoon, zaroor aana.",
+    "reply": "Salma Apa ke liye Jumme ki biryani ka message ready hai.",
+    "actions": [
+     "message → Salma Apa (proposed)",
+     "calendar → Salma Apa (done)"
+    ]
+   },
+   {
+    "said": "Javed ko bolo zari ki do reel Begum Bazaar se le aaye.",
+    "reply": "Javed bhai ke liye zari ki do reel laane ka message ready hai.",
+    "actions": [
+     "message → Javed (done)"
+    ]
+   },
+   {
+    "said": "Bijli wale ko OTP de do 7 1 9 9 2 4",
+    "reply": "OTP kabhi kisi ko nahi batate. Bank ya office kabhi OTP nahi maangte.",
+    "actions": [
+     "suggestion → Unknown caller (said electricity board) (proposed)"
+    ]
+   }
+  ],
+  "calendar": [
+   "Trial fitting: Salma Begum (bridal) · Mon, 23 Nov, 4:00 pm",
+   "Anjali's 3 blouses due · Tue, 24 Nov, 11:00 am",
+   "Friday lunch: Salma Apa · Fri, 27 Nov, 1:00 pm"
+  ],
+  "book": []
+ },
+ "gurpreet": {
+  "memory": [
+   {
+    "fact": "Balwinder 'Bittu' is your driver on the Delhi route (PB10 HT 4471) for 8 years",
+    "src": "your contacts",
+    "learned": null,
+    "kind": "habit",
+    "about": "bittu",
+    "uses": 1
+   },
+   {
+    "fact": "Balwinder Mama ji is your mother's brother in Jalandhar",
+    "src": "your contacts",
+    "learned": null,
+    "kind": "habit",
+    "about": "mama",
+    "uses": 0
+   },
+   {
+    "fact": "Drivers get diesel advance by UPI before each trip; Bittu usually needs ₹8,000 for Delhi",
+    "src": "your payments",
+    "learned": null,
+    "kind": "habit",
+    "about": "bittu",
+    "uses": 1
+   },
+   {
+    "fact": "Kuldeep drives PB10 GK 2209 on the Jaipur route",
+    "src": "your contacts",
+    "learned": null,
+    "kind": "habit",
+    "about": "kuldeep",
+    "uses": 0
+   },
+   {
+    "fact": "Agarwal ji pays freight 15 days after delivery",
+    "src": "your payments",
+    "learned": null,
+    "kind": "habit",
+    "about": "agarwal",
+    "uses": 0
+   },
+   {
+    "fact": "Diesel account at the HP pump is settled on the 1st of every month",
+    "src": "your payments",
+    "learned": null,
+    "kind": "habit",
+    "about": "pump",
+    "uses": 0
+   },
+   {
+    "fact": "Harman's university fees go by wire transfer from HDFC",
+    "src": "you told Artha",
+    "learned": null,
+    "kind": "habit",
+    "about": "harman",
+    "uses": 0
+   },
+   {
+    "fact": "Reply to Gurpreet in Punjabi-Hindi, short; no long English",
+    "src": "your habit",
+    "learned": null,
+    "kind": "habit",
+    "about": null,
+    "uses": 0
+   }
+  ],
+  "turns": [
+   {
+    "said": "Balwinder nu aath hazaar diesel advance bhej do.",
+    "reply": "Bittu nu ₹8,000 diesel advance payment layi ready hai.",
+    "actions": [
+     "payment → Balwinder 'Bittu' (proposed)"
+    ]
+   },
+   {
+    "said": "Balwinder Mama ji nu dasso Sunday gyaraan vaje aa jaavange.",
+    "reply": "Balwinder Mama ji layi Sunday 11 vaje aun da message ready hai.",
+    "actions": [
+     "message → Balwinder Mama ji (done)",
+     "calendar → Balwinder Mama ji (done)"
+    ]
+   },
+   {
+    "said": "Agarwal ji da kinna paisa baaki hai?",
+    "reply": "Agarwal ji de ₹38,000 baaki ne.",
+    "actions": []
+   },
+   {
+    "said": "Raju nu bolo clutch plate badal de, kal tak gaadi chahidi.",
+    "reply": "Raju ji ke liye clutch plate badalne aur kal tak gaadi chahiye da message ready hai.",
+    "actions": [
+     "message → Raju Mechanic (proposed)"
+    ]
+   },
+   {
+    "said": "Balwinder nu aath hazaar diesel advance bhej dio.",
+    "reply": "Bittu nu ₹8,000 diesel advance payment layi ready hai.",
+    "actions": [
+     "payment → Balwinder 'Bittu' (proposed)"
+    ]
+   }
+  ],
+  "calendar": [
+   "Paath at Balwinder Mama ji's, Jalandhar · Sun, 22 Nov, 11:00 am",
+   "Harman's fee deadline (CAD 4,200) · Mon, 30 Nov, 10:00 am",
+   "Clear diesel account (HP pump) · Tue, 1 Dec, 10:00 am"
+  ],
+  "book": []
+ },
+ "ananya": {
+  "memory": [
+   {
+    "fact": "Riya Sen is your colleague (Maths) and co-class-teacher of 6B",
+    "src": "your contacts",
+    "learned": null,
+    "kind": "habit",
+    "about": "riya_s",
+    "uses": 1
+   },
+   {
+    "fact": "Riya Chatterjee is Rupkatha's mother; you share dance-class pickups and drops with her",
+    "src": "your chats",
+    "learned": null,
+    "kind": "habit",
+    "about": "riya_c",
+    "uses": 1
+   },
+   {
+    "fact": "Mishti's dance class is at Nrityangan, 4 to 6 PM",
+    "src": "your calendar",
+    "learned": null,
+    "kind": "habit",
+    "about": "mishti",
+    "uses": 0
+   },
+   {
+    "fact": "Mishti is allergic to peanuts",
+    "src": "you told Artha",
+    "learned": null,
+    "kind": "habit",
+    "about": "mishti",
+    "uses": 0
+   },
+   {
+    "fact": "Lakshmi-di is paid ₹6,000 on the 1st by UPI and is off on Thursdays",
+    "src": "your payments",
+    "learned": null,
+    "kind": "habit",
+    "about": "lakshmi_di",
+    "uses": 0
+   },
+   {
+    "fact": "When Arnab travels, you do Mishti's school drop",
+    "src": "you told Artha",
+    "learned": null,
+    "kind": "habit",
+    "about": "arnab",
+    "uses": 0
+   },
+   {
+    "fact": "Ma loves shorshe ilish; Sunday lunch at Behala every other week",
+    "src": "your chats",
+    "learned": null,
+    "kind": "habit",
+    "about": "ma",
+    "uses": 0
+   },
+   {
+    "fact": "Message Ma and Lakshmi-di in Bengali, in Roman script",
+    "src": "your habit",
+    "learned": null,
+    "kind": "habit",
+    "about": "lakshmi_di",
+    "uses": 0
+   }
+  ],
+  "turns": [
+   {
+    "said": "Riya ko bolo papers aadha aadha kar lete hain, Monday tak.",
+    "reply": "Riya Sen ke liye papers aadha-aadha baantne ka message ready hai.",
+    "actions": [
+     "message → Riya Sen (done)",
+     "calendar → Riya Sen (done)"
+    ]
+   },
+   {
+    "said": "Riya ko bolo kal dance class drop main kar dungi.",
+    "reply": "Riya Chatterjee ke liye kal dance class drop karne ka message ready hai.",
+    "actions": [
+     "message → Riya Chatterjee (done)",
+     "calendar → Riya Chatterjee (done)"
+    ]
+   },
+   {
+    "said": "Mishti ko kis cheez se allergy hai?",
+    "reply": "Mishti ko peanuts se allergy hai.",
+    "actions": []
+   },
+   {
+    "said": "Dance class ki fees bhej do.",
+    "reply": "Nrityangan ki ₹1,800 fees bhejne ke liye payment ready hai; confirm kar dein.",
+    "actions": [
+     "payment → Nrityangan Dance School (proposed)"
+    ]
+   },
+   {
+    "said": "লক্ষ্মীদিকে বলো, পরশু থেকে এলে চলবে।",
+    "reply": "লক্ষ্মীদিকে পরশু থেকে আসার মেসেজ রেডি।",
+    "actions": [
+     "message → Lakshmi-di (proposed)"
+    ]
+   }
+  ],
+  "calendar": [
+   "Dance class: Riya Chatterjee picks up, you drop · Sun, 22 Nov, 4:00 pm",
+   "6B unit test papers due (with Riya Sen) · Mon, 23 Nov, 9:00 am",
+   "Annual day rehearsal · Wed, 25 Nov, 2:00 pm"
+  ],
+  "book": []
+ }
+}

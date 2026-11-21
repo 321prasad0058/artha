@@ -43,6 +43,26 @@ export async function embedPending(db: DatabaseSync, batch = 96) {
   return n;
 }
 
+/**
+ * The note as a vector, and in the SAME API call, vectors for anything saved since the last note
+ * (so saving never waits on an embedding round trip). Null if it takes too long.
+ */
+export async function embedQueryAndPending(db: DatabaseSync, text: string, timeoutMs = 1500): Promise<Float32Array | null> {
+  const pending = db.prepare(`SELECT hash, text FROM vec WHERE emb IS NULL LIMIT 48`).all() as { hash: string; text: string }[];
+  const work = (async () => {
+    const vs = await embed([text.slice(0, 1500), ...pending.map(r => r.text.slice(0, 2000))]);
+    if (pending.length) {
+      const up = db.prepare(`UPDATE vec SET emb = ?, scale = ? WHERE hash = ?`);
+      db.exec('BEGIN');
+      pending.forEach((r, i) => { const q = quantise(vs[i + 1]); up.run(Buffer.from(q.emb.buffer), q.scale, r.hash); });
+      db.exec('COMMIT');
+      cache.delete(db);
+    }
+    return Float32Array.from(vs[0]);
+  })();
+  try { return await Promise.race([work, new Promise<null>(r => setTimeout(() => r(null), timeoutMs))]); } catch { return null; }
+}
+
 /** The note as a vector, or null if it takes too long (retrieval then falls back to code-only). */
 export async function embedQuery(text: string, timeoutMs = 1500): Promise<Float32Array | null> {
   try {
