@@ -1,14 +1,15 @@
 // All API routes, shared by the local server and AWS Lambda.
 import fs from 'node:fs';
 import path from 'node:path';
-import { MODELS, transcribe } from './openai.js';
+import { MODELS, speech, transcribe } from './openai.js';
 import { hintWords } from './pipeline/candidates.js';
 import { understand } from './pipeline/understand.js';
 import { freshState, loadState, persona, personas, saveState } from './store.js';
 import type { Action, Mode } from './types.js';
 
 export type Req = { method: string; path: string; query: URLSearchParams; headers: Record<string, string | undefined>; body: Buffer };
-export type Res = { status: number; headers?: Record<string, string>; body: string };
+export type Res = { status: number; headers?: Record<string, string>; body: string | Buffer };
+const voiceCache = new Map<string, Buffer>();
 
 const json = (status: number, data: unknown): Res => ({ status, headers: { 'content-type': 'application/json' }, body: JSON.stringify(data) });
 const parse = (b: Buffer) => (b.length ? JSON.parse(b.toString('utf8')) : {});
@@ -91,6 +92,23 @@ export async function handle(req: Req): Promise<Res> {
       } else return json(400, { error: 'Cannot do this action' });
       await saveState(state);
       return json(200, { done, state });
+    }
+
+    // Artha talks back: the reply in the user's language, native pronunciation, brisk pace.
+    if (p === '/api/speak' && method === 'POST') {
+      const b = parse(req.body);
+      const who = persona(b.p);
+      const text = String(b.text ?? '').slice(0, 400);
+      if (!text) return json(400, { error: 'Nothing to say' });
+      const key = `${who.id}:${text}`;
+      let audio = voiceCache.get(key);
+      if (!audio) {
+        const lang = /[\u0C00-\u0C7F]/.test(text) ? 'Telugu' : /[\u0B80-\u0BFF]/.test(text) ? 'Tamil' : /[\u0900-\u097F]/.test(text) ? (who.speaks[0] === 'Marathi' ? 'Marathi' : 'Hindi') : 'Indian English';
+        audio = await speech(text, 'coral', `You are Artha, a warm, capable assistant replying to ${who.name.split(' ')[0]} with a quick voice note in ${lang}. Use native ${lang} pronunciation for every word and name. Speak briskly and naturally, like a friend on the phone: no newsreader tone, no long pauses.`);
+        if (voiceCache.size > 200) voiceCache.clear();
+        voiceCache.set(key, audio);
+      }
+      return { status: 200, headers: { 'content-type': 'audio/mpeg', 'cache-control': 'max-age=86400' }, body: audio };
     }
 
     if (p === '/api/reset' && method === 'POST') {

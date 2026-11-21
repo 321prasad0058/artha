@@ -15,6 +15,7 @@ const P: Record<string, string> = {
   cal: 'M3.5 5h17v15h-17zM3.5 10h17M8 3v4M16 3v4', rupee: 'M7 5h10M7 9h10M7 5c5 0 7 2 7 4s-2 4-7 4l7 7', book: 'M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3zM5 17a3 3 0 0 1 3-3h11',
   x: 'M6 6l12 12M18 6L6 18', shield: 'M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z', refresh: 'M20 11a8 8 0 1 0-2.3 5.7M20 5v6h-6',
   eye: 'M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12zM12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6', swap: 'M7 4 3 8l4 4M3 8h14M17 20l4-4-4-4M21 16H7', keyboard: 'M3 6h18v12H3zM7 10h.5M11 10h.5M15 10h.5M7 14h10',
+  speak: 'M4 10v4h4l5 4V6L8 10zM16 9a4 4 0 0 1 0 6M18.5 6.5a8 8 0 0 1 0 11', mute: 'M4 10v4h4l5 4V6L8 10zM17 9l5 6M22 9l-5 6',
   vs: 'M4 5l4 14 4-14M14 17c1 1.5 2.5 2 4 2 2 0 3-1 3-2.5 0-3.5-7-2-7-6 0-1.5 1.2-2.5 3-2.5 1.4 0 2.6.5 3.5 1.5',
 };
 const I = ({ n, s }: { n: string; s?: React.CSSProperties }) => <svg className="ico" viewBox="0 0 24 24" style={s} aria-hidden="true"><path d={P[n]} /></svg>;
@@ -24,7 +25,7 @@ const ACT_ICON: Record<string, string> = { message: 'chat', call: 'call', remind
 type Tab = 'artha' | 'chats' | 'memory' | 'results' | 'about';
 type Run = {
   id: number; source: 'mic' | 'sample' | 'typed'; label?: string; audio?: Blob; audioUrl?: string; synthetic?: boolean;
-  stage: number; transcript?: string; hearMs?: number; result?: Result; error?: string; startedAt: number; endedAt?: number;
+  stage: number; transcript?: string; hearMs?: number; result?: Result; error?: string; startedAt: number; endedAt?: number; replyUrl?: string;
   done: Record<number, string>; busy?: number | null; confirm?: number | null; working?: boolean;
   compare?: { loading: boolean; baseHeard?: string; base?: Result; ctx?: Result; error?: string };
 };
@@ -82,12 +83,15 @@ export default function App() {
   const [fresh, setFresh] = useState<Set<string>>(new Set());
   const [rec, setRec] = useState<Recording | null>(null);
   const [level, setLevel] = useState(0);
+  const [speaking, setSpeaking] = useState(false);
+  const [voiceOn, setVoiceOn] = useState(() => { try { return localStorage.getItem('artha.voice') !== 'off'; } catch { return true; } });
+  const voice = useRef<HTMLAudioElement | null>(null);
   const feed = useRef<HTMLDivElement>(null);
 
   const persona = personas.find(p => p.id === pid);
   const myRuns = runs[pid] ?? [];
   const busy = myRuns.some(r => !r.result && !r.error);
-  const orbMode: OrbMode = rec ? 'listening' : busy ? 'thinking' : myRuns.at(-1)?.result ? 'done' : 'idle';
+  const orbMode: OrbMode = rec ? 'listening' : busy ? 'thinking' : speaking ? 'speaking' : myRuns.at(-1)?.result ? 'done' : 'idle';
   const say = useCallback((t: string) => { setToast(t); window.clearTimeout((say as any)._t); (say as any)._t = window.setTimeout(() => setToast(''), 2400); }, []);
 
   useEffect(() => { api.personas().then(setPersonas).catch(e => say(e.message)); api.samples().then(setSamples); }, [say]);
@@ -109,6 +113,29 @@ export default function App() {
     return s;
   });
 
+  /* ---------- Artha talks back ---------- */
+  function playUrl(url: string) {
+    voice.current?.pause();
+    const a = new Audio(url);
+    a.playbackRate = 1.12; (a as any).preservesPitch = true;
+    a.onplay = () => setSpeaking(true);
+    a.onended = a.onpause = a.onerror = () => setSpeaking(false);
+    voice.current = a;
+    a.play().catch(() => setSpeaking(false));
+  }
+  async function speakReply(runId: number, r: Result, force = false) {
+    const text = r.reply_speech || r.reply;
+    if (!text || (!voiceOn && !force)) return;
+    try {
+      const res = await fetch('/api/speak', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ p: pid, text }) });
+      if (!res.ok) return;
+      const url = URL.createObjectURL(await res.blob());
+      update(runId, { replyUrl: url });
+      playUrl(url);
+    } catch { /* voice is a bonus; the text is on screen */ }
+  }
+  const toggleVoice = () => setVoiceOn(v => { const n = !v; try { localStorage.setItem('artha.voice', n ? 'on' : 'off'); } catch { /* */ } if (!n) voice.current?.pause(); return n; });
+
   /* ---------- the pipeline ---------- */
   async function process(run: Run) {
     setRuns(all => ({ ...all, [pid]: [...(all[pid] ?? []), run] }));
@@ -127,6 +154,7 @@ export default function App() {
       clearTimeout(t1); clearTimeout(t2);
       update(run.id, { result: out.result, stage: 4, endedAt: Date.now() });
       applyState(out.state); scrollDown();
+      speakReply(run.id, out.result);
     } catch (e: any) { update(run.id, { error: e.message, stage: 4, endedAt: Date.now() }); }
   }
   const fromAudio = (audio: Blob, source: Run['source'], label?: string, synthetic?: boolean) =>
@@ -151,7 +179,7 @@ export default function App() {
     try {
       const a = await api.answer(pid, mention, contactId, run.result?.topics?.[0], how); applyState(a.state);
       const out = await api.understand(pid, run.transcript ?? run.result!.transcript, 'artha', { [mention]: contactId });
-      update(run.id, { result: out.result, working: false, done: {} }); applyState(out.state);
+      update(run.id, { result: out.result, working: false, done: {} }); applyState(out.state); speakReply(run.id, out.result);
       say(`Got it. Next time “${mention}” means ${persona?.contacts.find(c => c.id === contactId)?.name}.`);
     } catch (e: any) { update(run.id, { working: false, error: e.message }); }
   }
@@ -169,7 +197,7 @@ export default function App() {
   /* ---------- the orb is the mic: hold to talk, or tap to start and tap to stop ---------- */
   const pressedAt = useRef(0); const starting = useRef(false); const timer = useRef<number>();
   async function startRec() {
-    if (rec || starting.current || busy) return; starting.current = true;
+    if (rec || starting.current || busy) return; starting.current = true; voice.current?.pause();
     try { const r = await startRecording(setLevel); setRec(r); timer.current = window.setTimeout(() => stopRec(r), 45000); }
     catch { say('Allow the microphone, or type instead.'); } finally { starting.current = false; }
   }
@@ -194,6 +222,7 @@ export default function App() {
           {([['artha', 'Artha'], ['chats', 'Chats'], ['results', 'Results'], ['about', 'About']] as const).map(([t, l]) => (
             <button key={t} className={t === 'chats' ? 'only-mid' : ''} aria-current={tab === t || (t === 'artha' && tab === 'memory') ? 'page' : undefined} onClick={() => go(t)}>{l}</button>))}
         </nav>
+        <button className="icon-btn voice-tg" onClick={toggleVoice} aria-label={voiceOn ? 'Mute Artha’s voice' : 'Let Artha speak'} aria-pressed={voiceOn}><I n={voiceOn ? 'speak' : 'mute'} /></button>
         {persona && <button className="who-btn" onClick={() => setMenu(true)} aria-label={`Testing as ${persona.name}. Switch person`}><span className="av ink">{persona.avatar}</span><span className="nm">{first(persona.name)}</span><I n="swap" s={{ width: 14, height: 14, opacity: .6 }} /></button>}
       </header>
 
@@ -212,7 +241,7 @@ export default function App() {
                   {mySamples.length > 0 && !rec && (
                     <div className="pills">{mySamples.map(s => <button key={s.id} className="pill" onClick={() => playSample(s)}><I n="play" s={{ width: 11, height: 11, fill: 'currentColor', stroke: 'none' }} />{s.label}</button>)}</div>)}
                 </div>)}
-              {myRuns.map(r => <Note key={r.id} run={r} persona={persona} onAct={act} onSkip={skip} onAll={doAll} onChoose={choose} onCompare={compare} />)}
+              {myRuns.map(r => <Note key={r.id} run={r} persona={persona} onAct={act} onSkip={skip} onAll={doAll} onChoose={choose} onCompare={compare} onReplay={() => (r.replyUrl ? playUrl(r.replyUrl) : r.result && speakReply(r.id, r.result, true))} />)}
               {!empty && mySamples.length > 0 && !busy && (
                 <div className="pills tail">{mySamples.map(s => <button key={s.id} className="pill" onClick={() => playSample(s)}><I n="play" s={{ width: 11, height: 11, fill: 'currentColor', stroke: 'none' }} />{s.label}</button>)}</div>)}
             </div>
@@ -252,9 +281,9 @@ export default function App() {
 }
 
 /* ================= one voice note ================= */
-function Note({ run, persona, onAct, onSkip, onAll, onChoose, onCompare }: {
+function Note({ run, persona, onAct, onSkip, onAll, onChoose, onCompare, onReplay }: {
   run: Run; persona?: PersonaInfo; onAct: (r: Run, i: number, confirmed?: boolean) => void; onSkip: (r: Run, i: number) => void;
-  onAll: (r: Run) => void; onChoose: (r: Run, mention: string, id: string, how: 'asked' | 'changed') => void; onCompare: (r: Run) => void;
+  onAll: (r: Run) => void; onChoose: (r: Run, mention: string, id: string, how: 'asked' | 'changed') => void; onCompare: (r: Run) => void; onReplay: () => void;
 }) {
   const res = run.result;
   const [how, setHow] = useState(false);
@@ -300,6 +329,7 @@ function Note({ run, persona, onAct, onSkip, onAll, onChoose, onCompare }: {
             {safeLeft > 1 && <button className="btn btn-primary doall" onClick={() => onAll(run)}><I n="check" />Do all</button>}
           </div>)}
 
+        {(res.reply_speech || res.reply) && <button className="say" onClick={onReplay} aria-label="Hear Artha’s reply"><span className="say-i"><I n="speak" /></span><span>{res.reply_speech || res.reply}</span></button>}
         <div className="foot">
           <span className="dim">{secs ? `${secs}s` : ''}</span>
           <button className={`foot-btn ${run.compare ? 'on' : ''}`} onClick={() => (run.compare ? null : onCompare(run))}><I n="vs" />Base model</button>

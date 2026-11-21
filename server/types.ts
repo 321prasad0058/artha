@@ -44,6 +44,8 @@ export type Result = {
   checks: Check[];
   learn: string[];
   reply: string;
+  /** The reply in the user's native script, for text-to-speech. */
+  reply_speech?: string;
   topics?: string[];
   ms: { meaning: number; who: number; plan: number };
 };

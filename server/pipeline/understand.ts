@@ -24,7 +24,7 @@ function actionSchema(contactIds: string[] | null) {
 function planSchema(contactIds: string[] | null) {
   const cand = contactIds ? { type: 'string', enum: [...contactIds, 'none'] } : { type: 'string' };
   return {
-    type: 'object', additionalProperties: false, required: ['language', 'mentions', 'actions', 'clarify_question', 'learn', 'reply'],
+    type: 'object', additionalProperties: false, required: ['language', 'mentions', 'actions', 'clarify_question', 'learn', 'reply', 'reply_speech'],
     properties: {
       language: { type: 'string' },
       mentions: { type: 'array', items: { type: 'object', additionalProperties: false, required: ['text', 'kind', 'value', 'candidates'], properties: {
@@ -34,6 +34,7 @@ function planSchema(contactIds: string[] | null) {
       clarify_question: { type: 'string' },
       learn: { type: 'array', items: { type: 'string' } },
       reply: { type: 'string' },
+      reply_speech: { type: 'string' },
     },
   };
 }
@@ -61,11 +62,12 @@ Actions
 Also
 - clarify_question: if two people fit about equally, a short question in the user's own language and script style, otherwise "".
 - learn: 0 to 2 short new facts worth remembering (a changed plan, a new preference). Not things already in MEMORY.
-- reply: one short confirmation to the user, in their own language mix, Roman script.
+- reply: one short line to the user, in their own language mix, Roman script, saying what is READY for them ("Amma ke liye message ready hai"). Never say something was sent, paid or done: the user confirms with one tap.
+- reply_speech: the same reply written for reading aloud, in the NATIVE script of the user's language (Devanagari for Hindi, Hinglish, Marathi and Urdu; Telugu script; Tamil script; English stays English). Keep English words like "appointment" in that script too (अपॉइंटमेंट). Short and warm.
 - mentions: list ONLY people mentioned, using the exact words from the transcript.
 - Keep every "why" under 10 words. Be brief everywhere: speed matters.`;
 
-const BASE_INSTRUCTIONS = `Turn this transcribed voice note into a list of actions (message, call, reminder, calendar, payment, ledger, suggestion). Use contact_id for the person's name as you understand it. Fill fields that don't apply with "", 0 or false. reply: a one-line confirmation. mentions: people, times and amounts mentioned, with empty candidates. learn: empty. clarify_question: "".`;
+const BASE_INSTRUCTIONS = `Turn this transcribed voice note into a list of actions (message, call, reminder, calendar, payment, ledger, suggestion). Use contact_id for the person's name as you understand it. Fill fields that don't apply with "", 0 or false. reply: a one-line confirmation. reply_speech: "". mentions: people, times and amounts mentioned, with empty candidates. learn: empty. clarify_question: "".`;
 
 function istNowLabel(now: Date) {
   return now.toLocaleString('en-IN', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', hour: 'numeric', minute: '2-digit', timeZone: 'Asia/Kolkata' });
@@ -77,7 +79,7 @@ function eventWhen(day: number, time: string, now: Date) {
   return labelOf(isoOf({ y: +p.year, m: +p.month, d: +p.day }, h, m));
 }
 
-type PlanOut = { language: string; mentions: Mention[]; actions: Action[]; clarify_question: string; learn: string[]; reply: string };
+type PlanOut = { language: string; mentions: Mention[]; actions: Action[]; clarify_question: string; learn: string[]; reply: string; reply_speech: string };
 
 export async function understand(args: { persona: Persona; state: State; transcript: string; mode: Mode; forced?: Record<string, string>; now?: Date }): Promise<Result> {
   const { persona: p, state, transcript, mode } = args;
@@ -107,6 +109,7 @@ export async function understand(args: { persona: Persona; state: State; transcr
       actions: scam ? [{ type: 'suggestion', contact_id: scam.id, contact_name: scam.name, language: '', text: '', gloss: '', goal: '', title: `Mark “${scam.name}” as a likely scam`, when_iso: '', when_label: '', amount_inr: 0, predicted: true, why: 'Real banks and offices never ask for an OTP on a call.' }] : [],
       checks: [{ rule: 'Blocked: an OTP or PIN with digits was found', ok: false }, { rule: 'The digits were hidden before any model or log saw them', ok: true }],
       reply: 'OTP kabhi kisi ko nahi batate. Bank ya office kabhi OTP nahi maangte.',
+      reply_speech: 'ओटीपी कभी किसी को नहीं बताते। बैंक या ऑफ़िस कभी ओटीपी नहीं माँगते।',
     });
   }
 
@@ -165,6 +168,6 @@ export async function understand(args: { persona: Persona; state: State; transcr
 
   return {
     mode, transcript, roman, language: out.language, entities: norm.entities, candidates: shortlist, mentions, actions, clarify, blocked: false, checks,
-    learn: clarify ? [] : out.learn.filter(l => l && l.length < 160).slice(0, 2), reply: clarify ? '' : out.reply, topics: kb.topics, ms: { meaning: msMeaning, who: msWho, plan: msPlan },
+    learn: clarify ? [] : out.learn.filter(l => l && l.length < 160).slice(0, 2), reply: clarify ? '' : out.reply, reply_speech: clarify ? '' : out.reply_speech, topics: kb.topics, ms: { meaning: msMeaning, who: msWho, plan: msPlan },
   };
 }

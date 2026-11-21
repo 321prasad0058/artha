@@ -8,6 +8,8 @@ import type { Candidate, Persona } from '../types.js';
 export function soundKey(w: string): string {
   return w.toLowerCase()
     .replace(/[^a-z]/g, '')
+    // "-wala" words change form: wala, wale, wali, walon, walyanna, waalyaanaa → one shape
+    .replace(/(w|v)aa?l(y|e|i|a|o)[a-z]*$/, 'vala')
     .replace(/aa/g, 'a').replace(/ee|ii/g, 'i').replace(/oo|uu/g, 'u').replace(/ai/g, 'e').replace(/au/g, 'o')
     .replace(/w/g, 'v').replace(/ph|f/g, 'p').replace(/z/g, 'j').replace(/q/g, 'k').replace(/x/g, 'ks')
     .replace(/sh|ss/g, 's').replace(/chh|ch/g, 'c').replace(/th/g, 't').replace(/dh/g, 'd').replace(/bh/g, 'b').replace(/kh/g, 'k').replace(/gh/g, 'g').replace(/jh/g, 'j')
@@ -44,7 +46,8 @@ export function hintWords(p: Persona): string[] {
 
 export function findCandidates(roman: string, p: Persona, limit = 8): Candidate[] {
   const tokens = roman.toLowerCase().split(/[^a-z]+/).filter(Boolean);
-  const keys = tokens.map(t => stripSuffix(t).map(soundKey));
+  // each position: the word itself (minus case endings) and the word joined with the next ("doodh vaalyaannaa" = "dudhwale")
+  const keys = tokens.map((t, i) => [...stripSuffix(t), ...(tokens[i + 1] ? stripSuffix(t + tokens[i + 1]) : [])].map(soundKey));
   const scored = new Map<string, Candidate>();
   const bump = (id: string, score: number, why: string) => {
     const c = p.contacts.find(x => x.id === id)!;

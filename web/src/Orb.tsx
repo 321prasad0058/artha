@@ -4,7 +4,7 @@ import gsap from 'gsap';
 import { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 
-export type OrbMode = 'idle' | 'listening' | 'thinking' | 'done';
+export type OrbMode = 'idle' | 'listening' | 'thinking' | 'speaking' | 'done';
 
 const NOISE = /* glsl */ `
 vec3 mod289(vec3 x){return x-floor(x*(1.0/289.0))*289.0;}
@@ -68,6 +68,7 @@ const PALETTE: Record<OrbMode, [string, string, string]> = {
   idle: ['#3550e6', '#8a63ff', '#3fd0ff'],
   listening: ['#e0457b', '#ff8a5b', '#ffd166'],
   thinking: ['#4054ff', '#b36bff', '#3fe0d0'],
+  speaking: ['#3a4dff', '#9b6bff', '#45e0ff'],
   done: ['#2f4fe0', '#7a5cff', '#5fd3ff'],
 };
 
@@ -107,17 +108,18 @@ export function Orb({ mode, level, size = 320 }: { mode: OrbMode; level: number;
           const col = new THREE.Color(hex);
           gsap.to(u[k].value, { r: col.r, g: col.g, b: col.b, duration: 0.8, ease: 'power2.out' });
         }
-        const target = { idle: [0.22, 0.075, 1.15, 0.1], listening: [0.55, 0.15, 1.35, 0.45], thinking: [1.3, 0.14, 1.8, 0.7], done: [0.35, 0.06, 1.1, 0.5] }[m];
+        const target = { idle: [0.22, 0.075, 1.15, 0.1], speaking: [0.7, 0.13, 1.4, 0.6], listening: [0.55, 0.15, 1.35, 0.45], thinking: [1.3, 0.14, 1.8, 0.7], done: [0.35, 0.06, 1.1, 0.5] }[m];
         gsap.to({ s: speed }, { s: reduce ? target[0] * 0.3 : target[0], duration: 0.9, onUpdate() { speed = (this as any).targets()[0].s; } });
         gsap.to(u.uAmp, { value: target[1], duration: 0.9, ease: 'power2.out' });
         gsap.to(u.uFreq, { value: target[2], duration: 0.9 });
         gsap.to(u.uGlow, { value: target[3], duration: 0.9 });
         if (m === 'done') gsap.fromTo(mesh.scale, { x: 1.12, y: 1.12, z: 1.12 }, { x: 1, y: 1, z: 1, duration: 1.1, ease: 'elastic.out(1, 0.45)' });
       }
-      smooth += (lv - smooth) * 0.25;
+      const target = live.current.mode === 'speaking' ? 0.35 + 0.35 * Math.abs(Math.sin(now / 95)) * Math.abs(Math.sin(now / 230)) : lv;
+      smooth += (target - smooth) * 0.25;
       t += dt * speed;
       u.uTime.value = t;
-      const swell = live.current.mode === 'listening' ? 1 + smooth * 0.28 : 1;
+      const swell = live.current.mode === 'listening' || live.current.mode === 'speaking' ? 1 + smooth * 0.22 : 1;
       if (live.current.mode !== 'done') mesh.scale.setScalar(mesh.scale.x + (swell - mesh.scale.x) * 0.2);
       mesh.rotation.y += dt * speed * 0.5; mesh.rotation.x = Math.sin(t * 0.3) * 0.2;
       renderer.render(scene, camera);

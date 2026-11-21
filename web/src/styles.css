@@ -272,3 +272,12 @@ table.t .n { text-align: right; font-variant-numeric: tabular-nums; white-space:
 @media (max-width: 860px) { .grid3, .kpis { grid-template-columns: minmax(0, 1fr); } .people { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 .toast { position: fixed; left: 50%; bottom: calc(90px + env(safe-area-inset-bottom)); transform: translateX(-50%); background: var(--ink); color: var(--on-ink); padding: 10px 18px; border-radius: 999px; font-size: 14px; font-weight: 500; z-index: 60; box-shadow: var(--shadow-lg); max-width: calc(100% - 32px); }
 @media (prefers-reduced-motion: reduce) { *, .orb-wrap { animation: none !important; transition: none !important; } }
+
+/* Artha's spoken reply, shown as a caption you can tap to hear again */
+.say { display: flex; align-items: center; gap: 10px; text-align: left; padding: 10px 14px 10px 10px; border-radius: 6px 22px 22px 22px; background: var(--surface); border: 1px solid var(--line); font-size: 15px; color: var(--ink-2); justify-self: start; max-width: 92%; }
+.say:hover { border-color: var(--accent); }
+.say-i { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; background: var(--accent-soft); color: var(--accent); flex: none; }
+.say-i .ico { width: 15px; height: 15px; }
+.voice-tg { margin-left: auto; }
+.voice-tg[aria-pressed='false'] { color: var(--dim); }
+@media (max-width: 760px) { .voice-tg { margin-left: auto; } .who-btn { margin-left: 4px; } }
