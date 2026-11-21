@@ -452,10 +452,16 @@ export default function App() {
     voice.current = a;
     a.play().catch(() => setSpeaking(false));
   }
+  /** Speak a line right after the one playing now (the answer's points after its headline). */
+  function speakAfter(runId: number, text: string) {
+    const a = voice.current;
+    if (a && !a.paused && !a.ended) a.addEventListener('ended', () => speakText(runId, text), { once: true });
+    else speakText(runId, text);
+  }
   /** Speak a line now (streamed audio); onStart fires when the first sound plays. */
   function speakText(runId: number, text: string, onStart?: () => void) {
     if (!text || !voiceOn) return;
-    const url = `${API_BASE}/api/speak?p=${encodeURIComponent(pid)}&text=${encodeURIComponent(text.slice(0, 400))}`;
+    const url = `${API_BASE}/api/speak?p=${encodeURIComponent(pid)}&text=${encodeURIComponent(text.slice(0, 600))}`;
     update(runId, { replyUrl: url });
     playUrl(url, onStart);
   }
@@ -463,7 +469,7 @@ export default function App() {
     const text = r.reply_speech || r.reply;
     if (!text || (!voiceOn && !force)) return;
     // Streamed: the audio element starts playing as the first bytes arrive, while the rest is still being generated.
-    const url = `${API_BASE}/api/speak?p=${encodeURIComponent(pid)}&text=${encodeURIComponent(text.slice(0, 400))}`;
+    const url = `${API_BASE}/api/speak?p=${encodeURIComponent(pid)}&text=${encodeURIComponent(text.slice(0, 600))}`;
     update(runId, { replyUrl: url });
     playUrl(url);
   }
@@ -499,7 +505,8 @@ export default function App() {
         else if (e.t === 'gist') { update(run.id, { gist: e.heard, stage: 2 }); mark('gist'); if (!run.audio) mark('heard'); }
         else if (e.t === 'say') {
           spoke = true; update(run.id, r => (r.stage < 3 ? { stage: 3 } : {}));
-          if (inline) update(run.id, { replyUrl: `${API_BASE}/api/speak?p=${encodeURIComponent(pid)}&text=${encodeURIComponent(String(e.text).slice(0, 400))}` });
+          if (e.more) { if (!inline) speakAfter(run.id, e.text); }      // the answer's points, after the headline
+          else if (inline) update(run.id, { replyUrl: `${API_BASE}/api/speak?p=${encodeURIComponent(pid)}&text=${encodeURIComponent(String(e.text).slice(0, 600))}` });
           else speakText(run.id, e.text, () => mark('voice'));
         }
         else if (e.t === 'audio_start') player = startPlayer();
@@ -507,6 +514,8 @@ export default function App() {
         else if (e.t === 'audio_end') player?.end();
         else if (e.t === 'result') {
           update(run.id, { result: e.result, transcript: e.transcript ?? run.transcript, stage: 4, endedAt: Date.now() }); mark('cards'); scrollDown();
+          // replay speaks the whole answer (headline and points), not just the first line
+          if (spoke && e.result.reply_points?.length) update(run.id, { replyUrl: `${API_BASE}/api/speak?p=${encodeURIComponent(pid)}&text=${encodeURIComponent((e.result.reply_speech || e.result.reply).slice(0, 600))}` });
           if (e.result.clarify) voice.current?.pause();                 // asking which one: don't talk over the question
           else if (!spoke) speakText(run.id, e.result.reply_speech || e.result.reply, () => mark('voice'));
         }

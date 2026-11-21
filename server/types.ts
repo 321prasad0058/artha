@@ -94,4 +94,6 @@ export type Turn = {
   people: { mention: string; id: string; name: string }[];
   actions: { id: string; type: ActionType; contact_id: string; contact_name: string; title: string; text: string; when_iso: string; when_label: string; amount_inr: number; status: 'proposed' | 'done' | 'skipped' }[];
   reply: string;
+  /** the answer's points, so a follow-up ("say it in English", "repeat") can redo the whole answer */
+  reply_points?: { label: string; text: string }[];
 };
