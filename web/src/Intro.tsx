@@ -1,9 +1,8 @@
-// The opening: what Artha is, in ten seconds, told by one field of light.
-//   1. scattered voices in six scripts      "Over a billion Indians have never typed to an AI."
-//   2. they become a voice wave             "They just speak."
-//   3. the wave folds into Artha's orb, and structured meaning flies out: who, when, how much, what to do
-//   4. the name and the promise             "Bas ishaara kaafi hai."
-// Then the orb shrinks to where the app's orb lives and the app takes over.
+// The opening, about six seconds, told by one field of light:
+//   1. real voice notes from the demo people, in their own scripts   "Voice notes, in your language"
+//   2. they become one voice wave
+//   3. the wave folds into Artha's orb                               "Artha · Bas ishaara kaafi hai."
+// Then the orb drops to where the app's orb lives and the app takes over.
 // One Points mesh, positions blended on the CPU between four shapes; GSAP drives the blend and the words.
 import gsap from 'gsap';
 import { useEffect, useRef } from 'react';
@@ -11,12 +10,6 @@ import * as THREE from 'three';
 
 const N = 2600;
 const FRAGMENTS = ['Mehta ji ko bol do', 'అమ్మకి చెప్పు', 'செல்விக்கு சொல்லு', 'दुधवाल्यांना पैसे पाठवा', 'Balwinder nu dasso', 'রিয়াকে বলো', 'khate mein likh do', 'kal 4 baje', 'dhai hazaar', 'Salma apa ko bolo'];
-const CHIPS = [
-  { k: 'who', t: 'Dr. Pawar · family doctor' },
-  { k: 'when', t: 'Sun · 11:30 AM' },
-  { k: 'money', t: '₹2,500 · Sharma ji’s khata' },
-  { k: 'act', t: 'Message ready in Marathi' },
-];
 
 export function shouldShowIntro() {
   if (typeof window === 'undefined') return false;
@@ -114,40 +107,33 @@ export function Intro({ onDone }: { onDone: () => void }) {
     const q = (sel: string) => el.querySelectorAll<HTMLElement>(sel);
     gsap.ticker.lagSmoothing(0);   // the story keeps its real length even when a slow phone drops frames
     const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
-    // beat 1: scattered voices
-    tl.to(mat, { opacity: .9, duration: 1.2 }, 0)
-      .fromTo(q('.frag'), { opacity: 0, y: 12, scale: .96 }, { opacity: (i: number) => .35 + (i % 3) * .2, y: 0, scale: 1, duration: 1, stagger: .07 }, .2)
-      .fromTo(q('.b1 .w'), { opacity: 0, y: 18, filter: 'blur(6px)' }, { opacity: 1, y: 0, filter: 'blur(0px)', duration: .8, stagger: .05 }, .5)
-      // beat 2: they just speak (the cloud becomes a voice)
-      .to(q('.frag'), { opacity: 0, y: -10, duration: .6, stagger: .03 }, 2.6)
-      .to(q('.b1'), { opacity: 0, y: -14, duration: .5 }, 2.7)
-      .to(s, { a: 1, duration: 1.6, ease: 'power2.inOut' }, 2.6)
-      .to(s, { amp: 1.4, duration: 1.2, ease: 'sine.inOut' }, 2.9)
-      .fromTo(q('.b2'), { opacity: 0, scale: .92, filter: 'blur(8px)' }, { opacity: 1, scale: 1, filter: 'blur(0px)', duration: .8 }, 3.2)
-      // beat 3: the wave folds into the orb, and meaning comes out
-      .to(q('.b2'), { opacity: 0, y: -16, duration: .5 }, 4.9)
-      .to(s, { b: 1, duration: 1.4, ease: 'expo.inOut' }, 4.9)
-      .to(s, { amp: 0, duration: .8 }, 5)
-      .to(glow.material, { opacity: .55, duration: 1.2 }, 5.4)
-      .to(s, { c: 1, duration: .5, ease: 'back.out(3)' }, 6.1).to(s, { c: .25, duration: 1.2, ease: 'power2.out' }, 6.6)
-      .fromTo(q('.chip-i'), { opacity: 0, scale: .6, x: 0, y: 0, xPercent: -50, yPercent: -50 }, { opacity: 1, scale: 1, xPercent: -50, yPercent: -50, x: (i: number) => (narrow() ? 0 : [-1, 1, -1, 1][i] * 250), y: (i: number) => (narrow() ? [-205, -150, 150, 205][i] : [-1, -1, 1, 1][i] * 120), duration: .9, stagger: .12, ease: 'back.out(1.6)' }, 6.15)
-      .fromTo(q('.b3'), { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: .7 }, 6.4)
-      // beat 4: the name
-      .to(q('.chip-i'), { opacity: 0, scale: .8, x: 0, y: 0, duration: .6, stagger: .05, ease: 'power2.in' }, 8.4)
-      .to(q('.b3'), { opacity: 0, duration: .4 }, 8.4)
-      .fromTo(q('.b4 > *'), { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: .8, stagger: .12 }, 8.9);
+    // 1. real voice notes, in their own scripts
+    tl.to(mat, { opacity: .9, duration: .9 }, 0)
+      .fromTo(q('.frag'), { opacity: 0, y: 10 }, { opacity: (i: number) => .4 + (i % 3) * .2, y: 0, duration: .7, stagger: .05 }, .1)
+      .fromTo(q('.b1'), { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: .6 }, .35)
+      // 2. they become one voice
+      .to(q('.frag'), { opacity: 0, y: -8, duration: .45, stagger: .02 }, 1.7)
+      .to(q('.b1'), { opacity: 0, y: -10, duration: .4 }, 1.75)
+      .to(s, { a: 1, duration: 1.1, ease: 'power2.inOut' }, 1.7)
+      .to(s, { amp: 1.3, duration: .8, ease: 'sine.inOut' }, 1.9)
+      // 3. and Artha understands
+      .to(s, { b: 1, duration: 1.1, ease: 'expo.inOut' }, 3.0)
+      .to(s, { amp: 0, duration: .6 }, 3.0)
+      .to(glow.material, { opacity: .5, duration: .9 }, 3.4)
+      .to(s, { c: .6, duration: .35, ease: 'back.out(3)' }, 4.0).to(s, { c: .2, duration: .8 }, 4.35)
+      .fromTo(q('.b4 > *'), { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: .6, stagger: .1 }, 3.9);
     const finish = () => {
       if (done.current) return; done.current = true;
       try { sessionStorage.setItem('artha.intro', 'seen'); } catch { /* */ }
       tl.pause();
       gsap.timeline({ onComplete: onDone })
-        .to(q('.b4, .b1, .b2, .b3, .chip-i, .skip'), { opacity: 0, duration: .35 }, 0)
+        .to(q('.b4, .b1, .skip'), { opacity: 0, duration: .35 }, 0)
         .to(s, { d: 1, duration: 1, ease: 'expo.inOut' }, 0)
         .to(el, { backgroundColor: 'rgba(11,12,16,0)', duration: .9, ease: 'power2.inOut' }, .2)
         .to(mat, { opacity: 0, duration: .5 }, .7)
         .to(glow.material, { opacity: 0, duration: .5 }, .6);
     };
-    tl.call(() => { /* wait on the name, then hand over */ }, [], 11.6).call(finish, [], 11.7);
+    tl.call(finish, [], 6.2);
     const onKey = (e: KeyboardEvent) => { if (['Enter', ' ', 'Escape'].includes(e.key)) finish(); };
     addEventListener('keydown', onKey);
     (el as any)._finish = finish;
@@ -164,15 +150,11 @@ export function Intro({ onDone }: { onDone: () => void }) {
     <div className="intro" ref={root} role="dialog" aria-label="Artha introduction" onClick={finish}>
       <div className="intro-gl" ref={canvasHost} />
       <div className="frags" aria-hidden="true">{FRAGMENTS.map((f, i) => <span key={f} className="frag" style={{ left: `${[8, 64, 22, 70, 6, 52, 30, 78, 14, 44][i]}%`, top: `${[16, 12, 30, 34, 62, 70, 82, 58, 44, 22][i]}%` }}>{f}</span>)}</div>
-      <div className="beat b1"><p className="eyebrow">India speaks</p><h1>{'Over a billion Indians have never typed to an AI.'.split(' ').map((x, i) => <span key={i} className="w">{x}</span>)}</h1></div>
-      <div className="beat b2"><h1 className="big">They just speak.</h1></div>
-      <div className="chips-i" aria-hidden="true">{CHIPS.map(c => <span key={c.k} className={`chip-i ${c.k}`}><i />{c.t}</span>)}</div>
-      <div className="beat b3 low"><p>Artha hears <b>who</b>, <b>when</b> and <b>how much</b>, from your own world, and gets it done.</p></div>
+      <div className="beat b1 low"><p className="eyebrow">Voice notes, in your language</p></div>
       <div className="beat b4">
         <span className="mark">A</span>
         <h1 className="name">Artha</h1>
         <p className="tag">Bas ishaara kaafi hai.</p>
-        <button className="go" onClick={e => { e.stopPropagation(); finish(); }}>Start talking</button>
       </div>
       <button className="skip" onClick={e => { e.stopPropagation(); finish(); }}>Skip</button>
     </div>

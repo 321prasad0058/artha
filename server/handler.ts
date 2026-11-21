@@ -157,7 +157,6 @@ export async function handle(req: Req): Promise<Res> {
         done = 'Done';
       } else return json(400, { error: 'Cannot do this action' });
       markDone();
-      await saveState(state);
       // personalisation from what the user confirmed: how they reach each person, at what time, in what language
       const db = space(who.id);
       if (a.contact_id) {
@@ -166,6 +165,7 @@ export async function handle(req: Req): Promise<Res> {
         if (a.when_iso && ['call', 'calendar', 'reminder'].includes(a.type)) learnHabit(db, a.contact_id, 'time of day', (h => (h < 12 ? 'morning' : h < 16 ? 'afternoon' : h < 20 ? 'evening' : 'night'))(Number(new Date(a.when_iso).toLocaleString('en-GB', { hour: '2-digit', hourCycle: 'h23', timeZone: 'Asia/Kolkata' }))));
       }
       if (a.type === 'reminder' && a.predicted) learnHabit(db, '', 'accepts predicted reminders', 'yes');
+      await saveState(state);
       return json(200, { done, state });
     }
 

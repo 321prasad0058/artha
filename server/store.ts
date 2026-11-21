@@ -90,7 +90,9 @@ export async function loadState(id: string): Promise<State> {
 export async function saveState(s: State): Promise<void> {
   const db = space(s.persona);
   writeState(db, s, persona(s.persona));
-  void embedPending(db).catch(e => console.warn('embed', e.message));   // vectors fill in the background
+  // locally vectors fill in the background; on Lambda nothing runs after the response, so embed before upload
+  if (BUCKET) await embedPending(db).catch(e => console.warn('embed', e.message));
+  else void embedPending(db).catch(e => console.warn('embed', e.message));
   await push(s.persona);
 }
 export async function resetState(id: string): Promise<State> {
