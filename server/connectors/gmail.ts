@@ -155,7 +155,7 @@ Never include OTPs, passwords, card or account numbers.`;
 export async function buildProfile(mails: Mail[], p: Persona, now = new Date()): Promise<Persona> {
   const sent = (m: Mail) => new Date(Number(m.date) || Date.parse(m.date)).toISOString().slice(0, 10);
   const out = await jsonCall<{ name: string; age: number; city: string; about: string; speaks: string[]; contacts: (Contact & { email: string })[] }>({ name: 'profile', instructions: PROFILE_INSTRUCTIONS, schema: PROFILE,
-    input: `TODAY: ${now.toISOString().slice(0, 10)}\nACCOUNT: ${p.email ?? ''}\nEMAILS:\n${mails.map(m => JSON.stringify({ from: `${m.fromName} <${m.from}>`, sent: sent(m), subject: m.subject, body: (m.body ?? '').slice(0, 1200) })).join('\n')}` });
+    input: `TODAY: ${now.toISOString().slice(0, 10)}\nACCOUNT: ${p.email ?? ''}\nEMAILS:\n${mails.map(m => JSON.stringify({ from: `${m.fromName} <${m.from}>`, sent: sent(m), subject: m.subject, body: (m.body ?? '').slice(0, 700) })).join('\n')}` });
   const contacts = [...p.contacts];
   for (const c of out.contacts) {
     const id = `c-${crypto.createHash('sha1').update((c.email || c.name).toLowerCase()).digest('hex').slice(0, 8)}`;

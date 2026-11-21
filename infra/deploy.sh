@@ -37,7 +37,7 @@ if ! ROLE_ARN=$(aws_ iam get-role --role-name "$ROLE" --query Role.Arn --output 
   sleep 10   # IAM is eventually consistent
 fi
 aws_ iam put-role-policy --role-name "$ROLE" --policy-name artha-state \
-  --policy-document "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Action\":[\"s3:GetObject\",\"s3:PutObject\"],\"Resource\":\"arn:aws:s3:::artha-state-$ACCT*/*\"},{\"Effect\":\"Allow\",\"Action\":\"s3:ListBucket\",\"Resource\":\"arn:aws:s3:::artha-state-$ACCT*\"}]}"
+  --policy-document "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Action\":[\"s3:GetObject\",\"s3:PutObject\",\"s3:DeleteObject\"],\"Resource\":\"arn:aws:s3:::artha-state-$ACCT*/*\"},{\"Effect\":\"Allow\",\"Action\":\"s3:ListBucket\",\"Resource\":\"arn:aws:s3:::artha-state-$ACCT*\"}]}"
 
 say "lambda function"
 # settings are MERGED with what the function already has, so a deploy without the Google keys (CI) never wipes them

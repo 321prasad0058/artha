@@ -202,32 +202,41 @@ function shouldWelcome() {
   if (q.has('p') || q.has('say')) return false;
   try { return sessionStorage.getItem('artha.welcomed') !== '1'; } catch { return true; }
 }
+/** Google's official "G" mark (four colours), for the sign-in button. */
+const GoogleG = () => (
+  <svg className="g-mark" viewBox="0 0 48 48" aria-hidden="true">
+    <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" />
+    <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z" />
+    <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z" />
+    <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z" />
+  </svg>
+);
 function Welcome({ me, samples, onPick }: { me: PersonaInfo | null; samples: PersonaInfo[]; onPick: (id: string) => void }) {
   const ref = useEnter<HTMLDivElement>(true);
   return (
     <div className="welcome" role="dialog" aria-label="Start with Artha">
       <div className="welcome-in" ref={ref}>
-        <header className="w-head"><span className="w-mark">A</span><div><h1>Artha</h1><p>Bas ishaara kaafi hai.</p></div></header>
-        {me && <button className="w-me" onClick={() => onPick(me.id)}><span className="av lg ink">{me.avatar}</span><span><b>Continue as {me.name.split(' ')[0]}</b><small>{me.email}</small></span><I n="send" /></button>}
-        <div className="w-grid">
-          <section className="w-card w-own">
-            <span className="w-tag">For you</span>
-            <h2>Set up Artha for you</h2>
-            <p>Connect your Gmail once. Artha learns who your people are, your plans and bills, and the languages you use with each of them, so a short voice note is enough.</p>
-            <ul>
-              <li><I n="shield" />Read-only. Promotions and OTP mails are never read.</li>
-              <li><I n="brain" />Everything stays in your own private space. Disconnect any time and it is forgotten.</li>
-            </ul>
-            <a className="btn btn-primary w-google" href={`${API_BASE}/api/auth/google`}><span className="g-logo" aria-hidden="true">G</span>Continue with Google</a>
-          </section>
-          <section className="w-card">
-            <span className="w-tag soft">Try first</span>
-            <h2>Explore a sample person</h2>
-            <p>See how Artha works with a ready-made life: their contacts, chats, khata and plans.</p>
-            <div className="w-people">{samples.map(p => (
-              <button key={p.id} onClick={() => onPick(p.id)}><span className="av ink">{p.avatar}</span><span><b>{p.name.split(' ')[0]}</b><small>{p.city}</small></span></button>))}</div>
-          </section>
-        </div>
+        <section className="w-sign">
+          <div className="w-top"><span className="w-mark">A</span><div><b>Artha</b><small>Bas ishaara kaafi hai.</small></div></div>
+          {me && (<>
+            <button className="w-me" onClick={() => onPick(me.id)}><span className="av lg ink">{me.avatar}</span><span><b>Continue as {me.name.split(' ')[0]}</b><small>{me.email}</small></span><I n="send" /></button>
+            <div className="w-or"><span>or use another account</span></div>
+          </>)}
+          <div className="w-lead"><h1>{me ? 'Sign in' : 'Set up your Artha'}</h1><p>Connect Gmail once. Artha learns your people, plans and dues, so a short voice note is enough.</p></div>
+          <a className="g-btn" href={`${API_BASE}/api/auth/google`}><GoogleG /><span>Continue with Google</span></a>
+          <ul className="w-trust">
+            <li><I n="shield" /><span><b>Read-only.</b> Never sends, deletes or changes mail.</span></li>
+            <li><I n="eye" /><span><b>Only what helps.</b> Promotions and OTPs are never read.</span></li>
+            <li><I n="brain" /><span><b>Facts, not emails.</b> Keeps notes like “rent due 5 Dec”.</span></li>
+            <li><I n="trash" /><span><b>Yours to remove.</b> Disconnect or delete any time.</span></li>
+          </ul>
+          <p className="w-fine">In testing, Google shows “unverified app”. Choose <b>Advanced → Go to Artha</b>.</p>
+        </section>
+        <section className="w-samples">
+          <div className="w-samples-h"><b>Or explore a sample person</b><span>No sign-in needed</span></div>
+          <div className="w-people">{samples.map(p => (
+            <button key={p.id} onClick={() => onPick(p.id)}><span className="av ink">{p.avatar}</span><span><b>{p.name.split(' ')[0]}</b><small>{p.city} · {p.speaks[0]}</small></span></button>))}</div>
+        </section>
       </div>
     </div>
   );

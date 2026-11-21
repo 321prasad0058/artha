@@ -6,10 +6,10 @@ import http from 'node:http';
 import { execFile } from 'node:child_process';
 import { insertMock, profile } from '../server/connectors/gmail.ts';
 import { ROHAN_INBOX } from '../data/mock-mail/rohan.ts';
-import { AARAV_INBOX } from '../data/mock-mail/aarav.ts';
+import { AARAV_INBOX, AARAV_MORE } from '../data/mock-mail/aarav.ts';
 process.loadEnvFile('.env');
 
-const INBOXES: Record<string, typeof ROHAN_INBOX> = { rohan: ROHAN_INBOX, aarav: AARAV_INBOX };
+const INBOXES: Record<string, typeof ROHAN_INBOX> = { rohan: ROHAN_INBOX, aarav: [...AARAV_INBOX, ...AARAV_MORE] };
 const who = process.argv.slice(2).find(a => !a.startsWith('--')) ?? 'aarav';
 const replace = process.argv.includes('--replace');
 const inbox = INBOXES[who];
