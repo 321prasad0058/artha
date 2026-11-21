@@ -23,7 +23,10 @@ export function shouldShowIntro() {
   if (typeof window === 'undefined') return false;
   const q = new URLSearchParams(location.search);
   if (q.has('intro')) return true;
-  if ([...q.keys()].length) return false;                                   // demo and recording links go straight in
+  // links that land mid-flow go straight in: a person or demo link (?p=), the return from Google sign-in, debug views.
+  // Opening the installed app (?source=app), a shortcut, a "get the app" link or a campaign tag still plays it.
+  const passThrough = (k: string) => k === 'source' || k === 'app' || k.startsWith('utm_');
+  if ([...q.keys()].some(k => !passThrough(k))) return false;
   if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return false;
   try { return sessionStorage.getItem('artha.intro') !== 'seen'; } catch { return true; }
 }
