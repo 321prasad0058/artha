@@ -6,9 +6,11 @@ import { API_BASE, api, type PersonaInfo, type Sample, type Scan } from './api';
 import { Orb, type OrbMode } from './Orb';
 import { Intro, shouldShowIntro } from './Intro';
 import { startRecording, type Recording } from './recorder';
+import { closeGetApp, inAppBrowser, installNow, iosFlow, isSafariMac, openGetApp, platform, standalone, useInstall } from './install';
 
 /* ---------------- icons ---------------- */
 const P: Record<string, string> = {
+  download: 'M12 4v11M7 10l5 5 5-5M5 20h14', share: 'M12 3v12M8 7l4-4 4 4M7 11H5v10h14V11h-2', plusbox: 'M4 4h16v16H4zM12 8v8M8 12h8', dots: 'M5 12h.01M12 12h.01M19 12h.01', vdots: 'M12 5h.01M12 12h.01M12 19h.01', copy: 'M9 9h11v11H9zM5 15V4h11',
   mic: 'M9 3h6v12H9zM5 11a7 7 0 0 0 14 0M12 18v3', play: 'M7 4.5v15l13-7.5z', send: 'M4 12l16-8-6 16-3-7z', check: 'M5 12.5l4.5 4.5L19 7',
   chat: 'M4 6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H9l-5 4z', spark: 'M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z',
   brain: 'M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6M12 3v3M12 18v3M3 12h3M18 12h3', chart: 'M4 20V10M10 20V4M16 20v-7M22 20H2', info: 'M12 8v.5M11 12h1v5h1M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18',
@@ -214,6 +216,7 @@ const GoogleG = () => (
 function Welcome({ me, samples, onPick }: { me: PersonaInfo | null; samples: PersonaInfo[]; onPick: (id: string) => void }) {
   const ref = useEnter<HTMLDivElement>(true);
   const [showSamples, setShowSamples] = useState(false);
+  const inst = useInstall();
   return (
     <div className="welcome" role="dialog" aria-label="Start with Artha">
       <div className="w-aurora" aria-hidden="true"><i /><i /><i /></div>
@@ -241,6 +244,7 @@ function Welcome({ me, samples, onPick }: { me: PersonaInfo | null; samples: Per
               <button key={p.id} onClick={() => onPick(p.id)}><span className="av ink">{p.avatar}</span><span><b>{p.name.split(' ')[0]}</b><small>{p.city} · {p.speaks[0]}</small></span></button>))}</div>
           </>)}
         </section>
+        {!inst.installed && <button className="w-app" onClick={openGetApp}><img src="/apple-touch-icon.png" alt="" /><span><b>Get the Artha AI app</b><small>Free · no app store · opens like any app</small></span><I n="download" /></button>}
       </div>
     </div>
   );
@@ -350,6 +354,14 @@ function Settings({ persona, state, voiceOn, onVoice, onClose, onState, onPerson
         <section className="set">
           <h3>Voice</h3>
           <label className="toggle"><input type="checkbox" checked={voiceOn} onChange={onVoice} id="set-voice" /><span>Artha speaks its replies</span></label>
+        </section>
+
+        <section className="set">
+          <h3>App</h3>
+          {standalone ? <p className="muted">You're using the Artha AI app. Open it any time from your home screen.</p> : (<>
+            <p className="muted">Install Artha AI on this {platform === 'desktop' ? 'computer' : 'phone'}. It opens full screen from its own icon, like any app. Free, no app store.</p>
+            <div className="row"><button className="btn btn-primary" onClick={() => { onClose(); openGetApp(); }}><I n="download" />Get the app</button></div>
+          </>)}
         </section>
 
         <section className="set">
@@ -642,6 +654,7 @@ export default function App() {
                 <span className="av lg ink">{p.avatar}</span><span><b>{p.name}</b><small>{p.city} · {p.speaks.join(', ')}</small></span>
               </button>))}
             <button className="link reset" onClick={() => { setMenu(false); setSettings(true); }}><I n="gear" />Settings</button>
+            {!standalone && <button className="link reset" onClick={() => { setMenu(false); openGetApp(); }}><I n="download" />Get the app</button>}
             <button className="link reset" onClick={() => { setMenu(false); setWelcome(true); }}><I n="back" />Back to start</button>
           </div>
         </div>)}
@@ -651,6 +664,49 @@ export default function App() {
         onState={applyState} onPersona={p => { setMe(p); }} onKnows={() => { setSettings(false); go('memory'); }}
         onSignOut={() => { try { localStorage.removeItem('artha.me'); sessionStorage.removeItem('artha.welcomed'); } catch { /* */ } setMe(null); setSettings(false); setPid('aditya'); setWelcome(true); }} />}
       {toast && <div className="toast" role="status">{toast}</div>}
+      <GetApp />
+    </div>
+  );
+}
+
+/** "Get the app": one tap where the browser can install, otherwise the exact taps for this phone or computer. */
+function GetApp() {
+  const { open, prompt, installed } = useInstall();
+  const [copied, setCopied] = useState(false);
+  if (!open) return null;
+  const link = `${location.origin}/?app`;
+  const copy = async () => { try { await navigator.clipboard.writeText(link); setCopied(true); } catch { /* */ } };
+  const Step = ({ n, children }: { n: number; children: React.ReactNode }) => <li><span className="n">{n}</span><span>{children}</span></li>;
+  const shareWhere = iosFlow === 'menu' ? <>Tap <b className="key"><I n="dots" /></b> at the bottom right, then <b>Share</b></> : iosFlow === 'bar' ? <>Tap <b className="key"><I n="share" /></b> <b>Share</b> at the bottom</> : <>Tap <b className="key"><I n="share" /></b> <b>Share</b> next to the address bar</>;
+  return (
+    <div className="sheet-bg app-bg" onClick={closeGetApp}>
+      <div className="app-sheet" role="dialog" aria-label="Get the Artha AI app" onClick={e => e.stopPropagation()}>
+        <button className="icon-btn app-x" onClick={closeGetApp} aria-label="Close"><I n="x" /></button>
+        <div className="app-top"><img src="/app-icon/v1/any-192.png" alt="" /><div><h2>Artha AI</h2><p>Free · no app store · opens full screen from its own icon</p></div></div>
+        {installed ? <p className="app-done"><I n="check" />Artha AI is installed. Open it from your {platform === 'desktop' ? 'apps' : 'home screen'}.</p>
+          : inAppBrowser ? (<>
+            <p className="app-lead">This window can't install apps. Open the page in {platform === 'ios' ? 'Safari' : 'Chrome'} first:</p>
+            <ol className="app-steps"><Step n={1}>Tap <b className="key"><I n={platform === 'ios' ? 'dots' : 'vdots'} /></b> in the top corner</Step><Step n={2}>Choose <b>Open in {platform === 'ios' ? 'Safari' : 'browser'}</b></Step><Step n={3}>Tap <b>Get the Artha AI app</b> again</Step></ol>
+          </>) : prompt ? (<>
+            <p className="app-lead">One tap. Artha AI goes on your {platform === 'desktop' ? 'computer' : 'home screen'} like any other app.</p>
+            <button className="btn btn-primary app-go" onClick={() => void installNow()}><I n="download" />Install Artha AI</button>
+          </>) : platform === 'ios' ? (<>
+            <p className="app-lead">Add it from {iosFlow === 'top' ? 'your browser' : 'Safari'} in three taps:</p>
+            <ol className="app-steps"><Step n={1}>{shareWhere}</Step><Step n={2}>Scroll down and tap <b className="key"><I n="plusbox" /></b> <b>Add to Home Screen</b></Step><Step n={3}>Keep <b>Open as Web App</b> on and tap <b>Add</b></Step></ol>
+          </>) : platform === 'android' ? (<>
+            <p className="app-lead">Add it from Chrome in two taps:</p>
+            <ol className="app-steps"><Step n={1}>Tap <b className="key"><I n="vdots" /></b> at the top right</Step><Step n={2}>Tap <b>Install app</b> (or <b>Add to Home screen</b>), then <b>Install</b></Step></ol>
+          </>) : isSafariMac ? (<>
+            <p className="app-lead">Add it to your Mac's Dock:</p>
+            <ol className="app-steps"><Step n={1}>In Safari's menu bar choose <b>File → Add to Dock</b></Step><Step n={2}>Click <b>Add</b></Step></ol>
+          </>) : (<>
+            <p className="app-lead">Install it from Chrome or Edge:</p>
+            <ol className="app-steps"><Step n={1}>Click the <b className="key"><I n="download" /></b> install icon at the right end of the address bar</Step><Step n={2}>Click <b>Install</b></Step></ol>
+          </>)}
+        {platform === 'desktop' && !installed && (
+          <div className="app-phone"><b>On your phone</b><p>Open this link in Chrome (Android) or Safari (iPhone) and tap <b>Get the app</b>.</p>
+            <button className="app-link" onClick={copy}><span>{link.replace(/^https?:\/\//, '')}</span><I n={copied ? 'check' : 'copy'} /></button></div>)}
+      </div>
     </div>
   );
 }

@@ -115,9 +115,16 @@ DOMAIN=$(aws_ cloudfront get-distribution --id "$DIST" --query Distribution.Doma
 aws_ s3api put-bucket-policy --bucket "$WEB" --policy "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Principal\":{\"Service\":\"cloudfront.amazonaws.com\"},\"Action\":\"s3:GetObject\",\"Resource\":\"arn:aws:s3:::$WEB/*\",\"Condition\":{\"StringEquals\":{\"AWS:SourceArn\":\"arn:aws:cloudfront::$ACCT:distribution/$DIST\"}}}]}"
 
 say "site"
-aws_ s3 sync dist "s3://$WEB" --delete --exclude index.html --cache-control "public, max-age=31536000, immutable" --only-show-errors
+# hashed build files and versioned app icons never change; everything with a fixed name must be re-checked every visit
+FIXED=(index.html sw.js manifest.webmanifest icon.svg apple-touch-icon.png favicon-32.png)
+EXC=(); for f in "${FIXED[@]}"; do EXC+=(--exclude "$f"); done
+aws_ s3 sync dist "s3://$WEB" --delete "${EXC[@]}" --exclude "app/*" --cache-control "public, max-age=31536000, immutable" --only-show-errors
+aws_ s3 sync dist/app "s3://$WEB/app" --delete --cache-control "public, max-age=3600" --only-show-errors
 aws_ s3 cp dist/index.html "s3://$WEB/index.html" --cache-control "no-cache" --content-type "text/html; charset=utf-8" --only-show-errors
-aws_ cloudfront create-invalidation --distribution-id "$DIST" --paths "/index.html" "/clips/*" >/dev/null
+aws_ s3 cp dist/sw.js "s3://$WEB/sw.js" --cache-control "no-cache" --content-type "text/javascript; charset=utf-8" --only-show-errors
+aws_ s3 cp dist/manifest.webmanifest "s3://$WEB/manifest.webmanifest" --cache-control "no-cache" --content-type "application/manifest+json" --only-show-errors
+for f in icon.svg apple-touch-icon.png favicon-32.png; do aws_ s3 cp "dist/$f" "s3://$WEB/$f" --cache-control "public, max-age=3600" --only-show-errors; done
+aws_ cloudfront create-invalidation --distribution-id "$DIST" --paths "/index.html" "/sw.js" "/manifest.webmanifest" "/icon.svg" "/apple-touch-icon.png" "/favicon-32.png" "/app/*" "/clips/*" >/dev/null
 
 echo
 echo "✓ Artha is live: https://$DOMAIN"

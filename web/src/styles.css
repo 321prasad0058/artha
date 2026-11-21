@@ -564,3 +564,33 @@ a.btn { text-decoration: none; }
 .brand .wordmark i { font-style: normal; color: var(--forest); }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .brand .wordmark i { color: var(--ink); } }
 .w-mark-img { width: 44px; height: 44px; flex: none; }
+
+/* get the app */
+.w-app { justify-self: center; display: flex; align-items: center; gap: 12px; padding: 10px 16px 10px 10px; border-radius: 18px; background: rgba(255, 255, 255, .7); border: 1px solid #dfeadf;
+  box-shadow: 0 10px 24px -18px rgba(15, 54, 45, .5); text-align: left; transition: transform .15s, border-color .2s; }
+.w-app:hover { border-color: var(--brand); } .w-app:active { transform: scale(.98); }
+.w-app img { width: 40px; height: 40px; border-radius: 10px; }
+.w-app span { display: grid; } .w-app b { font-size: 14.5px; } .w-app small { color: var(--muted); font-size: 12.5px; }
+.w-app .ico { color: var(--accent); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .w-app { background: rgba(17, 36, 30, .8); border-color: rgba(255, 255, 255, .08); } }
+.app-bg { justify-items: center; align-items: center; z-index: 120; }
+.app-sheet { position: relative; width: min(440px, calc(100% - 32px)); background: var(--surface); border: 1px solid var(--line); border-radius: 24px; padding: 24px; display: grid; gap: 16px;
+  box-shadow: var(--shadow-lg); animation: appin .28s var(--ease); }
+@keyframes appin { from { opacity: 0; transform: translateY(14px) scale(.98); } }
+.app-x { position: absolute; top: 14px; right: 14px; }
+.app-top { display: flex; gap: 14px; align-items: center; padding-right: 30px; }
+.app-top img { width: 60px; height: 60px; border-radius: 15px; box-shadow: 0 10px 22px -12px rgba(0, 143, 54, .7); }
+.app-top h2 { font-size: 22px; } .app-top p { color: var(--muted); font-size: 13.5px; margin-top: 2px; }
+.app-lead { color: var(--ink-2); font-size: 15px; }
+.app-go { height: 50px; font-size: 16px; width: 100%; }
+.app-steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.app-steps li { display: flex; gap: 12px; align-items: flex-start; padding: 12px 14px; border-radius: 14px; background: var(--surface-2); border: 1px solid var(--line); font-size: 15px; line-height: 1.45; }
+.app-steps .n { flex: none; width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; background: var(--brand); color: #fff; font-size: 13px; font-weight: 700; }
+.app-steps .key { display: inline-grid; place-items: center; width: 26px; height: 26px; vertical-align: -7px; border-radius: 8px; background: var(--surface); border: 1px solid var(--line-2); }
+.app-steps .key .ico { width: 15px; height: 15px; stroke-width: 3; }
+.app-done { display: flex; gap: 8px; align-items: center; color: var(--accent); font-weight: 600; }
+.app-phone { border-top: 1px solid var(--line); padding-top: 14px; display: grid; gap: 6px; }
+.app-phone p { color: var(--muted); font-size: 13.5px; }
+.app-link { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 10px 14px; border-radius: 12px; background: var(--accent-soft); color: var(--accent); font-weight: 600; font-size: 14px; }
+.app-link span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+@media (max-width: 520px) { .app-bg { align-items: end; } .app-sheet { width: 100%; border-radius: 24px 24px 0 0; padding-bottom: calc(24px + env(safe-area-inset-bottom)); } }

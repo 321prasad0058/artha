@@ -1,0 +1,28 @@
+{
+  "id": "/",
+  "name": "Artha AI",
+  "short_name": "Artha AI",
+  "description": "Your voice assistant for India. Say a short note in your language; Artha AI knows your people, plans and dues, and does the rest. Bas ishaara kaafi hai.",
+  "start_url": "/?source=app",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f7fbf5",
+  "theme_color": "#f7fbf5",
+  "lang": "en-IN",
+  "categories": ["productivity", "utilities", "finance"],
+  "icons": [
+    { "src": "/app-icon/v1/any-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/app-icon/v1/any-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/app-icon/v1/maskable-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "/app-icon/v1/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Talk to Artha", "short_name": "Talk", "url": "/?source=shortcut", "icons": [{ "src": "/app-icon/v1/any-192.png", "sizes": "192x192" }] }
+  ],
+  "screenshots": [
+    { "src": "/app/shot-signin.png", "sizes": "780x1688", "type": "image/png", "form_factor": "narrow", "label": "Connect Gmail once" },
+    { "src": "/app/shot-home.png", "sizes": "780x1688", "type": "image/png", "form_factor": "narrow", "label": "Hold the orb and speak" },
+    { "src": "/app/shot-wide.png", "sizes": "1440x900", "type": "image/png", "form_factor": "wide", "label": "Artha AI on a laptop" }
+  ]
+}
