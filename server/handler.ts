@@ -58,8 +58,11 @@ export async function handle(req: Req): Promise<Res> {
       const c = who.contacts.find(x => x.id === b.contactId);
       if (!c) return json(400, { error: 'Unknown contact' });
       const state = await loadState(who.id);
-      const fact = `When you say “${b.mention}”${b.topic ? ` about ${b.topic}` : ''}, you mean ${c.name} (${c.rel})`;
-      if (!state.memory.some(m => m.fact === fact)) state.memory.push({ fact, src: 'you told Artha', at: nowIso(), learned: true });
+      const topic = typeof b.topic === 'string' && b.topic ? b.topic : undefined;
+      const fact = `“${b.mention}”${topic ? ` (${topic.replace('_', ' ')})` : ''} means ${c.name}, ${c.rel.toLowerCase()}`;
+      // a newer correction for the same words replaces the old one
+      state.memory = state.memory.filter(m => !(m.kind === 'alias' && m.mention?.toLowerCase() === String(b.mention).toLowerCase() && m.topic === topic));
+      state.memory.push({ fact, src: b.how === 'changed' ? 'you changed it once' : 'you told Artha', at: nowIso(), learned: true, kind: 'alias', about: c.id, mention: String(b.mention), topic });
       await saveState(state);
       return json(200, { state });
     }

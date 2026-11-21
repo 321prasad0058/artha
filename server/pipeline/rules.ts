@@ -46,12 +46,16 @@ export function checkActions(actions: Action[], p: Persona, now = new Date()): {
   return { actions: out, checks };
 }
 
-/** When two people fit almost equally, ask once instead of guessing. */
-export function needsClarify(mentions: Mention[], forced: Record<string, string>, question: string): Clarify | null {
+/** Ask only when it is a real tie, or a close call where a wrong guess moves money.
+ *  Otherwise Artha acts on its best guess and offers the runner-up as a one-tap "change". */
+export function needsClarify(mentions: Mention[], forced: Record<string, string>, question: string, actions: Action[] = []): Clarify | null {
   for (const m of mentions) {
     if (m.kind !== 'person' || forced[m.text]) continue;
     const c = [...m.candidates].sort((a, b) => b.score - a.score);
-    if (c.length >= 2 && c[1].score >= 0.25 && c[0].score - c[1].score < 0.2) {
+    if (c.length < 2 || c[1].score < 0.25) continue;
+    const gap = c[0].score - c[1].score;
+    const moneyAtStake = actions.some(a => (a.type === 'payment' || a.type === 'ledger') && [c[0].id, c[1].id].includes(a.contact_id));
+    if (gap < 0.08 || (gap < 0.2 && moneyAtStake)) {
       return { mention: m.text, question: question || `Which ${m.text} did you mean?`, options: c.slice(0, 3).filter(x => x.score >= 0.2).map(x => ({ id: x.id, label: x.name })) };
     }
   }

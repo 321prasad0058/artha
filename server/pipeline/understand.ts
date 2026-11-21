@@ -2,7 +2,7 @@
 // Base modes exist so the same recording can be compared: plain model, and plain model + pasted context.
 import { jsonCall } from '../openai.js';
 import type { Action, Candidate, Mention, Mode, Persona, Result, State } from '../types.js';
-import { findCandidates } from './candidates.js';
+import { retrieve } from '../kb.js';
 import { isoOf, labelOf, normalise } from './normalize.js';
 import { checkActions, needsClarify, secretCheck } from './rules.js';
 import { romanize } from './translit.js';
@@ -115,26 +115,27 @@ export async function understand(args: { persona: Persona; state: State; transcr
   const msMeaning = Date.now() - t;
 
   t = Date.now();
-  const shortlist = findCandidates(roman, p);
+  // Knowledge base retrieval: likely people, facts about them, the topic, what the user taught before.
+  const kb = retrieve(roman, p, state, now);
+  const shortlist = kb.candidates;
   const filled: Candidate[] = [...shortlist];
   for (const c of p.contacts) if (filled.length < 12 && !filled.some(x => x.id === c.id)) filled.push({ id: c.id, name: c.name, rel: c.rel, score: 0, why: 'No match in the note' });
   const msWho = Date.now() - t;
 
-  const contactInfo = filled.map(c => { const k = p.contacts.find(x => x.id === c.id)!; return { id: k.id, name: k.name, relation: k.rel, lang: k.lang, called: k.aliases, code_score: c.score, code_reason: c.why }; });
-  const recent = [...p.events].sort((a, b) => b.day - a.day || b.time.localeCompare(a.time)).slice(0, 8)
-    .map(e => `${eventWhen(e.day, e.time, now)} — ${p.contacts.find(c => c.id === e.contact)?.name ?? e.contact}: ${e.text}`);
+  const contactInfo = filled.map(c => { const k = p.contacts.find(x => x.id === c.id)!; return { id: k.id, name: k.name, relation: k.rel, lang: k.lang, called: k.aliases, code_score: Number(c.score.toFixed(2)), code_reason: c.why }; });
   const input = [
     `TODAY: ${istNowLabel(now)} (Asia/Kolkata)`,
     `USER: ${p.name}, ${p.age}, ${p.city}. ${p.about}`,
     `TRANSCRIPT: "${transcript}"`,
     `ROMAN: "${roman}"`,
+    `TOPIC (from code): ${kb.topics.join(', ') || 'unclear'}`,
     `CODE_VALUES: ${norm.entities.length ? norm.entities.map(e => `"${e.text}" = ${e.label}`).join('; ') : 'none'}${norm.when ? `; combined when = ${norm.when.iso} (${norm.when.label})` : ''}`,
-    `CANDIDATES: ${JSON.stringify(contactInfo)}`,
-    `RECENT ACTIVITY:\n${recent.join('\n')}`,
-    `MEMORY:\n${state.memory.map(m => `- ${m.fact}`).join('\n')}`,
+    `CANDIDATES (code_score comes from name sound, topic fit, recency and past corrections; trust it unless the note clearly says otherwise): ${JSON.stringify(contactInfo)}`,
+    `RELEVANT FACTS:\n${kb.facts.map(f => `- ${f.text}`).join('\n') || '- none'}`,
+    `RECENT ACTIVITY:\n${kb.recent.join('\n')}`,
     `CALENDAR: ${state.calendar.map(c => `${c.title} (${c.when_label})`).join('; ') || 'empty'}`,
-    state.ledger.length ? `LEDGER (credit due): ${state.ledger.map(l => `${p.contacts.find(c => c.id === l.contact)?.name}: ₹${l.amount} ${l.note}`).join('; ')}` : '',
-    Object.keys(forced).length ? `FORCED: ${JSON.stringify(forced)} (the user already answered which person they meant)` : '',
+    state.ledger.length && kb.topics.some(t => t.startsWith('shop')) ? `LEDGER (credit due): ${state.ledger.map(l => `${p.contacts.find(c => c.id === l.contact)?.name}: ₹${l.amount} ${l.note}`).join('; ')}` : '',
+    Object.keys(forced).length ? `FORCED: ${JSON.stringify(forced)} (the user already chose these people)` : '',
   ].filter(Boolean).join('\n\n');
 
   t = Date.now();
@@ -148,11 +149,20 @@ export async function understand(args: { persona: Persona; state: State; transcr
       .filter(c => p.contacts.some(x => x.id === c.id)).map(c => ({ ...c, name: p.contacts.find(x => x.id === c.id)!.name })),
   }));
 
-  const clarify = needsClarify(mentions, forced, out.clarify_question);
-  const { actions, checks } = clarify ? { actions: [], checks: [{ rule: 'Two people fit almost equally, so Artha asks once', ok: true }] } : checkActions(out.actions.map(a => ({ ...a, contact_name: '' })), p, now);
+  const planned = out.actions.map(a => ({ ...a, contact_name: '' }));
+  const clarify = needsClarify(mentions, forced, out.clarify_question, planned);
+  const { actions, checks } = clarify ? { actions: [], checks: [{ rule: 'A true tie between two people, so Artha asks once', ok: true }] } : checkActions(planned, p, now);
+  // Fewer questions: attach the runner-up to each action as a one-tap "change".
+  for (const a of actions) {
+    const m = mentions.find(x => x.kind === 'person' && x.candidates.some(c => c.id === a.contact_id));
+    if (!m) continue;
+    a.mention = m.text;
+    a.alternatives = [...m.candidates].sort((x, y) => y.score - x.score).filter(c => c.id !== a.contact_id && c.score >= 0.15).slice(0, 2).map(c => ({ id: c.id, name: c.name }));
+    if (!a.alternatives.length) a.alternatives = shortlist.filter(c => c.id !== a.contact_id && c.score >= 0.3).slice(0, 2).map(c => ({ id: c.id, name: c.name }));
+  }
 
   return {
     mode, transcript, roman, language: out.language, entities: norm.entities, candidates: shortlist, mentions, actions, clarify, blocked: false, checks,
-    learn: clarify ? [] : out.learn.filter(l => l && l.length < 160).slice(0, 2), reply: clarify ? '' : out.reply, ms: { meaning: msMeaning, who: msWho, plan: msPlan },
+    learn: clarify ? [] : out.learn.filter(l => l && l.length < 160).slice(0, 2), reply: clarify ? '' : out.reply, topics: kb.topics, ms: { meaning: msMeaning, who: msWho, plan: msPlan },
   };
 }

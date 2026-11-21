@@ -22,6 +22,9 @@ export type Action = {
   type: ActionType; contact_id: string; contact_name: string; language: string; text: string; gloss: string;
   goal: string; title: string; when_iso: string; when_label: string; amount_inr: number; predicted: boolean; why: string;
   needs_confirm?: boolean;
+  /** Other people this could have meant, offered as one-tap "change" instead of a question. */
+  alternatives?: { id: string; name: string }[];
+  mention?: string;
 };
 
 export type Check = { rule: string; ok: boolean; note?: string };
@@ -41,12 +44,13 @@ export type Result = {
   checks: Check[];
   learn: string[];
   reply: string;
+  topics?: string[];
   ms: { meaning: number; who: number; plan: number };
 };
 
 export type State = {
   persona: string;
-  memory: { fact: string; src: string; at: string; learned?: boolean }[];
+  memory: { fact: string; src: string; at: string; learned?: boolean; kind?: string; about?: string; mention?: string; topic?: string }[];
   threads: Record<string, { me: boolean; text: string; at: string; via?: string }[]>;
   calendar: { title: string; when_iso: string; when_label: string; contact?: string; added?: boolean }[];
   reminders: { title: string; when_label: string; when_iso: string }[];
