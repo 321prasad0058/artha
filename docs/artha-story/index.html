@@ -302,6 +302,10 @@ footer{padding-block:28px;color:var(--dim);font-size:13px}
 <section id="problem"><div class="wrap">
   <div class="ch"><span class="n">01 · THE PROBLEM</span><h2>India speaks in hints. Base models need instructions.</h2>
     <p class="lead">A voice note is six seconds long, mixes two languages, and leaves most things unsaid. Here is one real recording, run through the same speech model with and without Artha.</p></div>
+  <div class="card context" style="margin:0 0 16px;grid-template-columns:minmax(0,1fr)">
+    <p style="font-size:clamp(19px,2.4vw,24px);line-height:1.4;letter-spacing:-.02em">“Over a billion Indians have never typed a search into Gemini or ChatGPT intentionally.”</p>
+    <p class="muted" style="font-size:14.5px">Keshav Reddy, founder of Equal AI. For them, voice is the way in. So Artha listens in their language, and <b>answers out loud</b> in their language too, so a user never has to read a screen or type a word to get something done.</p>
+  </div>
   <div class="card quote" id="quote"></div>
   <div class="gaps" id="gaps"></div>
   <div class="card context">
@@ -401,7 +405,7 @@ footer{padding-block:28px;color:var(--dim);font-size:13px}
   <div class="cols3">
     <div class="card box"><h3>Built this weekend</h3><ul><li>Transcription with name hints, script → Roman conversion</li><li>Indian dates, times and amounts in 4 languages, with tests</li><li>Knowledge base: tags, linked facts, corrections</li><li>Rules: OTP block, money confirmation</li><li>The app (React, Three.js, GSAP) and the eval</li></ul></div>
     <div class="card box"><h3>Reused</h3><ul><li>OpenAI: gpt-transcribe, gpt-6-luna, gpt-4o-mini-tts for test voices</li><li>Open source: React, Vite, Three.js, GSAP</li><li>AWS for hosting</li></ul></div>
-    <div class="card box"><h3>Simulated, honestly</h3><ul><li>The four people and their histories are made up</li><li>Messages, calls and payments happen inside the app only</li><li>Test clips are synthetic voices; real recordings are being added</li></ul></div>
+    <div class="card box"><h3>Simulated, honestly</h3><ul><li>The four people and their histories are made up</li><li>Messages, calls and payments happen inside the app only</li><li>Test clips are synthetic voices, written in each language’s own script so names are said natively. Transcribing them back gives a 2% error, down from 7.8%. Real recordings are being added</li></ul></div>
   </div>
   <div class="cols3">
     <div class="card box"><h3>Next for Equal: calls</h3><p class="muted" style="font-size:14px">The same harness fixes names and adds actions to call summaries today: “Shankar Rapido”, “DSR Builder”, Call back, Add to calendar.</p></div>
@@ -531,7 +535,7 @@ function renderDemo(animate) {
     <div id="resultArea" style="display:grid;gap:14px;${animate ? 'opacity:.25;' : ''}transition:opacity .5s">
       ${r.blocked ? `<div class="blocked">${ico('shield')}<div><b>Never shared. An OTP stays with you.</b><span>The digits were hidden before any AI or log saw them.</span></div></div>` : `<p class="understood">${highlight(r.transcript, r.marks)}</p>`}
       ${r.actions.length ? `<div class="acts">${r.actions.map(a => actCard(a, n.persona)).join('')}</div>` : `<p class="muted">No action.</p>`}
-      ${r.reply ? `<p class="reply">Artha: “${esc(r.reply)}”</p>` : ''}
+      ${(r.reply_speech || r.reply) ? `<p class="reply">Artha says out loud: “${esc(r.reply_speech || r.reply)}”</p>` : ''}
       <p class="dim" style="font-size:12.5px">Total ${fmt(ms.reduce((a, b) => a + b, 0))} · ${esc(n.synthetic ? 'synthetic test voice' : 'real recording')} · recorded output</p>
     </div>`;
   const mark = ok => ok ? `<span class="v chip green">${ico('check', 'width:12px;height:12px')}right</span>` : `<span class="v chip red">${ico('x', 'width:12px;height:12px')}wrong</span>`;
