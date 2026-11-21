@@ -218,7 +218,7 @@ function Welcome({ me, samples, onPick }: { me: PersonaInfo | null; samples: Per
     <div className="welcome" role="dialog" aria-label="Start with Artha">
       <div className="w-aurora" aria-hidden="true"><i /><i /><i /></div>
       <div className="welcome-in" ref={ref}>
-        <header className="w-brand2"><div className="w-lockup"><img src="/icon.svg" alt="" className="w-logo" /><h1 className="w-word">artha <i>ai</i></h1></div><p>Bas ishaara kaafi hai.</p></header>
+        <header className="w-brand2"><div className="w-lockup"><img src="/icon.svg" alt="" className="w-logo" /><h1 className="w-word">Artha <i>AI</i></h1></div><p>Bas ishaara kaafi hai.</p></header>
         <section className="w-sign">
           {me && (<>
             <button className="w-me" onClick={() => onPick(me.id)}><span className="av lg ink">{me.avatar}</span><span><b>Continue as {me.name.split(' ')[0]}</b><small>{me.email}</small></span><I n="send" /></button>
@@ -580,7 +580,7 @@ export default function App() {
     <div className="app">
       {intro && <Intro onDone={endIntro} />}
       <header className="top">
-        <div className="brand"><img className="logo" src="/icon.svg" alt="" /><b className="wordmark">artha <i>ai</i></b></div>
+        <div className="brand"><img className="logo" src="/icon.svg" alt="" /><b className="wordmark">Artha <i>AI</i></b></div>
         <nav className="topnav" aria-label="Views">
           {([['artha', 'Artha'], ['chats', 'Chats'], ['results', 'Results'], ['about', 'About']] as const).map(([t, l]) => (
             <button key={t} className={t === 'chats' ? 'only-mid' : ''} aria-current={tab === t || (t === 'artha' && tab === 'memory') ? 'page' : undefined} onClick={() => go(t)}>{l}</button>))}

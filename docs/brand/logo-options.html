@@ -71,7 +71,7 @@ document.getElementById('grid').innerHTML = marks.map(([name, note, rec, fn], i)
   <div class="card${rec ? ' rec' : ''}">
     <div class="top"><span><b>${i + 1}</b> · ${name}</span>${rec ? '<span class="tag">Pick</span>' : ''}</div>
     <div class="hero">${svg(fn, G)}</div>
-    <div class="lock">${svg(fn, G)}<span class="word">artha <i>ai</i></span></div>
+    <div class="lock">${svg(fn, G)}<span class="word">Artha <i>AI</i></span></div>
     <div class="row"><div class="dark">${svg(fn, '#BAFF29')}</div><span class="s24">${svg(fn, G)}</span><span class="s16">${svg(fn, G)}</span></div>
     <p class="note">${note}</p>
   </div>`).join('');
