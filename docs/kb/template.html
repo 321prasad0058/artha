@@ -1,0 +1,160 @@
+<title>Artha Knowledge Bases</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Noto+Sans+Devanagari:wght@400;600&family=Noto+Sans+Tamil:wght@400;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: a person picker, then one person's context space read top-down: who's who → what Artha knows → money and plans → the live test it passed. */
+:root {
+  --bg: #f4f2ec; --surface: #ffffff; --surface-2: #faf8f3; --ink: #17181c; --ink-2: #33363d; --muted: #61656d; --line: #e3dfd5;
+  --accent: #2c46c2; --accent-soft: #e7ebfb; --good: #1d7a45; --good-soft: #e3f2e8; --warn: #96580b; --warn-soft: #fbefdc; --twin: #6b3fa3; --twin-soft: #f0e9f9;
+  --display: 'Instrument Sans', 'Noto Sans Devanagari', 'Noto Sans Tamil', 'Helvetica Neue', Arial, sans-serif;
+  --body: 'Instrument Sans', 'Noto Sans Devanagari', 'Noto Sans Tamil', 'Helvetica Neue', Arial, sans-serif;
+  --mono: 'JetBrains Mono', ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #101114; --surface: #1a1c21; --surface-2: #16181c; --ink: #eeede7; --ink-2: #d4d3cd; --muted: #a2a5ac; --line: #2b2e35;
+  --accent: #93a6ff; --accent-soft: #232a4b; --good: #63c891; --good-soft: #15301f; --warn: #e3a94f; --warn-soft: #3a2b13; --twin: #c49df1; --twin-soft: #2c2140; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #101114; --surface: #1a1c21; --surface-2: #16181c; --ink: #eeede7; --ink-2: #d4d3cd; --muted: #a2a5ac; --line: #2b2e35;
+  --accent: #93a6ff; --accent-soft: #232a4b; --good: #63c891; --good-soft: #15301f; --warn: #e3a94f; --warn-soft: #3a2b13; --twin: #c49df1; --twin-soft: #2c2140; color-scheme: dark }
+* { box-sizing: border-box }
+body { background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 15px; line-height: 1.5; -webkit-font-smoothing: antialiased }
+.wrap { max-width: 1180px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 28px 64px; display: grid; gap: 28px }
+h1, h2, h3 { margin: 0; letter-spacing: -.025em; text-wrap: balance; font-family: var(--display) }
+h1 { font-size: clamp(28px, 4.2vw, 44px); line-height: 1.05 }
+h2 { font-size: 19px } h3 { font-size: 15.5px }
+p { margin: 0 }
+.lead { color: var(--muted); max-width: 70ch; margin-top: 8px }
+.score { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px }
+.stat { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 10px 14px; display: grid; min-width: 120px }
+.stat b { font-size: 22px; letter-spacing: -.03em; font-variant-numeric: tabular-nums } .stat span { font-size: 12px; color: var(--muted) }
+.stat.good b { color: var(--good) }
+.tabs { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; position: sticky; top: env(safe-area-inset-top, 0px); background: var(--bg); z-index: 5; padding-top: 8px }
+.tab { flex: none; display: flex; align-items: center; gap: 8px; padding: 6px 12px 6px 6px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); font: 600 14px var(--body); cursor: pointer }
+.tab .av { width: 26px; height: 26px; border-radius: 50%; background: var(--ink); color: var(--bg); font-size: 10.5px; display: grid; place-items: center }
+.tab[aria-selected="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink) } .tab[aria-selected="true"] .av { background: var(--bg); color: var(--ink) }
+.tab small { font-weight: 500; opacity: .7 }
+.tab:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px }
+.person { display: grid; gap: 22px }
+.ph { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 14px; align-items: end }
+.ph p { color: var(--muted); max-width: 64ch }
+.meta { display: flex; flex-wrap: wrap; gap: 6px }
+.chip { font-size: 12px; font-weight: 600; padding: 2px 9px; border-radius: 999px; background: var(--surface-2); border: 1px solid var(--line); color: var(--ink-2); white-space: nowrap }
+.chip.acc { background: var(--accent-soft); color: var(--accent); border-color: transparent }
+.chip.twin { background: var(--twin-soft); color: var(--twin); border-color: transparent }
+.chip.good { background: var(--good-soft); color: var(--good); border-color: transparent }
+.chip.warn { background: var(--warn-soft); color: var(--warn); border-color: transparent }
+.counts { display: grid; grid-template-columns: repeat(auto-fit, minmax(112px, 1fr)); gap: 8px }
+.counts div { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 9px 12px; display: grid }
+.counts b { font-size: 19px; font-variant-numeric: tabular-nums } .counts span { font-size: 12px; color: var(--muted) }
+.sec { display: grid; gap: 12px } .sec > .sh { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap } .sec > .sh span { color: var(--muted); font-size: 13px }
+.people { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 10px }
+.pc { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 14px; display: grid; gap: 8px; align-content: start; min-width: 0 }
+.pc.twin { border-color: color-mix(in srgb, var(--twin) 45%, var(--line)); box-shadow: inset 3px 0 0 var(--twin) }
+.pc .top { display: flex; justify-content: space-between; gap: 8px; align-items: start }
+.pc .nm { display: grid } .pc .nm b { font-size: 15.5px } .pc .nm span { font-size: 13px; color: var(--muted) }
+.pc .about { font-size: 13.5px; color: var(--ink-2) }
+.kv { display: grid; grid-template-columns: 74px 1fr; gap: 3px 10px; font-size: 13px } .kv dt { color: var(--muted) } .kv dd { margin: 0; min-width: 0; overflow-wrap: anywhere }
+.calls { display: flex; flex-wrap: wrap; gap: 4px }
+.cols { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 18px } @media (max-width: 860px) { .cols { grid-template-columns: minmax(0, 1fr) } }
+.list { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; overflow: hidden }
+.li { display: grid; grid-template-columns: 1fr auto; gap: 10px; padding: 10px 14px; border-top: 1px solid var(--line); font-size: 14px; align-items: start } .li:first-child { border-top: 0 }
+.li small { display: block; color: var(--muted); font-size: 12.5px }
+.empty { padding: 14px; color: var(--muted); font-size: 14px }
+.tests .li { grid-template-columns: 26px minmax(0, 1fr) auto }
+.ok { width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; font-size: 13px; font-weight: 700; background: var(--good-soft); color: var(--good) } .ok.no { background: var(--warn-soft); color: var(--warn) }
+.said { font-weight: 600 } .note { color: var(--accent); font-size: 12.5px; font-weight: 600 }
+pre.out { margin: 6px 0 0; font: 12.5px/1.5 var(--mono); white-space: pre-wrap; overflow-wrap: anywhere; color: var(--ink-2); background: var(--surface-2); border-radius: 10px; padding: 8px 10px }
+.ms { font: 600 12.5px var(--mono); color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap }
+.how { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 16px; display: grid; gap: 10px; font-size: 14px; color: var(--ink-2) }
+.how ul { margin: 0; padding-left: 18px; display: grid; gap: 4px }
+.foot { color: var(--muted); font-size: 13px }
+@media (prefers-reduced-motion: no-preference) { .person { animation: in .35s ease-out } @keyframes in { from { opacity: .4; transform: translateY(4px) } to { opacity: 1; transform: none } } }
+</style>
+<div class="wrap">
+  <header>
+    <h1>What Artha knows, person by person</h1>
+    <p class="lead">Each person has their own context space on the live system: who's who in their life, what they call each person, facts Artha learned, their khata and plans, and habits from what they confirmed. Numbers below come from a live test run against the deployed site.</p>
+    <div class="score" id="score"></div>
+  </header>
+  <nav class="tabs" id="tabs" role="tablist" aria-label="People"></nav>
+  <main id="view"></main>
+  <section class="how">
+    <h2>How a context space is stored</h2>
+    <ul>
+      <li>One SQLite file per person, kept in S3 (about 160 KB each). Isolation is by design: deleting a person's data is deleting one file.</li>
+      <li>Layers: people and what the user calls them, facts, conversation turns with each action's status, chats and calls, calendar, khata, and habits learned only from what the user confirmed.</li>
+      <li>Every piece of text gets a 256-number vector (text-embedding-3-large, stored as 8-bit), so a Marathi question can find an English note by meaning.</li>
+      <li>Kept for 90 days. Facts that keep being used stay alive; khata entries roll into a carried-forward balance before they expire.</li>
+    </ul>
+  </section>
+  <p class="foot" id="foot"></p>
+</div>
+<script>
+const DATA = __DATA__;
+const $ = (s, el = document) => el.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const inr = n => '₹' + Number(n).toLocaleString('en-IN');
+const S = DATA.results.summary;
+$('#score').innerHTML = [
+  ['good', `${S.passed}/${S.tasks}`, 'live tasks right'],
+  ['', `${(S.median_ms / 1000).toFixed(1)} s`, 'typical time per task'],
+  ['', `${(S.p90_ms / 1000).toFixed(1)} s`, '9 in 10 finish within'],
+  ['', String(Object.keys(DATA.kb).length), 'people'],
+  ['', String(Object.values(DATA.kb).reduce((s, k) => s + k.counts.vectors, 0)), 'stored vectors'],
+].map(([c, b, s]) => `<div class="stat ${c}"><b>${b}</b><span>${s}</span></div>`).join('');
+$('#foot').textContent = `Live run on ${new Date(S.at).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })} against ${S.base}.`;
+
+const ids = Object.keys(DATA.personas);
+$('#tabs').innerHTML = ids.map(id => { const p = DATA.personas[id]; return `<button class="tab" role="tab" id="t-${id}" aria-selected="false" data-id="${id}"><span class="av">${esc(p.avatar)}</span>${esc(p.name.split(' ')[0])} <small>${esc(p.city)}</small></button>`; }).join('');
+$('#tabs').addEventListener('click', e => { const b = e.target.closest('.tab'); if (b) location.hash = b.dataset.id; });
+
+function firstName(n) { return String(n).replace(/^(Dr\.|Mr\.|Mrs\.)\s*/, '').split(/[\s']/)[0].toLowerCase(); }
+function render(id) {
+  const p = DATA.personas[id], k = DATA.kb[id], st = DATA.state[id], tests = DATA.results.results.filter(r => r.person === id);
+  document.querySelectorAll('.tab').forEach(t => t.setAttribute('aria-selected', String(t.dataset.id === id)));
+  // same first name, different people
+  const byFirst = {}; for (const c of k.people) (byFirst[firstName(c.name)] ??= []).push(c.id);
+  const twin = new Set(Object.values(byFirst).filter(a => a.length > 1).flat());
+  const people = [...k.people].sort((a, b) => Number(twin.has(b.id)) - Number(twin.has(a.id)) || (b.interactions - a.interactions));
+  const learned = st.memory.filter(m => m.learned), profile = st.memory.filter(m => !m.learned);
+  const name = cid => k.people.find(x => x.id === cid)?.name ?? '';
+  const passed = tests.filter(t => t.pass).length;
+  $('#view').innerHTML = `<article class="person">
+    <div class="ph"><div><h2 style="font-size:26px">${esc(p.name)}, ${p.age}</h2><p>${esc(p.about)}</p></div>
+      <div class="meta">${p.speaks.map(s => `<span class="chip acc">${esc(s)}</span>`).join('')}<span class="chip good">${passed}/${tests.length} live tasks right</span></div></div>
+    <div class="counts">${[['people', k.counts.people], ['names they use', k.counts.aliases], ['facts', k.counts.facts], ['conversation turns', k.counts.turns], ['chats and calls', k.counts.events], ['khata entries', k.counts.khata_entries], ['habits', k.counts.habits], ['vectors', k.counts.vectors], ['size', Math.round(k.bytes / 1024) + ' KB'], ['kept for', k.ttl_days + ' days']].map(([l, v]) => `<div><b>${v}</b><span>${l}</span></div>`).join('')}</div>
+
+    <section class="sec"><div class="sh"><h2>Who's who</h2><span>${twin.size ? 'Purple: people who share a name. Artha tells them apart by what the note is about.' : 'Everyone in their phone and their voice notes'}</span></div>
+      <div class="people">${people.map(c => `<div class="pc ${twin.has(c.id) ? 'twin' : ''}">
+        <div class="top"><div class="nm"><b>${esc(c.name)}</b><span>${esc(c.relation)}</span></div>${twin.has(c.id) ? '<span class="chip twin">same name</span>' : c.source === 'voice' ? '<span class="chip warn">from a voice note</span>' : ''}</div>
+        ${c.about ? `<p class="about">${esc(c.about)}</p>` : ''}
+        <dl class="kv">
+          ${c.called?.length ? `<dt>Called</dt><dd class="calls">${c.called.map(a => `<span class="chip">${esc(a)}</span>`).join('')}</dd>` : ''}
+          <dt>Language</dt><dd>${esc(c.lang ?? '—')}</dd>
+          <dt>Contact</dt><dd>${c.interactions} times${c.last?.[0] ? ` · last: ${esc(c.last[0])}` : ''}</dd>
+          ${c.khata_due_inr ? `<dt>Owes</dt><dd>${inr(c.khata_due_inr)}</dd>` : ''}
+          ${c.next ? `<dt>Next</dt><dd>${esc(c.next)}</dd>` : ''}
+          ${c.habits?.length ? `<dt>Habits</dt><dd>${c.habits.map(esc).join(' · ')}</dd>` : ''}
+        </dl></div>`).join('')}</div></section>
+
+    <div class="cols">
+      <section class="sec"><div class="sh"><h2>What Artha knows</h2><span>${profile.length} from setup · ${learned.length} learned</span></div>
+        <div class="list">${[...learned.map(m => [m, true]), ...profile.map(m => [m, false])].map(([m, l]) => `<div class="li"><div>${esc(m.fact)}<small>${esc(m.src)}${m.about ? ` · about ${esc(name(m.about))}` : ''}${m.uses ? ` · used ${m.uses}×` : ''}</small></div>${l ? '<span class="chip good">learned</span>' : '<span class="chip">setup</span>'}</div>`).join('') || '<p class="empty">Nothing yet.</p>'}</div></section>
+      <section class="sec"><div class="sh"><h2>Money and plans</h2></div>
+        <div class="list">
+          ${st.calendar.map(c => `<div class="li"><div>${esc(c.split(' · ')[0])}<small>${esc(c.split(' · ').slice(1).join(' · '))}</small></div><span class="chip acc">plan</span></div>`).join('')}
+          ${st.book.map(b => `<div class="li"><div>${esc(({ sale: 'Sold', credit: 'Udhaar', paid: 'Paid', to_pay: 'To pay', to_receive: 'To receive', received: 'Received', purchase: 'Bought' })[b.kind] ?? b.kind)}${b.party ? ` · ${esc(b.party)}` : ''}${b.item ? ` · ${esc(b.item)}` : ''}<small>${esc(b.day)} · ${b.status === 'saved' ? 'saved' : 'not confirmed yet'}</small></div><b>${inr(b.amount)}</b></div>`).join('')}
+          ${k.people.filter(c => c.khata_due_inr).map(c => `<div class="li"><div>${esc(c.name)} owes<small>running balance</small></div><b>${inr(c.khata_due_inr)}</b></div>`).join('')}
+          ${!st.calendar.length && !st.book.length ? '<p class="empty">No plans or khata yet.</p>' : ''}
+        </div></section>
+    </div>
+
+    <section class="sec"><div class="sh"><h2>Live test</h2><span>What was said, what Artha did, and how long it took</span></div>
+      <div class="list tests">${tests.map(t => `<div class="li"><span class="ok ${t.pass ? '' : 'no'}">${t.pass ? '✓' : '✗'}</span>
+        <div><span class="note">${esc(t.note)}${t.want === 'voice' ? ' · spoken' : ''}</span><div class="said">“${esc(t.say)}”</div>${t.heard ? `<small>Heard: ${esc(t.heard)}</small>` : ''}<pre class="out">${esc(t.detail)}</pre></div>
+        <span class="ms">${(t.ms / 1000).toFixed(1)} s</span></div>`).join('')}</div></section>
+  </article>`;
+}
+function route() { const id = ids.includes(location.hash.slice(1)) ? location.hash.slice(1) : 'rohan'; render(id); }
+addEventListener('hashchange', route); route();
+</script>

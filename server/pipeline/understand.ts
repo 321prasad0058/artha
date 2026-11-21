@@ -29,7 +29,7 @@ function actionSchema(contactIds: string[] | null) {
 function planSchema(contactIds: string[] | null) {
   const cand = contactIds ? { type: 'string', enum: [...contactIds, 'none'] } : { type: 'string' };
   return {
-    type: 'object', additionalProperties: false, required: ['language', 'heard_gist', 'heard_points', 'mentions', 'actions', 'clarify_question', 'learn', 'reply', 'reply_speech'],
+    type: 'object', additionalProperties: false, required: ['language', 'heard_gist', 'heard_points', 'mentions', 'actions', 'clarify_question', 'learn', 'reply', 'reply_points', 'reply_speech'],
     properties: {
       language: { type: 'string' },
       heard_gist: { type: 'string' },
@@ -41,6 +41,7 @@ function planSchema(contactIds: string[] | null) {
       clarify_question: { type: 'string' },
       learn: { type: 'array', items: { type: 'string' } },
       reply: { type: 'string' },
+      reply_points: { type: 'array', items: { type: 'object', additionalProperties: false, required: ['label', 'text'], properties: { label: { type: 'string' }, text: { type: 'string' } } } },
       reply_speech: { type: 'string' },
     },
   };
@@ -80,7 +81,9 @@ Also
 - reply: one short line to the user, in their own language mix, Roman script, saying what is READY for them ("Amma ke liye message ready hai"). Never say something was sent, paid or done: the user confirms with one tap.
 - reply_speech: the same reply written for reading aloud, in the NATIVE script of the user's language (Devanagari for Hindi, Hinglish, Marathi and Urdu; Telugu script; Tamil script; English stays English). Keep English words like "appointment" in that script too (अपॉइंटमेंट). Short and warm.
 - If the user ASKS something (their schedule, a khata balance, what they told you), answer it in "reply" and return NO actions. For khata questions read KHATA BOOK: list the entries asked for (who or what, amount, saved or not yet confirmed) and the totals. If they ask for a day with no entries but entries were recorded in this conversation, give those and say when they were recorded. Never say you cannot see entries that are in KHATA BOOK. If they ask you to tell, repeat or list the entries again, LIST THEM in the reply right away (each entry with amount, then totals); never answer with a question like "should I tell you again?".
-- reply and reply_speech may be up to 4 short sentences when listing entries; otherwise one line.
+- ANSWERS ARE STRUCTURED. When the user asks a question, asks for a list or summary (entries, plans, balances, what they said, who someone is), or the answer has more than one fact: "reply" is ONE short headline (at most 8 words) and "reply_points" holds 2 to 6 points. Each point: "label" = at most 3 words (a time, an amount, a person, an item or a day), "text" = at most 10 words. One fact per point, most important first, totals last. No filler, no repetition of the headline. Example: reply "Aaj ki 4 entries", points [{label:"₹1,250", text:"Nakad bikri"}, {label:"₹480", text:"Rizwan bhai, aata udhaar"}, {label:"Total", text:"Bikri ₹1,250 · Udhaar ₹480"}].
+- For plain actions (a message, a call, a payment) reply_points is [] and reply is one line.
+- reply_speech: the headline and the points said naturally and briefly, as one would say them aloud (not a list read out).
 - If the requested calendar entry or reminder ALREADY EXISTS in TIMELINE at that time, do not add it again: say in "reply" that it is already there. This never removes a message: "bol do / bolo / sang / sanga / cheppu / sollu / tell" ALWAYS means a message to that person.
 - CANCEL: if the user cancels something that is still PROPOSED (not done), just confirm it is dropped and return NO actions. Only if it was DONE, create what undoes it (for example a call or message to cancel).
 - A follow-up that changes one thing (time, day, person) re-plans ONLY that action. Do not repeat other actions from earlier turns.
@@ -88,9 +91,9 @@ Also
 - PEOPLE CARDS "habits" come from what the user actually confirmed before (for example "reach by: call (3×)"): prefer them when the note does not say. FROM MEMORY is background: use it to understand references to older things ("wahi jo pichle hafte bola tha").
 - heard_gist: what the USER said, as a short headline of at most 8 words, in the language and script they spoke ("Pawar doctor appointment, kal 11 baje"). heard_points: 1 to 6 key facts from the note, each at most 5 words, in that same language, with kind: person (who, as the user named them), when (day/time from CODE_VALUES), money ("₹1,200 lene hain"), item (goods, quantity), task (what to do), place, question (what they asked). Long rambling notes get the SAME short treatment: only what matters.
 - mentions: list ONLY people mentioned, using the exact words from the transcript.
-- Keep every "why" under 10 words. Be brief everywhere: speed matters.`;
+- Keep every "why" under 6 words; candidate "why" under 4 words; "gloss" only for messages not in English. Be brief everywhere: every extra word adds delay for the user.`;
 
-const BASE_INSTRUCTIONS = `Turn this transcribed voice note into a list of actions (message, call, reminder, calendar, payment, ledger, suggestion). Use contact_id for the person's name as you understand it. Fill fields that don't apply with "", 0 or false. reply: a one-line confirmation. reply_speech: "". mentions: people, times and amounts mentioned, with empty candidates. learn: empty. clarify_question: "". heard_gist: "". heard_points: [].`;
+const BASE_INSTRUCTIONS = `Turn this transcribed voice note into a list of actions (message, call, reminder, calendar, payment, ledger, suggestion). Use contact_id for the person's name as you understand it. Fill fields that don't apply with "", 0 or false. reply: a one-line confirmation. reply_speech: "". mentions: people, times and amounts mentioned, with empty candidates. learn: empty. clarify_question: "". heard_gist: "". heard_points: []. reply_points: [].`;
 
 function istNowLabel(now: Date) {
   return now.toLocaleString('en-IN', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', hour: 'numeric', minute: '2-digit', timeZone: 'Asia/Kolkata' });
@@ -117,7 +120,46 @@ function bookSection(state: State, now: Date) {
   return `KHATA BOOK (every entry the user dictated, structured; "day" is the business day the entry is for, "recorded" is when they told Artha; correct an entry by returning it with updates = its id):\n${JSON.stringify(book.map(e => ({ id: e.id, day: e.day, kind: e.kind, party: e.party || '(name not given yet)', item: e.item || undefined, inr: e.amount, status: e.status === 'saved' ? 'saved' : 'not confirmed yet', recorded: e.at.slice(0, 16) })))}\nTOTALS BY DAY (code): ${totals.join(' | ')}`;
 }
 
-type PlanOut = { language: string; heard_gist?: string; heard_points?: { kind: string; text: string }[]; mentions: Mention[]; actions: Action[]; clarify_question: string; learn: string[]; reply: string; reply_speech: string };
+// The OTP warning, in the language the user is speaking (or spoke last). No model sees this note.
+const OTP_WARN: Record<string, [string, string]> = {
+  English: ['Never share an OTP with anyone. Banks and offices never ask for it.', 'Never share an OTP with anyone. Banks and offices never ask for it.'],
+  Hindi: ['OTP kabhi kisi ko nahi batate. Bank ya office kabhi OTP nahi maangte.', 'ओटीपी कभी किसी को नहीं बताते। बैंक या ऑफ़िस कभी ओटीपी नहीं माँगते।'],
+  Marathi: ['OTP कधीही कोणालाही सांगू नका. बँक किंवा ऑफिस कधीच OTP मागत नाहीत.', 'ओटीपी कधीही कोणालाही सांगू नका. बँक किंवा ऑफिस कधीच ओटीपी मागत नाहीत.'],
+  Tamil: ['OTP-ஐ யாரிடமும் சொல்லாதீர்கள். வங்கியோ அலுவலகமோ ஒருபோதும் OTP கேட்க மாட்டார்கள்.', 'ஓடிபி-ஐ யாரிடமும் சொல்லாதீர்கள். வங்கியோ அலுவலகமோ ஒருபோதும் ஓடிபி கேட்க மாட்டார்கள்.'],
+  Telugu: ['OTP ఎవరికీ చెప్పకండి. బ్యాంక్ లేదా ఆఫీస్ ఎప్పుడూ OTP అడగరు.', 'ఓటీపీ ఎవరికీ చెప్పకండి. బ్యాంక్ లేదా ఆఫీస్ ఎప్పుడూ ఓటీపీ అడగరు.'],
+  Punjabi: ['OTP ਕਦੇ ਕਿਸੇ ਨੂੰ ਨਾ ਦੱਸੋ। ਬੈਂਕ ਜਾਂ ਦਫ਼ਤਰ ਕਦੇ OTP ਨਹੀਂ ਮੰਗਦੇ।', 'ਓਟੀਪੀ ਕਦੇ ਕਿਸੇ ਨੂੰ ਨਾ ਦੱਸੋ। ਬੈਂਕ ਜਾਂ ਦਫ਼ਤਰ ਕਦੇ ਓਟੀਪੀ ਨਹੀਂ ਮੰਗਦੇ।'],
+  Bengali: ['OTP কখনও কাউকে বলবেন না। ব্যাংক বা অফিস কখনও OTP চায় না।', 'ওটিপি কখনও কাউকে বলবেন না। ব্যাংক বা অফিস কখনও ওটিপি চায় না।'],
+  Urdu: ['OTP kabhi kisi ko na batayein. Bank ya daftar kabhi OTP nahi maangte.', 'او ٹی پی کبھی کسی کو نہ بتائیں۔ بینک یا دفتر کبھی او ٹی پی نہیں مانگتے۔'],
+};
+/** Which language a note is in: its script first, then telltale words, then the user's previous note, then their first language. */
+export function noteLanguage(text: string, p: Persona, state?: State): string {
+  if (/[஀-௿]/.test(text)) return 'Tamil';
+  if (/[ఀ-౿]/.test(text)) return 'Telugu';
+  if (/[਀-੿]/.test(text)) return 'Punjabi';
+  if (/[ঀ-৿]/.test(text)) return 'Bengali';
+  if (/[؀-ۿ]/.test(text)) return 'Urdu';
+  if (/[ऀ-ॿ]/.test(text)) return p.speaks.includes('Marathi') && /(आहे|करा|सांगा|नका|द्या|मागत|ला\s)/.test(text) ? 'Marathi' : 'Hindi';
+  const t = ` ${text.toLowerCase()} `;
+  if (/\b(sollu|kekkuranga|kekkaraanga|vandhudhu|kudu|kudukkalaama|pannu|irundhu|anuppu|enna)\b/.test(t)) return 'Tamil';
+  if (/\b(cheppu|cheppandi|cheyyi|ivvu|adugutunnaru|pampinchu)\b/.test(t)) return 'Telugu';
+  if (p.speaks.includes('Punjabi') && /\b(nu|dasso|dass|kinna|chahida|deo)\b/.test(t)) return 'Punjabi';
+  if (/\b(sanga|sangaa|kara|aahe|dya|nako)\b/.test(t)) return 'Marathi';
+  if (/\b(ke bolo|dao|chaichhe|bolchhe|ami|tumi)\b/.test(t)) return 'Bengali';
+  if (/\b(ko|bata|batao|de do|dedo|hai|bolo|bol do|wale|wala)\b/.test(t)) return p.speaks.includes('Urdu') ? 'Urdu' : 'Hindi';
+  if (/\b(tell|share|send|give|the|my|asked|asking|code)\b/.test(t)) return 'English';
+  const last = [...(state?.turns ?? [])].reverse().find(x => x.said && !/^\(photo\)/.test(x.said));
+  if (last && last.said !== text) return noteLanguage(last.said, p);
+  const first = p.speaks[0];
+  return first === 'Hinglish' ? 'Hindi' : OTP_WARN[first] ? first : 'Hindi';
+}
+function otpWarning(transcript: string, p: Persona, state: State) {
+  const lang = noteLanguage(transcript, p, state);
+  const [reply, speech] = OTP_WARN[lang] ?? OTP_WARN.Hindi;
+  const typedRoman = lang === 'Hindi' && !/[ऀ-ॿ]/.test(transcript);
+  return { reply: lang === 'Hindi' && !typedRoman ? speech : reply, reply_speech: speech, language: lang };
+}
+
+type PlanOut = { reply_points?: { label: string; text: string }[]; language: string; heard_gist?: string; heard_points?: { kind: string; text: string }[]; mentions: Mention[]; actions: Action[]; clarify_question: string; learn: string[]; reply: string; reply_speech: string };
 
 export async function understand(args: { persona: Persona; state: State; transcript: string; mode: Mode; forced?: Record<string, string>; now?: Date; ctx?: { db: DatabaseSync; query: Promise<Float32Array | null> } }): Promise<Result> {
   const { persona: p, state, transcript, mode } = args;
@@ -146,8 +188,7 @@ export async function understand(args: { persona: Persona; state: State; transcr
       mentions: [{ text: 'OTP', kind: 'secret', value: 'never shared', candidates: [] }],
       actions: scam ? [{ type: 'suggestion', contact_id: scam.id, contact_name: scam.name, language: '', text: '', gloss: '', goal: '', title: `Mark “${scam.name}” as a likely scam`, when_iso: '', when_label: '', amount_inr: 0, predicted: true, why: 'Real banks and offices never ask for an OTP on a call.' }] : [],
       checks: [{ rule: 'Blocked: an OTP or PIN with digits was found', ok: false }, { rule: 'The digits were hidden before any model or log saw them', ok: true }],
-      reply: 'OTP kabhi kisi ko nahi batate. Bank ya office kabhi OTP nahi maangte.',
-      reply_speech: 'ओटीपी कभी किसी को नहीं बताते। बैंक या ऑफ़िस कभी ओटीपी नहीं माँगते।',
+      ...otpWarning(transcript, p, state),
     });
   }
 
@@ -195,7 +236,7 @@ export async function understand(args: { persona: Persona; state: State; transcr
   if (args.ctx) {
     const ids = [...new Set([...shortlist.filter(c => c.score >= 0.3).slice(0, 4).map(c => c.id), ...talkedAbout.slice(0, 2)])];
     cards = ids.map(id => personCard(args.ctx!.db, id, now.getTime())).filter(Boolean);
-    const q = await args.ctx.query;
+    const q = await Promise.race([args.ctx.query, new Promise<null>(r => setTimeout(() => r(null), 700))]);   // never hold planning up for long
     if (q) {
       const shown = new Set([...turns.map(x => x.id), ...(state.book ?? []).map(b => b.id)]);   // already in CONVERSATION / KHATA BOOK
       const hits = recall(args.ctx.db, q, { people: ids, exclude: shown, k: 6, now: now.getTime() });
@@ -336,6 +377,6 @@ export async function understand(args: { persona: Persona; state: State; transcr
   return {
     mode, transcript, roman, language: out.language, entities: norm.entities, candidates: shortlist, mentions, actions, clarify, blocked: false, checks,
     heard: out.heard_gist ? { gist: out.heard_gist, points: (out.heard_points ?? []).filter(x => x.text).slice(0, 6) } : undefined,
-    learn: clarify ? [] : out.learn.filter(l => l && l.length < 160).slice(0, 2), reply: clarify ? '' : out.reply, reply_speech: clarify ? '' : out.reply_speech, refs, topics: kb.topics, ms: { meaning: msMeaning, who: msWho, plan: msPlan },
+    learn: clarify ? [] : out.learn.filter(l => l && l.length < 160).slice(0, 2), reply: clarify ? '' : out.reply, reply_speech: clarify ? '' : out.reply_speech, reply_points: clarify ? [] : (out.reply_points ?? []).filter(x => x.text).slice(0, 6), refs, topics: kb.topics, ms: { meaning: msMeaning, who: msWho, plan: msPlan },
   };
 }

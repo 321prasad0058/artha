@@ -66,6 +66,16 @@ function firstJson(text: string): unknown | null {
   return null;
 }
 
+/** Text to speech as a stream: audio bytes arrive while the rest is still being generated. */
+export async function speechStream(text: string, voice: string, instructions: string): Promise<ReadableStream<Uint8Array>> {
+  const r = await fetch(`${BASE}/audio/speech`, {
+    method: 'POST', headers: { Authorization: `Bearer ${key()}`, 'content-type': 'application/json' },
+    body: JSON.stringify({ model: MODELS.tts, voice, input: text, instructions, response_format: 'mp3' }),
+  });
+  if (!r.ok || !r.body) throw new Error(`Speech failed: ${r.status} ${await r.text()}`);
+  return r.body;
+}
+
 export async function speech(text: string, voice: string, instructions: string): Promise<Buffer> {
   const r = await fetch(`${BASE}/audio/speech`, {
     method: 'POST', headers: { Authorization: `Bearer ${key()}`, 'content-type': 'application/json' },

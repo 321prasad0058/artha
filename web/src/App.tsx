@@ -2,7 +2,7 @@ import gsap from 'gsap';
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { romanize } from '../../server/pipeline/translit';
 import type { Action, Result, State } from '../../server/types';
-import { api, type PersonaInfo, type Sample, type Scan } from './api';
+import { API_BASE, api, type PersonaInfo, type Sample, type Scan } from './api';
 import { Orb, type OrbMode } from './Orb';
 import { Intro, shouldShowIntro } from './Intro';
 import { startRecording, type Recording } from './recorder';
@@ -250,13 +250,10 @@ export default function App() {
   async function speakReply(runId: number, r: Result, force = false) {
     const text = r.reply_speech || r.reply;
     if (!text || (!voiceOn && !force)) return;
-    try {
-      const res = await fetch('/api/speak', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ p: pid, text }) });
-      if (!res.ok) return;
-      const url = URL.createObjectURL(await res.blob());
-      update(runId, { replyUrl: url });
-      playUrl(url);
-    } catch { /* voice is a bonus; the text is on screen */ }
+    // Streamed: the audio element starts playing as the first bytes arrive, while the rest is still being generated.
+    const url = `${API_BASE}/api/speak?p=${encodeURIComponent(pid)}&text=${encodeURIComponent(text.slice(0, 400))}`;
+    update(runId, { replyUrl: url });
+    playUrl(url);
   }
   const toggleVoice = () => setVoiceOn(v => { const n = !v; try { localStorage.setItem('artha.voice', n ? 'on' : 'off'); } catch { /* */ } if (!n) voice.current?.pause(); return n; });
 
@@ -434,6 +431,8 @@ function Note({ run, persona, onAct, onSkip, onAll, onChoose, onCompare, onRepla
     ...res.mentions.filter(m => m.kind === 'person' && m.candidates.length).map(m => ({ text: m.text, cls: 'person', label: [...m.candidates].sort((a, b) => b.score - a.score)[0].name })),
     ...res.entities.map(e => ({ text: nonLatin(res.transcript) ? origOf(res.transcript, e.text) : e.text, cls: e.kind, label: e.label.replace(/^.*→ /, '') })),
   ] : [];
+  const pointsRef = useRef<HTMLUListElement>(null);
+  useLayoutEffect(() => { if (pointsRef.current) gsap.from(pointsRef.current.children, { x: -6, opacity: 0, duration: .35, stagger: .05, ease: 'power2.out' }); }, [res?.reply_points?.length]);
   const ledgerIdx = res?.actions.flatMap((a, i) => (a.type === 'ledger' ? [i] : [])) ?? [];
   const safeLeft = res?.actions.filter((a, i) => ['message', 'calendar', 'reminder', 'ledger'].includes(a.type) && !run.done[i]).length ?? 0;
   const secs = run.endedAt ? ((run.endedAt - run.startedAt) / 1000).toFixed(1) : null;
@@ -467,7 +466,10 @@ function Note({ run, persona, onAct, onSkip, onAll, onChoose, onCompare, onRepla
             {safeLeft > 1 && !(ledgerIdx.length >= 2 && ledgerIdx.length === res.actions.length) && <button className="btn btn-primary doall" onClick={() => onAll(run)}><I n="check" />Do all</button>}
           </div>)}
 
-        {(res.reply_speech || res.reply) && <button className="say" onClick={onReplay} aria-label="Hear Artha’s reply"><span className="say-i"><I n="speak" /></span><span>{res.reply_speech || res.reply}</span></button>}
+        {(res.reply_speech || res.reply) && (res.reply_points?.length
+          ? <div className="say answer"><button className="say-i" onClick={onReplay} aria-label="Hear Artha’s answer"><I n="speak" /></button>
+              <div className="ans"><b>{res.reply}</b><ul ref={pointsRef}>{res.reply_points.map((x, i) => <li key={i}><span className="pl">{x.label}</span><span>{x.text}</span></li>)}</ul></div></div>
+          : <button className="say" onClick={onReplay} aria-label="Hear Artha’s reply"><span className="say-i"><I n="speak" /></span><span>{res.reply_speech || res.reply}</span></button>)}
         <div className="foot">
           <span className="dim">{secs ? `${secs}s` : ''}</span>
           <button className={`foot-btn ${run.compare ? 'on' : ''}`} onClick={() => (run.compare ? null : onCompare(run))}><I n="vs" />Base model</button>

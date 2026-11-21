@@ -16,7 +16,8 @@ aws_() { $AWS "$@"; }
 [ -z "${OPENAI_API_KEY:-}" ] && { echo "OPENAI_API_KEY is missing"; exit 1; }
 
 ACCT=$(aws_ sts get-caller-identity --query Account --output text)
-STATE="artha-state-$ACCT"; WEB="artha-web-$ACCT"; FN="artha-api"; ROLE="artha-lambda"
+# STAGE=staging deploys only a separate Lambda (artha-api-staging) to try changes on AWS before they go live
+STATE="artha-state-$ACCT${STAGE:+-$STAGE}"; WEB="artha-web-$ACCT"; FN="artha-api${STAGE:+-$STAGE}"; ROLE="artha-lambda"
 say() { printf '\n▸ %s\n' "$*"; }
 
 say "build"
@@ -24,7 +25,7 @@ npm run build >/dev/null
 rm -f lambda.zip && (cd dist-lambda && zip -qr ../lambda.zip .)
 
 say "buckets"
-for B in "$STATE" "$WEB"; do
+for B in "$STATE" ${STAGE:+} $([ -z "${STAGE:-}" ] && echo "$WEB"); do
   aws_ s3api head-bucket --bucket "$B" 2>/dev/null || aws_ s3api create-bucket --bucket "$B" --create-bucket-configuration LocationConstraint=us-west-2 >/dev/null
 done
 
@@ -36,7 +37,7 @@ if ! ROLE_ARN=$(aws_ iam get-role --role-name "$ROLE" --query Role.Arn --output 
   sleep 10   # IAM is eventually consistent
 fi
 aws_ iam put-role-policy --role-name "$ROLE" --policy-name artha-state \
-  --policy-document "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Action\":[\"s3:GetObject\",\"s3:PutObject\"],\"Resource\":\"arn:aws:s3:::$STATE/*\"},{\"Effect\":\"Allow\",\"Action\":\"s3:ListBucket\",\"Resource\":\"arn:aws:s3:::$STATE\"}]}"
+  --policy-document "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Action\":[\"s3:GetObject\",\"s3:PutObject\"],\"Resource\":\"arn:aws:s3:::artha-state-$ACCT*/*\"},{\"Effect\":\"Allow\",\"Action\":\"s3:ListBucket\",\"Resource\":\"arn:aws:s3:::artha-state-$ACCT*\"}]}"
 
 say "lambda function"
 ENV="Variables={OPENAI_API_KEY=$OPENAI_API_KEY,ARTHA_BUCKET=$STATE,ARTHA_ROOT=/var/task,NODE_OPTIONS=--disable-warning=ExperimentalWarning}"
@@ -53,10 +54,22 @@ else
 fi
 aws_ lambda wait function-updated --function-name "$FN"
 LURL=$(aws_ lambda get-function-url-config --function-name "$FN" --query FunctionUrl --output text 2>/dev/null || \
-       aws_ lambda create-function-url-config --function-name "$FN" --auth-type NONE --query FunctionUrl --output text)
+       aws_ lambda create-function-url-config --function-name "$FN" --auth-type NONE --invoke-mode RESPONSE_STREAM --query FunctionUrl --output text)
+# streamed responses (the spoken reply starts playing while it is generated)
+if [ "$(aws_ lambda get-function-url-config --function-name "$FN" --query InvokeMode --output text)" != "RESPONSE_STREAM" ]; then
+  aws_ lambda update-function-url-config --function-name "$FN" --invoke-mode RESPONSE_STREAM >/dev/null
+fi
 aws_ lambda add-permission --function-name "$FN" --statement-id url-public --action lambda:InvokeFunctionUrl --principal '*' --function-url-auth-type NONE >/dev/null 2>&1 || true
 aws_ lambda add-permission --function-name "$FN" --statement-id url-invoke --action lambda:InvokeFunction --principal '*' --invoked-via-function-url >/dev/null 2>&1 || true
 LHOST=$(echo "$LURL" | sed -E 's#https://([^/]+)/?#\1#')
+# keep one instance warm: a ping every 5 minutes (EventBridge), so a note after a quiet spell is not slowed by a cold start
+if [ -z "${STAGE:-}" ] && ! aws_ events describe-rule --name artha-warm >/dev/null 2>&1; then
+  FARN=$(aws_ lambda get-function --function-name "$FN" --query Configuration.FunctionArn --output text)
+  RARN=$(aws_ events put-rule --name artha-warm --schedule-expression "rate(5 minutes)" --query RuleArn --output text)
+  aws_ lambda add-permission --function-name "$FN" --statement-id warm --action lambda:InvokeFunction --principal events.amazonaws.com --source-arn "$RARN" >/dev/null 2>&1 || true
+  aws_ events put-targets --rule artha-warm --targets "Id=artha,Arn=$FARN,Input={\"warm\":true}" >/dev/null || echo "  (warm-up ping not set up; the app works without it)"
+fi
+if [ -n "${STAGE:-}" ]; then echo; echo "✓ $FN is up: $LURL"; exit 0; fi
 
 say "cloudfront"
 DIST=$(aws_ cloudfront list-distributions --query "DistributionList.Items[?Comment=='artha'].Id | [0]" --output text)

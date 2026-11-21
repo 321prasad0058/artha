@@ -2,7 +2,7 @@
 import fs from 'node:fs';
 import http from 'node:http';
 import path from 'node:path';
-import { handle } from './handler.js';
+import { handle, speakFor } from './handler.js';
 
 try { process.loadEnvFile('.env'); } catch { /* use the real environment */ }
 const PORT = Number(process.env.PORT || 8787);
@@ -11,6 +11,15 @@ const TYPES: Record<string, string> = { '.html': 'text/html; charset=utf-8', '.j
 
 http.createServer(async (req, res) => {
   const url = new URL(req.url ?? '/', 'http://localhost');
+  if (url.pathname === '/api/speak' && req.method === 'GET') {   // streamed reply, as on Lambda
+    const v = await speakFor(url.searchParams.get('p') ?? '', url.searchParams.get('text') ?? '').catch(e => ({ error: String(e.message) }));
+    if ('error' in v) { res.writeHead(400, { 'content-type': 'application/json' }); return res.end(JSON.stringify(v)); }
+    res.writeHead(200, { 'content-type': 'audio/mpeg', 'cache-control': 'public, max-age=86400' });
+    if (v.cached) return res.end(v.cached);
+    const parts: Buffer[] = [];
+    for await (const c of v.stream as any) { const b = Buffer.from(c); parts.push(b); res.write(b); }
+    res.end(); v.done!(Buffer.concat(parts)); return;
+  }
   if (url.pathname.startsWith('/api/')) {
     const chunks: Buffer[] = [];
     for await (const c of req) chunks.push(c as Buffer);

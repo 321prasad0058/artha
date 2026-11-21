@@ -1,12 +1,12 @@
 // All API routes, shared by the local server and AWS Lambda.
 import fs from 'node:fs';
 import path from 'node:path';
-import { MODELS, speech, transcribe } from './openai.js';
+import { MODELS, speechStream, transcribe } from './openai.js';
 import { hintWords } from './pipeline/candidates.js';
 import { understand } from './pipeline/understand.js';
 import { loadState, persona, personas, resetState, saveState } from './store.js';
 import { file, habitsOf, learnHabit, personCard, space, voicePeople, TTL_MS } from './context/space.js';
-import { embedQuery } from './context/embed.js';
+import { embedQueryAndPending } from './context/embed.js';
 import { romanize } from './pipeline/translit.js';
 import type { Action, BookEntry, Mode, Persona, Result, State } from './types.js';
 import { scanImage } from './pipeline/scan.js';
@@ -20,6 +20,27 @@ function withKnownPeople(p: Persona): Persona {
 export type Req = { method: string; path: string; query: URLSearchParams; headers: Record<string, string | undefined>; body: Buffer };
 export type Res = { status: number; headers?: Record<string, string>; body: string | Buffer };
 const voiceCache = new Map<string, Buffer>();
+
+/**
+ * The reply in the user's language and voice. Returns cached audio, or a live stream that starts playing
+ * within a fraction of a second (the full file is cached once it has streamed, for replays).
+ */
+export async function speakFor(pid: string, raw: string): Promise<{ cached?: Buffer; stream?: ReadableStream<Uint8Array>; done?: (b: Buffer) => void } | { error: string }> {
+  const who = persona(pid);
+  const text = raw.slice(0, 400);
+  if (!text) return { error: 'Nothing to say' };
+  const key = `${who.id}:${text}`;
+  const hit = voiceCache.get(key);
+  if (hit) return { cached: hit };
+  const lang = /[\u0C00-\u0C7F]/.test(text) ? 'Telugu' : /[\u0B80-\u0BFF]/.test(text) ? 'Tamil' : /[\u0A00-\u0A7F]/.test(text) ? 'Punjabi' : /[\u0980-\u09FF]/.test(text) ? 'Bengali' : /[\u0600-\u06FF]/.test(text) ? 'Urdu' : /[\u0900-\u097F]/.test(text) ? (who.speaks[0] === 'Marathi' ? 'Marathi' : 'Hindi') : 'Indian English';
+  const stream = await speechStream(text, 'coral', `You are Artha, a warm, capable assistant replying to ${who.name.split(' ')[0]} with a quick voice note in ${lang}. Use native ${lang} pronunciation for every word and name. Speak briskly and naturally, like a friend on the phone: no newsreader tone, no long pauses.`);
+  return { stream, done: (b: Buffer) => { if (voiceCache.size > 200) voiceCache.clear(); voiceCache.set(key, b); } };
+}
+async function collect(stream: ReadableStream<Uint8Array>, done: (b: Buffer) => void) {
+  const parts: Uint8Array[] = [];
+  for await (const c of stream as any) parts.push(c);
+  const b = Buffer.concat(parts); done(b); return b;
+}
 
 const json = (status: number, data: unknown): Res => ({ status, headers: { 'content-type': 'application/json' }, body: JSON.stringify(data) });
 const parse = (b: Buffer) => (b.length ? JSON.parse(b.toString('utf8')) : {});
@@ -89,7 +110,7 @@ export async function handle(req: Req): Promise<Res> {
       const transcript = String(b.transcript ?? '').slice(0, 1200);
       const mode = (b.mode ?? 'artha') as Mode;
       // the note's meaning as a vector starts now, in parallel with the code stages
-      const ctx = mode === 'artha' ? { db: space(who.id), query: embedQuery(transcript) } : undefined;
+      const ctx = mode === 'artha' ? { db: space(who.id), query: embedQueryAndPending(space(who.id), transcript) } : undefined;
       const result = await understand({ persona: who, state, transcript, mode, forced: b.forced ?? {}, ctx });
       if (result.mode === 'artha') {
         recordTurn(state, who, result, String(b.transcript ?? ''), b.forced);
@@ -169,20 +190,12 @@ export async function handle(req: Req): Promise<Res> {
       return json(200, { done, state });
     }
 
-    // Artha talks back: the reply in the user's language, native pronunciation, brisk pace.
+    // Artha talks back (whole file; the streaming path below is what the app uses).
     if (p === '/api/speak' && method === 'POST') {
       const b = parse(req.body);
-      const who = persona(b.p);
-      const text = String(b.text ?? '').slice(0, 400);
-      if (!text) return json(400, { error: 'Nothing to say' });
-      const key = `${who.id}:${text}`;
-      let audio = voiceCache.get(key);
-      if (!audio) {
-        const lang = /[\u0C00-\u0C7F]/.test(text) ? 'Telugu' : /[\u0B80-\u0BFF]/.test(text) ? 'Tamil' : /[\u0900-\u097F]/.test(text) ? (who.speaks[0] === 'Marathi' ? 'Marathi' : 'Hindi') : 'Indian English';
-        audio = await speech(text, 'coral', `You are Artha, a warm, capable assistant replying to ${who.name.split(' ')[0]} with a quick voice note in ${lang}. Use native ${lang} pronunciation for every word and name. Speak briskly and naturally, like a friend on the phone: no newsreader tone, no long pauses.`);
-        if (voiceCache.size > 200) voiceCache.clear();
-        voiceCache.set(key, audio);
-      }
+      const v = await speakFor(String(b.p ?? ''), String(b.text ?? ''));
+      if ('error' in v) return json(400, { error: v.error });
+      const audio = v.cached ?? await collect(v.stream!, v.done!);
       return { status: 200, headers: { 'content-type': 'audio/mpeg', 'cache-control': 'max-age=86400' }, body: audio };
     }
 

@@ -55,6 +55,8 @@ export type Result = {
   checks: Check[];
   learn: string[];
   reply: string;
+  /** Answers and summaries as short labelled points (label: a time, amount, person or item; text: the point). */
+  reply_points?: { label: string; text: string }[];
   /** The reply in the user's native script, for text-to-speech. */
   reply_speech?: string;
   /** Existing timeline items this note was about (e.g. "already in your calendar"), kept for follow-ups. */

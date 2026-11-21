@@ -5,6 +5,9 @@ export type { Scan };
 export type PersonaInfo = { id: string; name: string; age: number; about: string; city: string; speaks: string[]; avatar: string; contacts: Contact[] };
 export type Sample = { id: string; persona: string; text: string; lang: string; label: string; file: string; synthetic: boolean };
 
+/** Where the API lives: the same site (CloudFront, or the local server). */
+export const API_BASE = '';
+
 async function call<T>(url: string, init?: RequestInit): Promise<T> {
   const r = await fetch(url, init);
   const j = await r.json().catch(() => ({}));
