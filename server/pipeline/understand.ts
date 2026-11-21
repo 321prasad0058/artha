@@ -308,6 +308,13 @@ export async function understand(args: { persona: Persona; state: State; transcr
     if (tell && named.length && missing.length === named.length && (!out.clarify_question || named.length === 1)) {
       out = expand(await jsonCall<PlanOut>({ name: 'artha_plan', instructions: ARTHA_INSTRUCTIONS, input: `${input}\n\nCHECK: the user asked to TELL ${missing.map(id => p.contacts.find(c => c.id === id)?.name).join(', ')} something. Include a message action to them with their exact words in their language.`, schema: planSchema(null) }), p);
     }
+    // The model hedged ("which Rahul?") but the code's evidence clearly favours one (a shared topic, a past correction):
+    // ask the model once more with that evidence instead of asking the user.
+    const top = [...shortlist].sort((x, y) => y.score - x.score);
+    if (out.clarify_question && !out.actions.length && top.length >= 2 && top[0].score - top[1].score >= .1 && !Object.keys(forced).length) {
+      const retry = expand(await jsonCall<PlanOut>({ name: 'artha_plan', instructions: ARTHA_INSTRUCTIONS, input: `${input}\n\nCHECK: the evidence clearly points to ${top[0].name} (${top[0].why}). Do not ask; plan the note for ${top[0].name}.`, schema: planSchema(null) }), p);
+      if (retry.actions.length && !retry.clarify_question) out = retry;
+    }
   } // fixed schema = cached by OpenAI; ids are validated in code below
   const msPlan = Date.now() - t;
   { // "Their name is Sunil Sharma": fill the one open khata entry, even if the model only said "noted".
