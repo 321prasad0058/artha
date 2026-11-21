@@ -65,6 +65,7 @@ Also
 - learn: 0 to 2 short new facts worth remembering (a changed plan, a new preference). Not things already in MEMORY.
 - reply: one short line to the user, in their own language mix, Roman script, saying what is READY for them ("Amma ke liye message ready hai"). Never say something was sent, paid or done: the user confirms with one tap.
 - reply_speech: the same reply written for reading aloud, in the NATIVE script of the user's language (Devanagari for Hindi, Hinglish, Marathi and Urdu; Telugu script; Tamil script; English stays English). Keep English words like "appointment" in that script too (अपॉइंटमेंट). Short and warm.
+- If the user ASKS something (their schedule, a khata balance, what they told you), answer it in "reply" and return NO actions.
 - mentions: list ONLY people mentioned, using the exact words from the transcript.
 - Keep every "why" under 10 words. Be brief everywhere: speed matters.`;
 
@@ -154,8 +155,17 @@ export async function understand(args: { persona: Persona; state: State; transcr
       .filter(c => p.contacts.some(x => x.id === c.id)).map(c => ({ ...c, name: p.contacts.find(x => x.id === c.id)!.name })),
   }));
 
-  const planned = out.actions.map(a => ({ ...a, contact_name: '' }));
-  const clarify = needsClarify(mentions, forced, out.clarify_question, planned);
+  const sameAsCalendar = (a: Action) => (a.type === 'calendar' || a.type === 'reminder') && state.calendar.some(c => a.when_iso && Math.abs(Date.parse(c.when_iso) - Date.parse(a.when_iso)) < 60e3);
+  const planned = out.actions.map(a => ({ ...a, contact_name: '' }))
+    .filter(a => (a.text || a.goal || a.title || a.amount_inr > 0))                 // no empty cards
+    .filter(a => !((a.type === 'calendar' || a.type === 'reminder') && !a.when_iso)) // a reminder needs a time
+    .filter(a => !sameAsCalendar(a));                                               // never duplicate what is already there
+  let clarify = needsClarify(mentions, forced, out.clarify_question, planned);
+  // The model asked "which one?" in words: give the user buttons, from the code shortlist.
+  if (!clarify && !planned.length && out.clarify_question) {
+    const opts = shortlist.filter(c => c.score >= 0.5).slice(0, 3);
+    if (opts.length >= 2) clarify = { mention: out.mentions.find(m => m.kind === 'person')?.text ?? opts[0].name, question: out.clarify_question, options: opts.map(c => ({ id: c.id, label: c.name })) };
+  }
   const { actions, checks } = clarify ? { actions: [], checks: [{ rule: 'A true tie between two people, so Artha asks once', ok: true }] } : checkActions(planned, p, now);
   // A time said in the note belongs on the action, even if the model only wrote it into the message text.
   if (norm.when) for (const a of actions) if (!a.when_iso && ['message', 'call', 'reminder', 'calendar'].includes(a.type)) { a.when_iso = norm.when.iso; a.when_label = norm.when.label; }
@@ -166,7 +176,6 @@ export async function understand(args: { persona: Persona; state: State; transcr
     if (!m) continue;
     a.mention = m.text;
     a.alternatives = [...m.candidates].sort((x, y) => y.score - x.score).filter(c => c.id !== a.contact_id && c.score >= 0.15).slice(0, 2).map(c => ({ id: c.id, name: c.name }));
-    if (!a.alternatives.length) a.alternatives = shortlist.filter(c => c.id !== a.contact_id && c.score >= 0.3).slice(0, 2).map(c => ({ id: c.id, name: c.name }));
   }
 
   return {
