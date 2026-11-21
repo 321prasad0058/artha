@@ -10,7 +10,9 @@ const NUM: Record<string, number> = {
   ek: 1, do: 2, teen: 3, tin: 3, char: 4, chaar: 4, paanch: 5, panch: 5, chhe: 6, chhah: 6, saat: 7, sat: 7, aath: 8, ath: 8, nau: 9, das: 10, dus: 10, gyarah: 11, gyaarah: 11, barah: 12, baarah: 12,
   bees: 20, pachas: 50, pachaas: 50,
   // Marathi
-  don: 2, paach: 5, saha: 6, daha: 10, akra: 11, bara: 12,
+  don: 2, paach: 5, saha: 6, sahaa: 6, daha: 10, dahaa: 10, akra: 11, akraa: 11, bara: 12, baaraa: 12, naoo: 9, nava: 9,
+  // Tamil as it comes out of the script
+  irandu: 2, moonru: 3, naanku: 4, aindu: 5, onpathu: 9, paththu: 10, pannirandu: 12,
   // Telugu
   okati: 1, rendu: 2, moodu: 3, mudu: 3, naalugu: 4, nalugu: 4, aidu: 5, aaru: 6, aru: 6, edu: 7, enimidi: 8, tommidi: 9, padi: 10, padakondu: 11, pannendu: 12,
   // Tamil
@@ -34,13 +36,14 @@ const WEEKDAYS: [RegExp, number][] = [
   [/\b(saturday|shanivar|shaniwar|shanivaram|sani)\b/, 6],
 ];
 const PARTS: [RegExp, number, string][] = [
-  [/\b(subah|subha|savere|morning|poddunna|podduna|sakali|sakaali|kaalai|kalai|kaalaila)\b/, 9, 'morning'],
-  [/\b(dopahar|dupahar|madhyanam|madhyaanam|dupari|duparchya|afternoon|madhiyam|mathiyam)\b/, 13, 'afternoon'],
-  [/\b(shaam|sham|evening|saayantram|sayantram|sandhyakali|sandhyakaali|saayankaalam|sayankalam|maalai)\b/, 18, 'evening'],
-  [/\b(raat|rat|night|ratri|raatri|rathri|iravu|dinner)\b/, 21, 'night'],
+  [/\b(subah|subha|savere|morning|poddunna|podduna|sakali|sakaali|sakaalee|udayam|udayan|kaalai|kalai|kaalaila)\b/, 9, 'morning'],
+  [/\b(dopahar|dupahar|madhyanam|madhyaanam|dupari|duparchya|afternoon|madhiyam|mathiyam|dupaaree|dupari|madhyaahnam|madhyaahnan|madhyahnam)\b/, 13, 'afternoon'],
+  [/\b(shaam|sham|evening|saayantram|sayantram|sandhyakali|sandhyakaali|saayankaalam|sayankalam|maalai|saayantran|sandhyaakaalee|sandhyakaalee)\b/, 18, 'evening'],
+  [/\b(raat|rat|night|ratri|raatri|raatree|rathri|iravu|dinner)\b/, 21, 'night'],
 ];
 // "4 baje", "4 vajta", "4 gantalaki", "4 manikku", "4 pm"
-const CLOCK = '(baje|bajey|bje|vajta|vajata|vajto|gantalaki|gantala|ganta|manikku|maniku|mani|o clock|oclock|pm|am)';
+const UNIT = '(sau|she|shey|hazaar|hazar|hajar|hajaar|lakh|laakh|lac|lakhs|vandalu|vanda|veyyi|velu|nooru|aayiram|ayiram|rupaye|rupees|rupay|rs)';
+const CLOCK = '(baje|bajey|bje|vajta|vajata|vajto|vaajtaa|vaajta|vajtaa|gantalaki|gantalaku|gantala|ganta|manikku|maniku|mani|o clock|oclock|pm|am)';
 
 function nowIST(now = new Date()) {
   const p = Object.fromEntries(new Intl.DateTimeFormat('en-CA', { timeZone: TZ, year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' })
@@ -91,7 +94,8 @@ export function normalise(roman: string, now = new Date()): Normalised {
   const frac = text.match(new RegExp(`\\b(saadhe|sadhe|saade|sade|saarhe|paune|pone|sava|savaa|savva|sawa)\\s+(\\w+)(\\s+${CLOCK})?\\b`));
   const half = text.match(new RegExp(`\\b(dedh|derh|dhai|dhaai|dhaaee|adhai|adich)\\s+${CLOCK}\\b`));
   const plain = text.match(new RegExp(`\\b(\\d{1,2}|${Object.keys(NUM).join('|')})(?:[:.](\\d{2}))?\\s*${CLOCK}\\b`));
-  if (frac && numOf(frac[2]) !== null && numOf(frac[2])! <= 12) {
+  const moneyNext = (m: RegExpMatchArray | null) => !!m && new RegExp(`^\\s*${UNIT}\\b`).test(text.slice((m.index ?? 0) + m[0].length));
+  if (frac && !moneyNext(frac) && numOf(frac[2]) !== null && numOf(frac[2])! <= 12) {
     const n = numOf(frac[2])!; const k = frac[1];
     if (k === 'paune' || k === 'pone') { hour = n - 1; minute = 45; }
     else if (/^(saadhe|sadhe|saade|sade|saarhe)$/.test(k)) { hour = n; minute = 30; }
@@ -122,9 +126,15 @@ export function normalise(roman: string, now = new Date()): Normalised {
 
   // ---- money
   const unit = '(sau|she|shey|hazaar|hazar|hajar|hajaar|lakh|laakh|lac|lakhs|vandalu|vanda|veyyi|velu|nooru|aayiram|ayiram|rupaye|rupees|rupay|rs)';
-  const amt = text.match(new RegExp(`\\b(dhai|dhaai|dhaaee|dhaee|adhai|adich|dedh|derh|sava|savaa|savva|sawa|saadhe|sadhe|saarhe|paune|\\d+(?:\\.\\d+)?|${Object.keys(NUM).join('|')})\\s*${unit}\\b`))
+  const halfAmt = text.match(new RegExp(`\\b(saadhe|sadhe|saade|sade|saarhe)\\s+(\\w+)\\s+${unit}\\b`));
+  const amt = halfAmt && numOf(halfAmt[2]) !== null ? null : text.match(new RegExp(`\\b(dhai|dhaai|dhaaee|dhaee|adhai|adich|dedh|derh|sava|savaa|savva|sawa|saadhe|sadhe|saarhe|paune|\\d+(?:\\.\\d+)?|${Object.keys(NUM).join('|')})\\s*${unit}\\b`))
     ?? text.match(/\b(adichshe|dedhshe|savvashe)\b/);
-  if (amt) {
+  if (halfAmt && numOf(halfAmt[2]) !== null) {
+    const u = halfAmt[3];
+    const mul = /^(sau|she|shey|vandalu|vanda|nooru)$/.test(u) ? 100 : /^(hazaar|hazar|hajar|hajaar|veyyi|velu|aayiram|ayiram)$/.test(u) ? 1000 : /^(lakh|laakh|lac|lakhs)$/.test(u) ? 100000 : 1;
+    const amount = Math.round((numOf(halfAmt[2])! + 0.5) * mul);
+    entities.push({ text: halfAmt[0].trim(), kind: 'money', label: `₹${amount.toLocaleString('en-IN')}`, amount });
+  } else if (amt) {
     let n: number | null = null; let mul = 1; const w = amt[1];
     if (/adichshe/.test(amt[0])) { n = 2.5; mul = 100; }
     else if (/dedhshe/.test(amt[0])) { n = 1.5; mul = 100; }

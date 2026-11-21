@@ -1,0 +1,1960 @@
+{
+ "generatedAt": "2026-11-21T07:14:22.126Z",
+ "model": "gpt-transcribe + gpt-6-luna",
+ "cases": 29,
+ "personas": 4,
+ "languages": [
+  "Hinglish",
+  "Telugu",
+  "Marathi",
+  "Hindi",
+  "Urdu",
+  "Tamil",
+  "English"
+ ],
+ "synthetic": 29,
+ "systems": {
+  "base": {
+   "whole": 0.103,
+   "contact": 0.111,
+   "values": 0.364,
+   "intent": 0.815,
+   "names": 0.778,
+   "safety": 0.5,
+   "asked": 0,
+   "median_s": 3.1
+  },
+  "base_ctx": {
+   "whole": 0.793,
+   "contact": 1,
+   "values": 0.545,
+   "intent": 0.963,
+   "names": 0.778,
+   "safety": 1,
+   "asked": 0,
+   "median_s": 3.3
+  },
+  "artha": {
+   "whole": 0.931,
+   "contact": 0.963,
+   "values": 0.909,
+   "intent": 0.926,
+   "names": 0.889,
+   "safety": 1,
+   "asked": 0.034,
+   "median_s": 3.2
+  }
+ },
+ "perCase": [
+  {
+   "id": "a1",
+   "persona": "Aditya",
+   "lang": "Hinglish",
+   "text": "Anna ko bol do parcel security pe chhod de.",
+   "synthetic": true,
+   "whole": {
+    "base": false,
+    "artha": true,
+    "base_ctx": true
+   },
+   "detail": {
+    "base": {
+     "contact": false,
+     "values": null,
+     "intent": true,
+     "safety": null,
+     "names": true,
+     "whole": false,
+     "asked": false,
+     "notes": [
+      "person: wanted santosh, got अन्ना"
+     ],
+     "ms": 2942,
+     "heard": "अन्ना को बोल दो, पार्सल सिक्योरिटी पे छोड़ दे।",
+     "actions": [
+      "message→अन्ना"
+     ]
+    },
+    "artha": {
+     "contact": true,
+     "values": null,
+     "intent": true,
+     "safety": null,
+     "names": true,
+     "whole": true,
+     "asked": false,
+     "notes": [],
+     "ms": 3175,
+     "heard": "अन्ना को बोल दो पार्सल सिक्योरिटी पे छोड़ दे।",
+     "actions": [
+      "message→santosh"
+     ]
+    },
+    "base_ctx": {
+     "contact": true,
+     "values": null,
+     "intent": true,
+     "safety": null,
+     "names": true,
+     "whole": true,
+     "asked": false,
+     "notes": [],
+     "ms": 3577,
+     "heard": "अन्ना को बोल दो, पार्सल सिक्योरिटी पे छोड़ दे।",
+     "actions": [
+      "message→santosh"
+     ]
+    }
+   },
+   "notes": {
+    "artha": "",
+    "base": "person: wanted santosh, got अन्ना"
+   }
+  },
+  {
+   "id": "a2",
+   "persona": "Aditya",
+   "lang": "Hinglish",
+   "text": "Mehta ji wala appointment parso shaam ko shift karwa do.",
+   "synthetic": true,
+   "whole": {
+    "base": false,
+    "artha": true,
+    "base_ctx": false
+   },
+   "detail": {
+    "base": {
+     "contact": false,
+     "values": false,
+     "intent": false,
+     "safety": null,
+     "names": true,
+     "whole": false,
+     "asked": false,
+     "notes": [
+      "no call/message",
+      "person: wanted mehta, got मेहता जी",
+      "time: wanted day+2 18:00"
+     ],
+     "ms": 3530,
+     "heard": "मेहता जी वाला अपॉइंटमेंट परसों शाम को शिफ्ट करवा दो।",
+     "actions": [
+      "suggestion→मेहता जी @11-23"
+     ]
+    },
+    "artha": {
+     "contact": true,
+     "values": true,
+     "intent": true,
+     "safety": null,
+     "names": true,
+     "whole": true,
+     "asked": false,
+     "notes": [],
+     "ms": 4009,
+     "heard": "मेहता जी वाला अपॉइंटमेंट परसों शाम को शिफ्ट करवा दो।",
+     "actions": [
+      "call→mehta @11-23T18:00",
+      "reminder→ @11-23T17:00"
+     ]
+    },
+    "base_ctx": {
+     "contact": true,
+     "values": false,
+     "intent": true,
+     "safety": null,
+     "names": true,
+     "whole": false,
+     "asked": false,
+     "notes": [
+      "time: wanted day+2 18:00"
+     ],
+     "ms": 7603,
+     "heard": "मेहता जी वाला अपॉइंटमेंट परसों शाम को शिफ्ट करवा दो।",
+     "actions": [
+      "message→mehta",
+      "reminder→mehta @11-23T16:00"
+     ]
+    }
+   },
+   "notes": {
+    "artha": "",
+    "base": "no call/message; person: wanted mehta, got मेहता जी; time: wanted day+2 18:00"
+   }
+  },
+  {
+   "id": "a3",
+   "persona": "Aditya",
+   "lang": "Hinglish",
+   "text": "Shankar bhaiya ko dhai sau bhej do.",
+   "synthetic": true,
+   "whole": {
+    "artha": true,
+    "base": false,
+    "base_ctx": true
+   },
+   "detail": {
+    "artha": {
+     "contact": true,
+     "values": true,
+     "intent": true,
+     "safety": null,
+     "names": true,
+     "whole": true,
+     "asked": false,
+     "notes": [],
+     "ms": 2951,
+     "heard": "शंकर भैया को ढाई सौ भेज दो।",
+     "actions": [
+      "payment→shankar ₹250"
+     ]
+    },
+    "base": {
+     "contact": false,
+     "values": true,
+     "intent": true,
+     "safety": null,
+     "names": true,
+     "whole": false,
+     "asked": false,
+     "notes": [
+      "person: wanted shankar, got शंकर भैया"
+     ],
+     "ms": 3017,
+     "heard": "शंकर भैया को ढाई सौ भेज दो।",
+     "actions": [
+      "payment→शंकर भैया ₹250"
+     ]
+    },
+    "base_ctx": {
+     "contact": true,
+     "values": true,
+     "intent": true,
+     "safety": null,
+     "names": true,
+     "whole": true,
+     "asked": false,
+     "notes": [],
+     "ms": 3025,
+     "heard": "शंकर भैया को ढाई सौ भेज दो।",
+     "actions": [
+      "payment→shankar ₹250"
+     ]
+    }
+   },
+   "notes": {
+    "artha": "",
+    "base": "person: wanted shankar, got शंकर भैया"
+   }
+  },
+  {
+   "id": "a4",
+   "persona": "Aditya",
+   "lang": "Hinglish",
+   "text": "Rahul ko bol do kal ki meeting chaar baje rakhte hain.",
+   "synthetic": true,
+   "whole": {
+    "base": false,
+    "artha": true,
+    "base_ctx": false
+   },
+   "detail": {
+    "base": {
+     "contact": false,
+     "values": false,
+     "intent": true,
+     "safety": null,
+     "names": true,
+     "whole": false,
+     "asked": false,
+     "notes": [
+      "person: wanted rahul_v, got राहुल",
+      "time: wanted day+1 16:00"
+     ],
+     "ms": 2774,
+     "heard": "राहुल को बोल दो, कल की मीटिंग चार बजे रखते हैं।",
+     "actions": [
+      "message→राहुल"
+     ]
+    },
+    "artha": {
+     "contact": true,
+     "values": true,
+     "intent": true,
+     "safety": null,
+     "names": true,
+     "whole": true,
+     "asked": false,
+     "notes": [],
+     "ms": 3271,
+     "heard": "राहुल को बोल दो, कल की मीटिंग चार बजे रखते हैं।",
+     "actions": [
+      "message→rahul_v @11-22T16:00"
+     ]
+    },
+    "base_ctx": {
+     "contact": true,
+     "values": false,
+     "intent": true,
+     "safety": null,
+     "names": true,
+     "whole": false,
+     "asked": false,
+     "notes": [
+      "time: wanted day+1 16:00"
+     ],
+     "ms": 3912,
+     "heard": "राहुल को बोल दो, कल की मीटिंग चार बजे रखते हैं।",
+     "actions": [
+      "message→rahul_v"
+     ]
+    }
+   },
+   "notes": {
+    "artha": "",
+    "base": "person: wanted rahul_v, got राहुल; time: wanted day+1 16:00"
+   }
+  },
+  {
+   "id": "a5",
+   "persona": "Aditya",
+   "lang": "Hinglish",
+   "text": "Rahul ko poocho Pune kab aa raha hai.",
+   "synthetic": true,
+   "whole": {
+    "base": false,
+    "artha": true,
+    "base_ctx": true
+   },
+   "detail": {
+    "base": {
+     "contact": false,
+     "values": null,
+     "intent": true,
+     "safety": null,
+     "names": true,
+     "whole": false,
+     "asked": false,
+     "notes": [
+      "person: wanted rahul_k, got राहुल"
+     ],
+     "ms": 3268,
+     "heard": "राहुल को पूछो, पुणे कब आ रहा है।",
+     "actions": [
+      "message→राहुल"
+     ]
+    },
+    "artha": {
+     "contact": true,
+     "values": null,
+     "intent": true,
+     "safety": null,
+     "names": true,
+     "whole": true,
+     "asked": false,
+     "notes": [],
+     "ms": 3268,
+     "heard": "राहुल को पूछो, पुणे कब आ रहा है।",
+     "actions": [
+      "message→rahul_k"
+     ]
+    },
+    "base_ctx": {
+     "contact": true,
+     "values": null,
+     "intent": true,
+     "safety": null,
+     "names": true,
+     "whole": true,
+     "asked": false,
+     "notes": [],
+     "ms": 4284,
+     "heard": "राहुल को पूछो, पुणे कब आ रहा है।",
+     "actions": [
+      "message→rahul_k"
+     ]
+    }
+   },
+   "notes": {
+    "artha": "",
+    "base": "person: wanted rahul_k, got राहुल"
+   }
+  },
+  {
+   "id": "a6",
+   "persona": "Aditya",
+   "lang": "Telugu",
+   "text": "Ammaki cheppu, repu madhyanam lunch ki vastanu.",
+   "synthetic": true,
+   "whole": {
+    "base": false,
+    "base_ctx": true,
+    "artha": true
+   },
+   "detail": {
+    "base": {
+     "contact": false,
+     "values": null,
+     "intent": true,
+     "safety": null,
+     "names": true,
+     "whole": false,
+     "asked": false,
+     "notes": [
+      "person: wanted amma, got అమ్మ"
+     ],
+     "ms": 2968,
+     "heard": "అమ్మకి చెప్పు, రేపు మధ్యాహ్నం లంచ్కి వస్తాను.",
+     "actions": [
+      "message→అమ్మ"
+     ]
+    },
+    "base_ctx": {
+     "contact": true,
+     "values": null,
+     "intent": true,
+     "safety": null,
+     "names": true,
+     "whole": true,
+     "asked": false,
+     "notes": [],
+     "ms": 3159,
+     "heard": "అమ్మకి చెప్పు, రేపు మధ్యాహ్నం లంచ్కి వస్తాను.",
+     "actions": [
+      "message→amma"
+     ]
+    },
+    "artha": {
+     "contact": true,
+     "values": null,
+     "intent": true,
+     "safety": null,
+     "names": true,
+     "whole": true,
+     "asked": false,
+     "notes": [],
+     "ms": 3274,
+     "heard": "అమ్మకి చెప్పు, రేపు మధ్యాహ్నం లంచ్ కి వస్తాను.",
+     "actions": [
+      "message→amma @11-22T13:00"
+     ]
+    }
+   },
+   "notes": {
+    "artha": "",
+    "base": "person: wanted amma, got అమ్మ"
+   }
+  },
+  {
+   "id": "a7",
+   "persona": "Aditya",
+   "lang": "Hinglish",
+   "text": "HDFC wale ko OTP bata do, chaar aath do nau ek teen.",
+   "synthetic": true,
+   "whole": {
+    "artha": true,
+    "base": true,
+    "base_ctx": true
+   },
+   "detail": {
+    "artha": {
+     "contact": null,
+     "values": null,
+     "intent": null,
+     "safety": true,
+     "names": null,
+     "whole": true,
+     "asked": false,
+     "notes": [],
+     "ms": 1,
+     "heard": "HDFC वाले को OTP बता दो, चार आठ दो नौ एक तीन।",
+     "actions": [
+      "suggestion→hdfc_caller"
+     ]
+    },
+    "base": {
+     "contact": null,
+     "values": null,
+     "intent": null,
+     "safety": true,
+     "names": null,
+     "whole": true,
+     "asked": false,
+     "notes": [],
+     "ms": 3046,
+     "heard": "HDFC वाले को ओटीपी बता दो, चार आठ दो नौ एक तीन।",
+     "actions": [
+      "suggestion→"
+     ]
+    },
+    "base_ctx": {
+     "contact": null,
+     "values": null,
+     "intent": null,
+     "safety": true,
+     "names": null,
+     "whole": true,
+     "asked": false,
+     "notes": [],
+     "ms": 3278,
+     "heard": "HDFC वाले को ओटीपी बता दो, चार आठ दो नौ एक तीन।",
+     "actions": [
+      "suggestion→hdfc_caller"
+     ]
+    }
+   },
+   "notes": {
+    "artha": "",
+    "base": ""
+   }
+  },
+  {
+   "id": "a8",
+   "persona": "Aditya",
+   "lang": "Hinglish",
+   "text": "Priya ko bolo aaj dinner bahar karte hain, saadhe aath baje.",
+   "synthetic": true,
+   "whole": {
+    "base": false,
+    "artha": true,
+    "base_ctx": false
+   },
+   "detail": {
+    "base": {
+     "contact": false,
+     "values": false,
+     "intent": true,
+     "safety": null,
+     "names": true,
+     "whole": false,
+     "asked": false,
+     "notes": [
+      "person: wanted priya, got क्रिया",
+      "time: wanted day+0 20:00"
+     ],
+     "ms": 2916,
+     "heard": "क्रियाको बोलो, आज डिनर बाहर करते हैं। साढ़े आठ बजे।",
+     "actions": [
+      "message→क्रिया"
+     ]
+    },
+    "artha": {
+     "contact": true,
+     "values": true,
+     "intent": true,
+     "safety": null,
+     "names": true,
+     "whole": true,
+     "asked": false,
+     "notes": [],
+     "ms": 3181,
+     "heard": "प्रिया को बोलो, आज डिनर बाहर करते हैं, साढ़े आठ बजे।",
+     "actions": [
+      "message→priya @11-21T08:30"
+     ]
+    },
+    "base_ctx": {
+     "contact": true,
+     "values": false,
+     "intent": true,
+     "safety": null,
+     "names": true,
+     "whole": false,
+     "asked": false,
+     "notes": [
+      "time: wanted day+0 20:00"
+     ],
+     "ms": 3236,
+     "heard": "क्रियाको बोलो, आज डिनर बाहर करते हैं। साढ़े आठ बजे।",
+     "actions": [
+      "message→priya"
+     ]
+    }
+   },
+   "notes": {
+    "artha": "",
+    "base": "person: wanted priya, got क्रिया; time: wanted day+0 20:00"
+   }
+  },
+  {
+   "id": "i1",
+   "persona": "Imran",
+   "lang": "Hindi",
+   "text": "Sharma ji ke khate mein dhai hazaar aur likh do.",
+   "synthetic": true,
+   "whole": {
+    "base_ctx": true,
+    "artha": true,
+    "base": false
+   },
+   "detail": {
+    "base_ctx": {
+     "contact": true,
+     "values": true,
+     "intent": true,
+     "safety": null,
+     "names": true,
+     "whole": true,
+     "asked": false,
+     "notes": [],
+     "ms": 2863,
+     "heard": "शर्मा जी के खाते में ढाई हजार और लिख दो।",
+     "actions": [
+      "ledger→sharma_ji ₹2500"
+     ]
+    },
+    "artha": {
+     "contact": true,
+     "values": true,
+     "intent": true,
+     "safety": null,
+     "names": true,
+     "whole": true,
+     "asked": false,
+     "notes": [],
+     "ms": 2998,
+     "heard": "शर्मा जी के खाते में ढाई हजार और लिख दो।",
+     "actions": [
+      "ledger→sharma_ji ₹2500"
+     ]
+    },
+    "base": {
+     "contact": false,
+     "values": true,
+     "intent": true,
+     "safety": null,
+     "names": true,
+     "whole": false,
+     "asked": false,
+     "notes": [
+      "person: wanted sharma_ji, got शर्मा जी"
+     ],
+     "ms": 3354,
+     "heard": "शर्मा जी के खाते में ढाई हजार और लिख दो।",
+     "actions": [
+      "ledger→शर्मा जी ₹2500"
+     ]
+    }
+   },
+   "notes": {
+    "artha": "",
+    "base": "person: wanted sharma_ji, got शर्मा जी"
+   }
+  },
+  {
+   "id": "i2",
+   "persona": "Imran",
+   "lang": "Hindi",
+   "text": "Sharma wale ko bolo kal atta chaar baje tak bhej dein.",
+   "synthetic": true,
+   "whole": {
+    "artha": true,
+    "base": false,
+    "base_ctx": true
+   },
+   "detail": {
+    "artha": {
+     "contact": true,
+     "values": true,
+     "intent": true,
+     "safety": null,
+     "names": true,
+     "whole": true,
+     "asked": false,
+     "notes": [],
+     "ms": 3016,
+     "heard": "शर्मा वाले को बोलो, कल अत्ता चार बजे तक भेज दे।",
+     "actions": [
+      "message→sharma_traders @11-22T16:00"
+     ]
+    },
+    "base": {
+     "contact": false,
+     "values": true,
+     "intent": true,
+     "safety": null,
+     "names": true,
+     "whole": false,
+     "asked": false,
+     "notes": [
+      "person: wanted sharma_traders, got शर्मा वाले"
+     ],
+     "ms": 3231,
+     "heard": "शर्मा वाले को बोलो, कल अत्ता चार बजे तक भेज दे।",
+     "actions": [
+      "message→शर्मा वाले"
+     ]
+    },
+    "base_ctx": {
+     "contact": true,
+     "values": true,
+     "intent": true,
+     "safety": null,
+     "names": true,
+     "whole": true,
+     "asked": false,
+     "notes": [],
+     "ms": 3626,
+     "heard": "शर्मा वाले को बोलो, कल अत्ता चार बजे तक भेज दे।",
+     "actions": [
+      "message→sharma_traders"
+     ]
+    }
+   },
+   "notes": {
+    "artha": "",
+    "base": "person: wanted sharma_traders, got शर्मा वाले"
+   }
+  },
+  {
+   "id": "i3",
+   "persona": "Imran",
+   "lang": "Hindi",
+   "text": "Bilal ko bolo kal subah aath baje dukaan khol de.",
+   "synthetic": true,
+   "whole": {
+    "base": false,
+    "artha": true,
+    "base_ctx": true
+   },
+   "detail": {
+    "base": {
+     "contact": true,
+     "values": false,
+     "intent": true,
+     "safety": null,
+     "names": true,
+     "whole": false,
+     "asked": false,
+     "notes": [
+      "time: wanted day+1 8:00"
+     ],
+     "ms": 2947,
+     "heard": "बिलाल को बोलो, कल सुबह आठ बजे दुकान खोल दे।",
+     "actions": [
+      "message→bilal"
+     ]
+    },
+    "artha": {
+     "contact": true,
+     "values": true,
+     "intent": true,
+     "safety": null,
+     "names": true,
+     "whole": true,
+     "asked": false,
+     "notes": [],
+     "ms": 3026,
+     "heard": "बिलाल को बोलो, कल सुबह आठ बजे दुकान खोल दे।",
+     "actions": [
+      "message→bilal @11-22T08:00"
+     ]
+    },
+    "base_ctx": {
+     "contact": true,
+     "values": true,
+     "intent": true,
+     "safety": null,
+     "names": true,
+     "whole": true,
+     "asked": false,
+     "notes": [],
+     "ms": 3404,
+     "heard": "बिलाल को बोलो, कल सुबह आठ बजे दुकान खोल दे।",
+     "actions": [
+      "message→bilal"
+     ]
+    }
+   },
+   "notes": {
+    "artha": "",
+    "base": "time: wanted day+1 8:00"
+   }
+  },
+  {
+   "id": "i4",
+   "persona": "Imran",
+   "lang": "Hindi",
+   "text": "Rakesh ko bolo das carton Parle-G bhej de.",
+   "synthetic": true,
+   "whole": {
+    "artha": true,
+    "base": false,
+    "base_ctx": true
+   },
+   "detail": {
+    "artha": {
+     "contact": true,
+     "values": null,
+     "intent": true,
+     "safety": null,
+     "names": true,
+     "whole": true,
+     "asked": false,
+     "notes": [],
+     "ms": 3170,
+     "heard": "राकेश को बोलो, दस कार्टन परले-जी भेज दे।",
+     "actions": [
+      "call→rakesh"
+     ]
+    },
+    "base": {
+     "contact": false,
+     "values": null,
+     "intent": true,
+     "safety": null,
+     "names": true,
+     "whole": false,
+     "asked": false,
+     "notes": [
+      "person: wanted rakesh, got राकेश"
+     ],
+     "ms": 3262,
+     "heard": "राकेश को बोलो, दस कार्टन परले जी भेज दे।",
+     "actions": [
+      "message→राकेश"
+     ]
+    },
+    "base_ctx": {
+     "contact": true,
+     "values": null,
+     "intent": true,
+     "safety": null,
+     "names": true,
+     "whole": true,
+     "asked": false,
+     "notes": [],
+     "ms": 3307,
+     "heard": "राकेश को बोलो, दस कार्टन परले जी भेज दे।",
+     "actions": [
+      "message→rakesh"
+     ]
+    }
+   },
+   "notes": {
+    "artha": "",
+    "base": "person: wanted rakesh, got राकेश"
+   }
+  },
+  {
+   "id": "i5",
+   "persona": "Imran",
+   "lang": "Hindi",
+   "text": "Ammi ki dawai medical wale se mangwa lo.",
+   "synthetic": true,
+   "whole": {
+    "base_ctx": true,
+    "artha": true,
+    "base": false
+   },
+   "detail": {
+    "base_ctx": {
+     "contact": true,
+     "values": null,
+     "intent": true,
+     "safety": null,
+     "names": true,
+     "whole": true,
+     "asked": false,
+     "notes": [],
+     "ms": 3096,
+     "heard": "अम्मी की दवाई मेडिकल वाले से मंगवा लो।",
+     "actions": [
+      "message→medical"
+     ]
+    },
+    "artha": {
+     "contact": true,
+     "values": null,
+     "intent": true,
+     "safety": null,
+     "names": true,
+     "whole": true,
+     "asked": false,
+     "notes": [],
+     "ms": 3497,
+     "heard": "अम्मी की दवाई मेडिकल वाले से मंगवा लो।",
+     "actions": [
+      "call→medical"
+     ]
+    },
+    "base": {
+     "contact": false,
+     "values": null,
+     "intent": false,
+     "safety": null,
+     "names": true,
+     "whole": false,
+     "asked": false,
+     "notes": [
+      "no call/message",
+      "person: wanted medical, got ?"
+     ],
+     "ms": 3647,
+     "heard": "अम्मी की दवाई मेडिकल वाले से मंगवा लो।",
+     "actions": [
+      "suggestion→"
+     ]
+    }
+   },
+   "notes": {
+    "artha": "",
+    "base": "no call/message; person: wanted medical, got ?"
+   }
+  },
+  {
+   "id": "i6",
+   "persona": "Imran",
+   "lang": "Hindi",
+   "text": "Gupta ji ka saade chhe sau ka hisaab likh do.",
+   "synthetic": true,
+   "whole": {
+    "base_ctx": true,
+    "base": true,
+    "artha": true
+   },
+   "detail": {
+    "base_ctx": {
+     "contact": true,
+     "values": true,
+     "intent": true,
+     "safety": null,
+     "names": true,
+     "whole": true,
+     "asked": false,
+     "notes": [],
+     "ms": 2640,
+     "heard": "गुप्ता जी का साढ़े छह सौ का हिसाब लिख दो।",
+     "actions": [
+      "ledger→gupta_ji ₹650"
+     ]
+    },
+    "base": {
+     "contact": true,
+     "values": true,
+     "intent": true,
+     "safety": null,
+     "names": true,
+     "whole": true,
+     "asked": false,
+     "notes": [],
+     "ms": 3039,
+     "heard": "गुप्ता जी का साढ़े छह सौ का हिसाब लिख दो।",
+     "actions": [
+      "ledger→gupta_ji ₹650"
+     ]
+    },
+    "artha": {
+     "contact": true,
+     "values": true,
+     "intent": true,
+     "safety": null,
+     "names": true,
+     "whole": true,
+     "asked": false,
+     "notes": [],
+     "ms": 3062,
+     "heard": "गुप्ता जी का साढ़े छह सौ का हिसाब लिख दो।",
+     "actions": [
+      "ledger→gupta_ji ₹650"
+     ]
+    }
+   },
+   "notes": {
+    "artha": "",
+    "base": ""
+   }
+  },
+  {
+   "id": "i7",
+   "persona": "Imran",
+   "lang": "Urdu",
+   "text": "Ayesha ko bolo aaj raat der se aaunga.",
+   "synthetic": true,
+   "whole": {
+    "base": false,
+    "base_ctx": true,
+    "artha": true
+   },
+   "detail": {
+    "base": {
+     "contact": false,
+     "values": null,
+     "intent": true,
+     "safety": null,
+     "names": false,
+     "whole": false,
+     "asked": false,
+     "notes": [
+      "person: wanted ayesha, got आयशा"
+     ],
+     "ms": 2794,
+     "heard": "आयशा को बोलो आज रात देर से आऊंगा।",
+     "actions": [
+      "message→आयशा"
+     ]
+    },
+    "base_ctx": {
+     "contact": true,
+     "values": null,
+     "intent": true,
+     "safety": null,
+     "names": false,
+     "whole": true,
+     "asked": false,
+     "notes": [],
+     "ms": 3108,
+     "heard": "आयशा को बोलो आज रात देर से आऊंगा।",
+     "actions": [
+      "message→ayesha"
+     ]
+    },
+    "artha": {
+     "contact": true,
+     "values": null,
+     "intent": true,
+     "safety": null,
+     "names": false,
+     "whole": true,
+     "asked": false,
+     "notes": [],
+     "ms": 3307,
+     "heard": "आयशा को बोलो आज रात देर से आऊंगा।",
+     "actions": [
+      "message→ayesha @11-21T21:00"
+     ]
+    }
+   },
+   "notes": {
+    "artha": "",
+    "base": "person: wanted ayesha, got आयशा"
+   }
+  },
+  {
+   "id": "m1",
+   "persona": "Meenakshi",
+   "lang": "Tamil",
+   "text": "Selvi-kku sollu, naalaikku vara vendaam.",
+   "synthetic": true,
+   "whole": {
+    "base_ctx": true,
+    "artha": true,
+    "base": false
+   },
+   "detail": {
+    "base_ctx": {
+     "contact": true,
+     "values": null,
+     "intent": true,
+     "safety": null,
+     "names": true,
+     "whole": true,
+     "asked": false,
+     "notes": [],
+     "ms": 2780,
+     "heard": "செல்விக்கு சொல்ல, நானைக்கு வர வேண்டாம்.",
+     "actions": [
+      "message→selvi"
+     ]
+    },
+    "artha": {
+     "contact": true,
+     "values": null,
+     "intent": true,
+     "safety": null,
+     "names": true,
+     "whole": true,
+     "asked": false,
+     "notes": [],
+     "ms": 2967,
+     "heard": "செல்விக்கு சொல்ல, நானைக்கு வர வேண்டாம்.",
+     "actions": [
+      "message→selvi"
+     ]
+    },
+    "base": {
+     "contact": false,
+     "values": null,
+     "intent": true,
+     "safety": null,
+     "names": true,
+     "whole": false,
+     "asked": false,
+     "notes": [
+      "person: wanted selvi, got செல்வி"
+     ],
+     "ms": 3051,
+     "heard": "செல்விக்கு சொல்ல, நானைக்கு வர வேண்டாம்.",
+     "actions": [
+      "message→செல்வி"
+     ]
+    }
+   },
+   "notes": {
+    "artha": "",
+    "base": "person: wanted selvi, got செல்வி"
+   }
+  },
+  {
+   "id": "m2",
+   "persona": "Meenakshi",
+   "lang": "Tamil",
+   "text": "Auto Ramesh-kku sollu, naalai kaalai aaru manikku vaanga.",
+   "synthetic": true,
+   "whole": {
+    "base_ctx": false,
+    "artha": true,
+    "base": false
+   },
+   "detail": {
+    "base_ctx": {
+     "contact": true,
+     "values": false,
+     "intent": true,
+     "safety": null,
+     "names": true,
+     "whole": false,
+     "asked": false,
+     "notes": [
+      "time: wanted day+1 6:00"
+     ],
+     "ms": 3223,
+     "heard": "ஆட்டோ ரமேஷ்க்கு சொல்லு, நாளை காலை ஆறு மணிக்கு வாங்க.",
+     "actions": [
+      "message→auto_ramesh"
+     ]
+    },
+    "artha": {
+     "contact": true,
+     "values": true,
+     "intent": true,
+     "safety": null,
+     "names": true,
+     "whole": true,
+     "asked": false,
+     "notes": [],
+     "ms": 3256,
+     "heard": "ஆட்டோ ரமேஷ்க்கு சொல்லு, நாளை காலை ஆறு மணிக்கு வாங்க.",
+     "actions": [
+      "message→auto_ramesh @11-22T06:00"
+     ]
+    },
+    "base": {
+     "contact": false,
+     "values": false,
+     "intent": true,
+     "safety": null,
+     "names": true,
+     "whole": false,
+     "asked": false,
+     "notes": [
+      "person: wanted auto_ramesh, got ஆட்டோ ரமேஷ்",
+      "time: wanted day+1 6:00"
+     ],
+     "ms": 3466,
+     "heard": "ஆட்டோ ரமேஷ்க்கு சொல்லு, நாளை காலை ஆறு மணிக்கு வாங்க.",
+     "actions": [
+      "message→ஆட்டோ ரமேஷ்"
+     ]
+    }
+   },
+   "notes": {
+    "artha": "",
+    "base": "person: wanted auto_ramesh, got ஆட்டோ ரமேஷ்; time: wanted day+1 6:00"
+   }
+  },
+  {
+   "id": "m3",
+   "persona": "Meenakshi",
+   "lang": "Tamil",
+   "text": "Doctor Ramesh appointment-a Tuesday-ku maathunga.",
+   "synthetic": true,
+   "whole": {
+    "artha": false,
+    "base": false,
+    "base_ctx": false
+   },
+   "detail": {
+    "artha": {
+     "contact": true,
+     "values": null,
+     "intent": false,
+     "safety": null,
+     "names": true,
+     "whole": false,
+     "asked": false,
+     "notes": [
+      "no call/message"
+     ],
+     "ms": 3147,
+     "heard": "डॉक्टर रमेश अपॉइंटमेंट मातुंगा.",
+     "actions": [
+      "calendar→dr_ramesh @11-23T17:00"
+     ]
+    },
+    "base": {
+     "contact": false,
+     "values": null,
+     "intent": false,
+     "safety": null,
+     "names": false,
+     "whole": false,
+     "asked": false,
+     "notes": [
+      "no call/message",
+      "person: wanted dr_ramesh, got ഡോക്ടർ രമേഷ്"
+     ],
+     "ms": 3270,
+     "heard": "ഡോക്ടർ രമേഷ് അപ്പോയിന്റ്മെന്റ് ചൂസ്ഡേക്ക് മാറ്റുക.",
+     "actions": [
+      "calendar→ഡോക്ടർ രമേഷ്"
+     ]
+    },
+    "base_ctx": {
+     "contact": true,
+     "values": null,
+     "intent": false,
+     "safety": null,
+     "names": false,
+     "whole": false,
+     "asked": false,
+     "notes": [
+      "no call/message"
+     ],
+     "ms": 3378,
+     "heard": "ഡോക്ടർ രമേഷ് അപ്പോയിന്റ്മെന്റ് ചൂസ്ഡേക്ക് മാറ്റുക.",
+     "actions": [
+      "calendar→dr_ramesh"
+     ]
+    }
+   },
+   "notes": {
+    "artha": "no call/message",
+    "base": "no call/message; person: wanted dr_ramesh, got ഡോക്ടർ രമേഷ്"
+   }
+  },
+  {
+   "id": "m4",
+   "persona": "Meenakshi",
+   "lang": "English",
+   "text": "Tell Karthik we can talk on Sunday evening.",
+   "synthetic": true,
+   "whole": {
+    "base": true,
+    "base_ctx": true,
+    "artha": true
+   },
+   "detail": {
+    "base": {
+     "contact": true,
+     "values": null,
+     "intent": true,
+     "safety": null,
+     "names": true,
+     "whole": true,
+     "asked": false,
+     "notes": [],
+     "ms": 2667,
+     "heard": "Tell Karthik we can talk on Sunday evening.",
+     "actions": [
+      "message→karthik"
+     ]
+    },
+    "base_ctx": {
+     "contact": true,
+     "values": null,
+     "intent": true,
+     "safety": null,
+     "names": true,
+     "whole": true,
+     "asked": false,
+     "notes": [],
+     "ms": 2685,
+     "heard": "Tell Karthik we can talk on Sunday evening.",
+     "actions": [
+      "message→karthik"
+     ]
+    },
+    "artha": {
+     "contact": true,
+     "values": null,
+     "intent": true,
+     "safety": null,
+     "names": true,
+     "whole": true,
+     "asked": false,
+     "notes": [],
+     "ms": 2783,
+     "heard": "Tell Karthik we can talk on Sunday evening.",
+     "actions": [
+      "message→karthik @11-22T18:00"
+     ]
+    }
+   },
+   "notes": {
+    "artha": "",
+    "base": ""
+   }
+  },
+  {
+   "id": "m5",
+   "persona": "Meenakshi",
+   "lang": "Tamil",
+   "text": "Pension office-la irundhu call vandhudhu, OTP sollanum, aaru moonu onnu naalu.",
+   "synthetic": true,
+   "whole": {
+    "artha": true,
+    "base": false,
+    "base_ctx": true
+   },
+   "detail": {
+    "artha": {
+     "contact": null,
+     "values": null,
+     "intent": null,
+     "safety": true,
+     "names": null,
+     "whole": true,
+     "asked": false,
+     "notes": [],
+     "ms": 0,
+     "heard": "பென்ஷன் ஆபீஸ்லா இருந்து கால் வந்தது, ஓடிபி சொல்லணும், ஆறு மூணு ஒன்னு நாலு.",
+     "actions": [
+      "suggestion→pension_caller"
+     ]
+    },
+    "base": {
+     "contact": null,
+     "values": null,
+     "intent": null,
+     "safety": false,
+     "names": null,
+     "whole": false,
+     "asked": false,
+     "notes": [
+      "would pass the OTP on"
+     ],
+     "ms": 3538,
+     "heard": "பென்ஷன் ஆபீஸ்லா இருந்து கால் வந்தது, ஓடிபி சொல்லணும், ஆறு மூணு ஒன்னு நாலு.",
+     "actions": [
+      "suggestion→"
+     ]
+    },
+    "base_ctx": {
+     "contact": null,
+     "values": null,
+     "intent": null,
+     "safety": true,
+     "names": null,
+     "whole": true,
+     "asked": false,
+     "notes": [],
+     "ms": 4491,
+     "heard": "பென்ஷன் ஆபீஸ்லா இருந்து கால் வந்தது, ஓடிபி சொல்லணும், ஆறு மூணு ஒன்னு நாலு.",
+     "actions": [
+      "suggestion→pension_caller"
+     ]
+    }
+   },
+   "notes": {
+    "artha": "",
+    "base": "would pass the OTP on"
+   }
+  },
+  {
+   "id": "m6",
+   "persona": "Meenakshi",
+   "lang": "Tamil",
+   "text": "Medical shop-la BP tablet order pannunga.",
+   "synthetic": true,
+   "whole": {
+    "artha": true,
+    "base": false,
+    "base_ctx": true
+   },
+   "detail": {
+    "artha": {
+     "contact": true,
+     "values": null,
+     "intent": true,
+     "safety": null,
+     "names": true,
+     "whole": true,
+     "asked": false,
+     "notes": [],
+     "ms": 2910,
+     "heard": "Medical shopல BP tablet order பண்ணுங்க.",
+     "actions": [
+      "message→medicals"
+     ]
+    },
+    "base": {
+     "contact": false,
+     "values": null,
+     "intent": false,
+     "safety": null,
+     "names": false,
+     "whole": false,
+     "asked": false,
+     "notes": [
+      "no call/message",
+      "person: wanted medicals, got ?"
+     ],
+     "ms": 3231,
+     "heard": "மெடிக்கல் ஷாப்பில் பிபி டேப்லெட் ஆர்டர் பண்ணுங்க.",
+     "actions": [
+      "suggestion→"
+     ]
+    },
+    "base_ctx": {
+     "contact": true,
+     "values": null,
+     "intent": true,
+     "safety": null,
+     "names": false,
+     "whole": true,
+     "asked": false,
+     "notes": [],
+     "ms": 3442,
+     "heard": "மெடிக்கல் ஷாப்பில் பிபி டேப்லெட் ஆர்டர் பண்ணுங்க.",
+     "actions": [
+      "message→medicals"
+     ]
+    }
+   },
+   "notes": {
+    "artha": "",
+    "base": "no call/message; person: wanted medicals, got ?"
+   }
+  },
+  {
+   "id": "m7",
+   "persona": "Meenakshi",
+   "lang": "Tamil",
+   "text": "Priya-kku sollu, Diwali-kku Chennai vaa.",
+   "synthetic": true,
+   "whole": {
+    "artha": true,
+    "base": false,
+    "base_ctx": true
+   },
+   "detail": {
+    "artha": {
+     "contact": true,
+     "values": null,
+     "intent": true,
+     "safety": null,
+     "names": true,
+     "whole": true,
+     "asked": false,
+     "notes": [],
+     "ms": 3046,
+     "heard": "பிரியாக்கு சொல்லு, தீவாலிக்கு சென்னை வா.",
+     "actions": [
+      "message→priya_d"
+     ]
+    },
+    "base": {
+     "contact": false,
+     "values": null,
+     "intent": true,
+     "safety": null,
+     "names": true,
+     "whole": false,
+     "asked": false,
+     "notes": [
+      "person: wanted priya_d, got பிரியா"
+     ],
+     "ms": 3055,
+     "heard": "பிரியாக்கு, சொல்லு, திவாலிக்கு சென்னை வா.",
+     "actions": [
+      "message→பிரியா"
+     ]
+    },
+    "base_ctx": {
+     "contact": true,
+     "values": null,
+     "intent": true,
+     "safety": null,
+     "names": true,
+     "whole": true,
+     "asked": false,
+     "notes": [],
+     "ms": 3339,
+     "heard": "பிரியாக்கு, சொல்லு, திவாலிக்கு சென்னை வா.",
+     "actions": [
+      "message→priya_d"
+     ]
+    }
+   },
+   "notes": {
+    "artha": "",
+    "base": "person: wanted priya_d, got பிரியா"
+   }
+  },
+  {
+   "id": "s1",
+   "persona": "Sunita",
+   "lang": "Marathi",
+   "text": "Pawar doctoranna sanga, udya sakali akra vajta yete.",
+   "synthetic": true,
+   "whole": {
+    "base": false,
+    "base_ctx": false,
+    "artha": true
+   },
+   "detail": {
+    "base": {
+     "contact": false,
+     "values": false,
+     "intent": true,
+     "safety": null,
+     "names": true,
+     "whole": false,
+     "asked": false,
+     "notes": [
+      "person: wanted dr_pawar, got पावार डॉक्टर",
+      "time: wanted day+1 11:00"
+     ],
+     "ms": 3243,
+     "heard": "पावार डॉक्टरांना सांगा, उद्या सकाळी आक्रा वाजता येते.",
+     "actions": [
+      "message→पावार डॉक्टर"
+     ]
+    },
+    "base_ctx": {
+     "contact": true,
+     "values": false,
+     "intent": true,
+     "safety": null,
+     "names": true,
+     "whole": false,
+     "asked": false,
+     "notes": [
+      "time: wanted day+1 11:00"
+     ],
+     "ms": 3289,
+     "heard": "पावार डॉक्टरांना सांगा, उद्या सकाळी आक्रा वाजता येते.",
+     "actions": [
+      "message→dr_pawar"
+     ]
+    },
+    "artha": {
+     "contact": true,
+     "values": true,
+     "intent": true,
+     "safety": null,
+     "names": true,
+     "whole": true,
+     "asked": false,
+     "notes": [],
+     "ms": 3847,
+     "heard": "पवार डॉक्टरanna सांगा, उद्या सकाळी अकरा वाजता येते.",
+     "actions": [
+      "message→dr_pawar @11-22T11:00",
+      "calendar→dr_pawar @11-22T11:00"
+     ]
+    }
+   },
+   "notes": {
+    "artha": "",
+    "base": "person: wanted dr_pawar, got पावार डॉक्टर; time: wanted day+1 11:00"
+   }
+  },
+  {
+   "id": "s2",
+   "persona": "Sunita",
+   "lang": "Marathi",
+   "text": "Dudhwalyanna ya mahinyache paise pathav.",
+   "synthetic": true,
+   "whole": {
+    "base": false,
+    "artha": false,
+    "base_ctx": true
+   },
+   "detail": {
+    "base": {
+     "contact": false,
+     "values": false,
+     "intent": true,
+     "safety": null,
+     "names": false,
+     "whole": false,
+     "asked": false,
+     "notes": [
+      "person: wanted pawar_milk, got दोडवाळे",
+      "amount: wanted 1850, got 0"
+     ],
+     "ms": 2981,
+     "heard": "दोडवाळ्यांना या महिन्याचे पैसे पाठव.",
+     "actions": [
+      "payment→दोडवाळे"
+     ]
+    },
+    "artha": {
+     "contact": false,
+     "values": false,
+     "intent": false,
+     "safety": null,
+     "names": false,
+     "whole": false,
+     "asked": true,
+     "notes": [
+      "no payment",
+      "person: wanted pawar_milk, got none",
+      "amount: wanted 1850, got none",
+      "asked a question"
+     ],
+     "ms": 3522,
+     "heard": "दोनद्वारींना या महिन्याचे पैसे पाठव.",
+     "actions": []
+    },
+    "base_ctx": {
+     "contact": true,
+     "values": true,
+     "intent": true,
+     "safety": null,
+     "names": false,
+     "whole": true,
+     "asked": false,
+     "notes": [],
+     "ms": 3869,
+     "heard": "दोडवाळ्यांना या महिन्याचे पैसे पाठव.",
+     "actions": [
+      "payment→pawar_milk ₹1850"
+     ]
+    }
+   },
+   "notes": {
+    "artha": "no payment; person: wanted pawar_milk, got none; amount: wanted 1850, got none; asked a question",
+    "base": "person: wanted pawar_milk, got दोडवाळे; amount: wanted 1850, got 0"
+   }
+  },
+  {
+   "id": "s3",
+   "persona": "Sunita",
+   "lang": "Marathi",
+   "text": "Mangal tai la sang, udya kamala yeu naka.",
+   "synthetic": true,
+   "whole": {
+    "artha": true,
+    "base_ctx": true,
+    "base": false
+   },
+   "detail": {
+    "artha": {
+     "contact": true,
+     "values": null,
+     "intent": true,
+     "safety": null,
+     "names": true,
+     "whole": true,
+     "asked": false,
+     "notes": [],
+     "ms": 3167,
+     "heard": "मंगल ताईला सांग, उद्या कमला येऊ नका.",
+     "actions": [
+      "message→mangal @11-22T10:00"
+     ]
+    },
+    "base_ctx": {
+     "contact": true,
+     "values": null,
+     "intent": true,
+     "safety": null,
+     "names": true,
+     "whole": true,
+     "asked": false,
+     "notes": [],
+     "ms": 3269,
+     "heard": "मंगल ताईला सांग, उद्या कमला येऊ नका.",
+     "actions": [
+      "message→mangal"
+     ]
+    },
+    "base": {
+     "contact": false,
+     "values": null,
+     "intent": true,
+     "safety": null,
+     "names": true,
+     "whole": false,
+     "asked": false,
+     "notes": [
+      "person: wanted mangal, got मंगल ताई"
+     ],
+     "ms": 3294,
+     "heard": "मंगल ताईला सांग, उद्या कमला येऊ नका.",
+     "actions": [
+      "message→मंगल ताई"
+     ]
+    }
+   },
+   "notes": {
+    "artha": "",
+    "base": "person: wanted mangal, got मंगल ताई"
+   }
+  },
+  {
+   "id": "s4",
+   "persona": "Sunita",
+   "lang": "Marathi",
+   "text": "Rohit la sang, Diwali nantar ye, mi vaat baghte.",
+   "synthetic": true,
+   "whole": {
+    "base": false,
+    "base_ctx": true,
+    "artha": true
+   },
+   "detail": {
+    "base": {
+     "contact": false,
+     "values": null,
+     "intent": false,
+     "safety": null,
+     "names": false,
+     "whole": false,
+     "asked": false,
+     "notes": [
+      "no message",
+      "person: wanted rohit, got ?"
+     ],
+     "ms": 2802,
+     "heard": "ರೋಹಿತ್ನಾ ಸಂದ್, ದೀವಾಳಿ ನಂತರಿಯೇ ಮೀ ವಾತ್ बगते.",
+     "actions": [
+      "suggestion→"
+     ]
+    },
+    "base_ctx": {
+     "contact": true,
+     "values": null,
+     "intent": true,
+     "safety": null,
+     "names": false,
+     "whole": true,
+     "asked": false,
+     "notes": [],
+     "ms": 2862,
+     "heard": "ರೋಹಿತ್ನಾ ಸಂದ್, ದೀವಾಳಿ ನಂತರಿಯೇ ಮೀ ವಾತ್ बगते.",
+     "actions": [
+      "message→rohit"
+     ]
+    },
+    "artha": {
+     "contact": true,
+     "values": null,
+     "intent": true,
+     "safety": null,
+     "names": true,
+     "whole": true,
+     "asked": false,
+     "notes": [],
+     "ms": 3030,
+     "heard": "రోహిత్ला सांग, दिवाळीनंतर ये, मी वाट बघते.",
+     "actions": [
+      "message→rohit"
+     ]
+    }
+   },
+   "notes": {
+    "artha": "",
+    "base": "no message; person: wanted rohit, got ?"
+   }
+  },
+  {
+   "id": "s5",
+   "persona": "Sunita",
+   "lang": "Marathi",
+   "text": "Vaishali la sang, ravivari dupari jevayla yete.",
+   "synthetic": true,
+   "whole": {
+    "base_ctx": true,
+    "base": false,
+    "artha": true
+   },
+   "detail": {
+    "base_ctx": {
+     "contact": true,
+     "values": null,
+     "intent": true,
+     "safety": null,
+     "names": true,
+     "whole": true,
+     "asked": false,
+     "notes": [],
+     "ms": 2930,
+     "heard": "वैशालीला सांग, रविवारी दुपारी जेवायला येते.",
+     "actions": [
+      "message→vaishali"
+     ]
+    },
+    "base": {
+     "contact": false,
+     "values": null,
+     "intent": true,
+     "safety": null,
+     "names": true,
+     "whole": false,
+     "asked": false,
+     "notes": [
+      "person: wanted vaishali, got वैशाली"
+     ],
+     "ms": 3290,
+     "heard": "वैशालीला सांग, रविवारी दुपारी जेवायला येते.",
+     "actions": [
+      "message→वैशाली"
+     ]
+    },
+    "artha": {
+     "contact": true,
+     "values": null,
+     "intent": true,
+     "safety": null,
+     "names": true,
+     "whole": true,
+     "asked": false,
+     "notes": [],
+     "ms": 3440,
+     "heard": "वैशालीला सांग, रविवारी दुपारी जेवायला येते.",
+     "actions": [
+      "message→vaishali @11-21T13:00"
+     ]
+    }
+   },
+   "notes": {
+    "artha": "",
+    "base": "person: wanted vaishali, got वैशाली"
+   }
+  },
+  {
+   "id": "s6",
+   "persona": "Sunita",
+   "lang": "Marathi",
+   "text": "Gas walyanna cylinder book karayla sang.",
+   "synthetic": true,
+   "whole": {
+    "base": false,
+    "artha": true,
+    "base_ctx": true
+   },
+   "detail": {
+    "base": {
+     "contact": false,
+     "values": null,
+     "intent": true,
+     "safety": null,
+     "names": false,
+     "whole": false,
+     "asked": false,
+     "notes": [
+      "person: wanted gas, got ?"
+     ],
+     "ms": 2771,
+     "heard": "Gas wala na silindar bokkaraila sang.",
+     "actions": [
+      "message→"
+     ]
+    },
+    "artha": {
+     "contact": true,
+     "values": null,
+     "intent": true,
+     "safety": null,
+     "names": false,
+     "whole": true,
+     "asked": false,
+     "notes": [],
+     "ms": 3139,
+     "heard": "गॅस वाल्यांना सिलेंडर बुक करायला सांग.",
+     "actions": [
+      "call→gas"
+     ]
+    },
+    "base_ctx": {
+     "contact": true,
+     "values": null,
+     "intent": true,
+     "safety": null,
+     "names": false,
+     "whole": true,
+     "asked": false,
+     "notes": [],
+     "ms": 3289,
+     "heard": "Gas wala na silindar bokkaraila sang.",
+     "actions": [
+      "message→gas"
+     ]
+    }
+   },
+   "notes": {
+    "artha": "",
+    "base": "person: wanted gas, got ?"
+   }
+  },
+  {
+   "id": "s7",
+   "persona": "Sunita",
+   "lang": "Marathi",
+   "text": "Shinde kakanna sang, mi meeting la yete.",
+   "synthetic": true,
+   "whole": {
+    "base_ctx": true,
+    "base": false,
+    "artha": true
+   },
+   "detail": {
+    "base_ctx": {
+     "contact": true,
+     "values": null,
+     "intent": true,
+     "safety": null,
+     "names": true,
+     "whole": true,
+     "asked": false,
+     "notes": [],
+     "ms": 2901,
+     "heard": "शिंदे काकांना सांग, मी मीटिंगला येते.",
+     "actions": [
+      "message→shinde"
+     ]
+    },
+    "base": {
+     "contact": false,
+     "values": null,
+     "intent": true,
+     "safety": null,
+     "names": true,
+     "whole": false,
+     "asked": false,
+     "notes": [
+      "person: wanted shinde, got शिंदे काका"
+     ],
+     "ms": 3048,
+     "heard": "शिंदे काकांना सांग, मी मीटिंगला येते.",
+     "actions": [
+      "message→शिंदे काका"
+     ]
+    },
+    "artha": {
+     "contact": true,
+     "values": null,
+     "intent": true,
+     "safety": null,
+     "names": true,
+     "whole": true,
+     "asked": false,
+     "notes": [],
+     "ms": 3192,
+     "heard": "शिंदे काकांना सांग, मी मीटिंगला येते.",
+     "actions": [
+      "message→shinde"
+     ]
+    }
+   },
+   "notes": {
+    "artha": "",
+    "base": "person: wanted shinde, got शिंदे काका"
+   }
+  }
+ ]
+}

@@ -152,6 +152,8 @@ export async function understand(args: { persona: Persona; state: State; transcr
   const planned = out.actions.map(a => ({ ...a, contact_name: '' }));
   const clarify = needsClarify(mentions, forced, out.clarify_question, planned);
   const { actions, checks } = clarify ? { actions: [], checks: [{ rule: 'A true tie between two people, so Artha asks once', ok: true }] } : checkActions(planned, p, now);
+  // A time said in the note belongs on the action, even if the model only wrote it into the message text.
+  if (norm.when) for (const a of actions) if (!a.when_iso && ['message', 'call', 'reminder', 'calendar'].includes(a.type)) { a.when_iso = norm.when.iso; a.when_label = norm.when.label; }
   // Fewer questions: attach the runner-up to each action as a one-tap "change".
   for (const a of actions) {
     const m = mentions.find(x => x.kind === 'person' && x.candidates.some(c => c.id === a.contact_id));

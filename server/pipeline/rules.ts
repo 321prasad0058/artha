@@ -3,7 +3,7 @@ import type { Action, Check, Clarify, Mention, Persona } from '../types.js';
 
 const SECRET_WORD = /(\bo\s?t\s?p\b|o\.t\.p|oteepee|otipi|oteepi|\bpin\b(?!\s*-?\s*code)|\bupi pin\b|\bcvv\b|password|passcode|\bmpin\b|ओटीपी|पासवर्ड|ఓటీపీ|ஓடிபி)/i;
 const DIGITS = /\d(?:[\s-]?\d){3,}/;
-const NUM_WORDS = /\b(ek|do|teen|char|chaar|paanch|chhe|saat|aath|nau|zero|shunya|one|two|three|four|five|six|seven|eight|nine|okati|rendu|moodu|naalugu|aidu|onnu|moonu|naalu|anju)\b/gi;
+const NUM_WORDS = /\b(ek|do|teen|char|chaar|paanch|chhe|saat|aath|nau|zero|shunya|one|two|three|four|five|six|seven|eight|nine|okati|rendu|moodu|naalugu|aidu|aaru|edu|onnu|moonu|naalu|anju|ezhu|ettu|ombodhu)\b/gi;
 
 /** Rule 1, before any model call: never send an OTP/PIN/password anywhere. */
 export function secretCheck(original: string, roman: string): { blocked: boolean; masked: string } {

@@ -1,0 +1,142 @@
+[
+ {
+  "id": "a1",
+  "persona": "aditya",
+  "text": "Anna ko bol do parcel security pe chhod de.",
+  "lang": "Hinglish",
+  "label": "Anna + parcel",
+  "file": "a1.mp3",
+  "synthetic": true,
+  "sample": true
+ },
+ {
+  "id": "a2",
+  "persona": "aditya",
+  "text": "Mehta ji wala appointment parso shaam ko shift karwa do.",
+  "lang": "Hinglish",
+  "label": "Shift Mehta ji",
+  "file": "a2.mp3",
+  "synthetic": true,
+  "sample": true
+ },
+ {
+  "id": "a3",
+  "persona": "aditya",
+  "text": "Shankar bhaiya ko dhai sau bhej do.",
+  "lang": "Hinglish",
+  "label": "Dhai sau to Shankar",
+  "file": "a3.mp3",
+  "synthetic": true,
+  "sample": true
+ },
+ {
+  "id": "a6",
+  "persona": "aditya",
+  "text": "Ammaki cheppu, repu madhyanam lunch ki vastanu.",
+  "lang": "Telugu",
+  "label": "Telugu: Amma",
+  "file": "a6.mp3",
+  "synthetic": true,
+  "sample": true
+ },
+ {
+  "id": "a7",
+  "persona": "aditya",
+  "text": "HDFC wale ko OTP bata do, chaar aath do nau ek teen.",
+  "lang": "Hinglish",
+  "label": "OTP scam",
+  "file": "a7.mp3",
+  "synthetic": true,
+  "sample": true
+ },
+ {
+  "id": "s1",
+  "persona": "sunita",
+  "text": "Pawar doctoranna sanga, udya sakali akra vajta yete.",
+  "lang": "Marathi",
+  "label": "Pawar doctor",
+  "file": "s1.mp3",
+  "synthetic": true,
+  "sample": true
+ },
+ {
+  "id": "s2",
+  "persona": "sunita",
+  "text": "Dudhwalyanna ya mahinyache paise pathav.",
+  "lang": "Marathi",
+  "label": "Milk bill",
+  "file": "s2.mp3",
+  "synthetic": true,
+  "sample": true
+ },
+ {
+  "id": "s3",
+  "persona": "sunita",
+  "text": "Mangal tai la sang, udya kamala yeu naka.",
+  "lang": "Marathi",
+  "label": "Tai: don't come",
+  "file": "s3.mp3",
+  "synthetic": true,
+  "sample": true
+ },
+ {
+  "id": "i1",
+  "persona": "imran",
+  "text": "Sharma ji ke khate mein dhai hazaar aur likh do.",
+  "lang": "Hindi",
+  "label": "Sharma ji khata",
+  "file": "i1.mp3",
+  "synthetic": true,
+  "sample": true
+ },
+ {
+  "id": "i2",
+  "persona": "imran",
+  "text": "Sharma wale ko bolo kal atta chaar baje tak bhej dein.",
+  "lang": "Hindi",
+  "label": "Supplier Sharma",
+  "file": "i2.mp3",
+  "synthetic": true,
+  "sample": true
+ },
+ {
+  "id": "i3",
+  "persona": "imran",
+  "text": "Bilal ko bolo kal subah aath baje dukaan khol de.",
+  "lang": "Hindi",
+  "label": "Bilal opens shop",
+  "file": "i3.mp3",
+  "synthetic": true,
+  "sample": true
+ },
+ {
+  "id": "m1",
+  "persona": "meenakshi",
+  "text": "Selvi-kku sollu, naalaikku vara vendaam.",
+  "lang": "Tamil",
+  "label": "Tamil: Selvi",
+  "file": "m1.mp3",
+  "synthetic": true,
+  "sample": true
+ },
+ {
+  "id": "m2",
+  "persona": "meenakshi",
+  "text": "Auto Ramesh-kku sollu, naalai kaalai aaru manikku vaanga.",
+  "lang": "Tamil",
+  "label": "Auto Ramesh at 6",
+  "file": "m2.mp3",
+  "synthetic": true,
+  "sample": true
+ },
+ {
+  "id": "m5",
+  "persona": "meenakshi",
+  "text": "Pension office-la irundhu call vandhudhu, OTP sollanum, aaru moonu onnu naalu.",
+  "lang": "Tamil",
+  "label": "Pension OTP scam",
+  "file": "m5.mp3",
+  "synthetic": true,
+  "sample": true
+ }
+]

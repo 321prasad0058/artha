@@ -34,12 +34,34 @@ export async function jsonCall<T>(opts: { instructions: string; input: string; s
   };
   const effort = opts.effort ?? MODELS.planEffort;
   if (effort) body.reasoning = { effort };
-  const r = await fetch(`${BASE}/responses`, { method: 'POST', headers: { Authorization: `Bearer ${key()}`, 'content-type': 'application/json' }, body: JSON.stringify(body) });
-  const j: any = await r.json();
-  if (!r.ok) throw new Error(`Model call failed: ${j?.error?.message ?? r.status}`);
-  const text = j.output_text ?? j.output?.flatMap((o: any) => o.content ?? []).find((c: any) => c.type === 'output_text')?.text;
-  if (!text) throw new Error('Model returned no text');
-  return JSON.parse(text) as T;
+  for (let attempt = 0; ; attempt++) {
+    const r = await fetch(`${BASE}/responses`, { method: 'POST', headers: { Authorization: `Bearer ${key()}`, 'content-type': 'application/json' }, body: JSON.stringify(body) });
+    const j: any = await r.json();
+    if (!r.ok) {
+      if (attempt < 1 && (r.status === 429 || r.status >= 500)) { await new Promise(res => setTimeout(res, 800)); continue; }
+      throw new Error(`Model call failed: ${j?.error?.message ?? r.status}`);
+    }
+    // Use the first output_text part, and only its first complete JSON object.
+    const text: string | undefined = j.output?.flatMap((o: any) => o.content ?? []).find((c: any) => c.type === 'output_text')?.text ?? j.output_text;
+    const parsed = text ? firstJson(text) : null;
+    if (parsed) return parsed as T;
+    if (attempt >= 1) throw new Error('Model returned no usable answer');
+  }
+}
+
+function firstJson(text: string): unknown | null {
+  try { return JSON.parse(text); } catch { /* fall through */ }
+  const start = text.indexOf('{');
+  if (start < 0) return null;
+  let depth = 0, inStr = false, esc = false;
+  for (let i = start; i < text.length; i++) {
+    const ch = text[i];
+    if (inStr) { if (esc) esc = false; else if (ch === '\\') esc = true; else if (ch === '"') inStr = false; continue; }
+    if (ch === '"') inStr = true;
+    else if (ch === '{') depth++;
+    else if (ch === '}' && --depth === 0) { try { return JSON.parse(text.slice(start, i + 1)); } catch { return null; } }
+  }
+  return null;
 }
 
 export async function speech(text: string, voice: string, instructions: string): Promise<Buffer> {

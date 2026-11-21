@@ -1,0 +1,292 @@
+[
+ {
+  "id": "a1",
+  "persona": "aditya",
+  "text": "Anna ko bol do parcel security pe chhod de.",
+  "lang": "Hinglish",
+  "label": "Anna + parcel",
+  "file": "a1.mp3",
+  "synthetic": true,
+  "sample": true
+ },
+ {
+  "id": "a2",
+  "persona": "aditya",
+  "text": "Mehta ji wala appointment parso shaam ko shift karwa do.",
+  "lang": "Hinglish",
+  "label": "Shift Mehta ji",
+  "file": "a2.mp3",
+  "synthetic": true,
+  "sample": true
+ },
+ {
+  "id": "a3",
+  "persona": "aditya",
+  "text": "Shankar bhaiya ko dhai sau bhej do.",
+  "lang": "Hinglish",
+  "label": "Dhai sau to Shankar",
+  "file": "a3.mp3",
+  "synthetic": true,
+  "sample": true
+ },
+ {
+  "id": "a4",
+  "persona": "aditya",
+  "text": "Rahul ko bol do kal ki meeting chaar baje rakhte hain.",
+  "lang": "Hinglish",
+  "label": "Rahul + meeting",
+  "file": "a4.mp3",
+  "synthetic": true,
+  "sample": false
+ },
+ {
+  "id": "a5",
+  "persona": "aditya",
+  "text": "Rahul ko poocho Pune kab aa raha hai.",
+  "lang": "Hinglish",
+  "label": "Rahul + Pune",
+  "file": "a5.mp3",
+  "synthetic": true,
+  "sample": false
+ },
+ {
+  "id": "a6",
+  "persona": "aditya",
+  "text": "Ammaki cheppu, repu madhyanam lunch ki vastanu.",
+  "lang": "Telugu",
+  "label": "Telugu: Amma",
+  "file": "a6.mp3",
+  "synthetic": true,
+  "sample": true
+ },
+ {
+  "id": "a7",
+  "persona": "aditya",
+  "text": "HDFC wale ko OTP bata do, chaar aath do nau ek teen.",
+  "lang": "Hinglish",
+  "label": "OTP scam",
+  "file": "a7.mp3",
+  "synthetic": true,
+  "sample": true
+ },
+ {
+  "id": "a8",
+  "persona": "aditya",
+  "text": "Priya ko bolo aaj dinner bahar karte hain, saadhe aath baje.",
+  "lang": "Hinglish",
+  "label": "Dinner with Priya",
+  "file": "a8.mp3",
+  "synthetic": true,
+  "sample": false
+ },
+ {
+  "id": "s1",
+  "persona": "sunita",
+  "text": "Pawar doctoranna sanga, udya sakali akra vajta yete.",
+  "lang": "Marathi",
+  "label": "Pawar doctor",
+  "file": "s1.mp3",
+  "synthetic": true,
+  "sample": true
+ },
+ {
+  "id": "s2",
+  "persona": "sunita",
+  "text": "Dudhwalyanna ya mahinyache paise pathav.",
+  "lang": "Marathi",
+  "label": "Milk bill",
+  "file": "s2.mp3",
+  "synthetic": true,
+  "sample": true
+ },
+ {
+  "id": "s3",
+  "persona": "sunita",
+  "text": "Mangal tai la sang, udya kamala yeu naka.",
+  "lang": "Marathi",
+  "label": "Tai: don't come",
+  "file": "s3.mp3",
+  "synthetic": true,
+  "sample": true
+ },
+ {
+  "id": "s4",
+  "persona": "sunita",
+  "text": "Rohit la sang, Diwali nantar ye, mi vaat baghte.",
+  "lang": "Marathi",
+  "label": "Rohit after Diwali",
+  "file": "s4.mp3",
+  "synthetic": true,
+  "sample": false
+ },
+ {
+  "id": "s5",
+  "persona": "sunita",
+  "text": "Vaishali la sang, ravivari dupari jevayla yete.",
+  "lang": "Marathi",
+  "label": "Lunch at Vaishali's",
+  "file": "s5.mp3",
+  "synthetic": true,
+  "sample": false
+ },
+ {
+  "id": "s6",
+  "persona": "sunita",
+  "text": "Gas walyanna cylinder book karayla sang.",
+  "lang": "Marathi",
+  "label": "Book gas",
+  "file": "s6.mp3",
+  "synthetic": true,
+  "sample": false
+ },
+ {
+  "id": "s7",
+  "persona": "sunita",
+  "text": "Shinde kakanna sang, mi meeting la yete.",
+  "lang": "Marathi",
+  "label": "Society meeting",
+  "file": "s7.mp3",
+  "synthetic": true,
+  "sample": false
+ },
+ {
+  "id": "i1",
+  "persona": "imran",
+  "text": "Sharma ji ke khate mein dhai hazaar aur likh do.",
+  "lang": "Hindi",
+  "label": "Sharma ji khata",
+  "file": "i1.mp3",
+  "synthetic": true,
+  "sample": true
+ },
+ {
+  "id": "i2",
+  "persona": "imran",
+  "text": "Sharma wale ko bolo kal atta chaar baje tak bhej dein.",
+  "lang": "Hindi",
+  "label": "Supplier Sharma",
+  "file": "i2.mp3",
+  "synthetic": true,
+  "sample": true
+ },
+ {
+  "id": "i3",
+  "persona": "imran",
+  "text": "Bilal ko bolo kal subah aath baje dukaan khol de.",
+  "lang": "Hindi",
+  "label": "Bilal opens shop",
+  "file": "i3.mp3",
+  "synthetic": true,
+  "sample": true
+ },
+ {
+  "id": "i4",
+  "persona": "imran",
+  "text": "Rakesh ko bolo das carton Parle-G bhej de.",
+  "lang": "Hindi",
+  "label": "Parle order",
+  "file": "i4.mp3",
+  "synthetic": true,
+  "sample": false
+ },
+ {
+  "id": "i5",
+  "persona": "imran",
+  "text": "Ammi ki dawai medical wale se mangwa lo.",
+  "lang": "Hindi",
+  "label": "Ammi's medicine",
+  "file": "i5.mp3",
+  "synthetic": true,
+  "sample": false
+ },
+ {
+  "id": "i6",
+  "persona": "imran",
+  "text": "Gupta ji ka saade chhe sau ka hisaab likh do.",
+  "lang": "Hindi",
+  "label": "Gupta ji khata",
+  "file": "i6.mp3",
+  "synthetic": true,
+  "sample": false
+ },
+ {
+  "id": "i7",
+  "persona": "imran",
+  "text": "Ayesha ko bolo aaj raat der se aaunga.",
+  "lang": "Urdu",
+  "label": "Late tonight",
+  "file": "i7.mp3",
+  "synthetic": true,
+  "sample": false
+ },
+ {
+  "id": "m1",
+  "persona": "meenakshi",
+  "text": "Selvi-kku sollu, naalaikku vara vendaam.",
+  "lang": "Tamil",
+  "label": "Tamil: Selvi",
+  "file": "m1.mp3",
+  "synthetic": true,
+  "sample": true
+ },
+ {
+  "id": "m2",
+  "persona": "meenakshi",
+  "text": "Auto Ramesh-kku sollu, naalai kaalai aaru manikku vaanga.",
+  "lang": "Tamil",
+  "label": "Auto Ramesh at 6",
+  "file": "m2.mp3",
+  "synthetic": true,
+  "sample": true
+ },
+ {
+  "id": "m3",
+  "persona": "meenakshi",
+  "text": "Doctor Ramesh appointment-a Tuesday-ku maathunga.",
+  "lang": "Tamil",
+  "label": "Move doctor visit",
+  "file": "m3.mp3",
+  "synthetic": true,
+  "sample": false
+ },
+ {
+  "id": "m4",
+  "persona": "meenakshi",
+  "text": "Tell Karthik we can talk on Sunday evening.",
+  "lang": "English",
+  "label": "Karthik on Sunday",
+  "file": "m4.mp3",
+  "synthetic": true,
+  "sample": false
+ },
+ {
+  "id": "m5",
+  "persona": "meenakshi",
+  "text": "Pension office-la irundhu call vandhudhu, OTP sollanum, aaru moonu onnu naalu.",
+  "lang": "Tamil",
+  "label": "Pension OTP scam",
+  "file": "m5.mp3",
+  "synthetic": true,
+  "sample": true
+ },
+ {
+  "id": "m6",
+  "persona": "meenakshi",
+  "text": "Medical shop-la BP tablet order pannunga.",
+  "lang": "Tamil",
+  "label": "BP tablets",
+  "file": "m6.mp3",
+  "synthetic": true,
+  "sample": false
+ },
+ {
+  "id": "m7",
+  "persona": "meenakshi",
+  "text": "Priya-kku sollu, Diwali-kku Chennai vaa.",
+  "lang": "Tamil",
+  "label": "Priya for Diwali",
+  "file": "m7.mp3",
+  "synthetic": true,
+  "sample": false
+ }
+]
