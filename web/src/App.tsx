@@ -583,7 +583,7 @@ export default function App() {
   const orbUp = () => { if (rec && Date.now() - pressedAt.current > 450) stopRec(); };
 
   const mySamples = samples.filter(s => s.persona === pid).slice(0, 4);
-  const unread = useMemo(() => pstate ? Object.values(pstate.threads).filter(t => t.at(-1)?.via && Date.now() - Date.parse(t.at(-1)!.at) < 10 * 60e3).length : 0, [pstate]);
+  const unread = useMemo(() => pstate ? Object.values(pstate.threads).map(t => latestMsg(t)).filter(m => m?.via && Date.now() - msgTime(m) < 10 * 60e3).length : 0, [pstate]);
   const go = (t: Tab) => { setTab(t); };
   const wide = tab === 'results' || tab === 'about';
   const empty = myRuns.length === 0;
@@ -864,19 +864,35 @@ function TypeBar({ onText, onPhoto, disabled }: { onText: (t: string) => void; o
 }
 
 /* ================= chats ================= */
+type Msg = State['threads'][string][number];
+const msgTime = (m: Msg) => Date.parse(m.at) || 0;
+/** A thread oldest → newest. Messages filed from Gmail carry the mail's own date, so arrival order is not time order. */
+const byTime = (t: Msg[] = []) => [...t].sort((a, b) => msgTime(a) - msgTime(b));
+/** The newest message in a thread, by its time. */
+const latestMsg = (t: Msg[] = []) => t.reduce<Msg | undefined>((a, b) => (!a || msgTime(b) >= msgTime(a) ? b : a), undefined);
+
 function Chats({ persona, state, open, setOpen, onSwitch }: { persona?: PersonaInfo; state: State | null; open: string | null; setOpen: (id: string | null) => void; onSwitch: () => void }) {
+  const endRef = useRef<HTMLDivElement>(null);
+  const openThread = open && state ? byTime(state.threads[open]) : [];
+  // an open chat starts at its newest message, and follows new ones as they arrive
+  useEffect(() => { endRef.current?.scrollIntoView({ block: 'end' }); }, [open, openThread.length]);
+  // latest conversation first; people with no messages yet keep their usual order below
+  const rows = useMemo(() => {
+    if (!persona || !state) return [];
+    return persona.contacts.map((c, i) => ({ c, i, last: latestMsg(state.threads[c.id]) }))
+      .sort((a, b) => (b.last ? msgTime(b.last) : -1) - (a.last ? msgTime(a.last) : -1) || a.i - b.i);
+  }, [persona, state]);
   if (!persona || !state) return null;
   if (open) {
     const c = persona.contacts.find(x => x.id === open)!;
     return (<>
       <div className="thread-head"><button className="icon-btn" onClick={() => setOpen(null)} aria-label="Back"><I n="back" /></button><span className="av">{initials(c.name)}</span><div><b>{c.name}</b><small>{c.rel} · {c.lang}</small></div></div>
-      <div className="bubbles">{(state.threads[c.id] ?? []).map((m, i) => <div key={i} className={`bub ${m.me ? 'me' : 'them'}`}>{m.via && <span className="via">{m.via}</span>}{m.text}<time>{fmtTime(m.at)}</time></div>)}</div>
+      <div className="bubbles">{openThread.map((m, i) => <div key={i} className={`bub ${m.me ? 'me' : 'them'}`}>{m.via && <span className="via">{m.via}</span>}{m.text}<time>{fmtTime(m.at)}</time></div>)}<div ref={endRef} /></div>
     </>);
   }
   return (<>
     <button className="pc-head" onClick={onSwitch}><span className="av lg ink">{persona.avatar}</span><span><b>{persona.name}</b><small>{persona.city} · {persona.speaks.join(', ')}</small></span><I n="swap" s={{ marginLeft: 'auto', opacity: .5 }} /></button>
-    {persona.contacts.map(c => {
-      const last = (state.threads[c.id] ?? []).at(-1);
+    {rows.map(({ c, last }) => {
       const isNew = !!last?.via && Date.now() - Date.parse(last.at) < 10 * 60e3;
       return (
         <button key={c.id} className={`chatrow ${isNew ? 'unread' : ''}`} onClick={() => setOpen(c.id)}>
