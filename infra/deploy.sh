@@ -63,11 +63,11 @@ aws_ lambda add-permission --function-name "$FN" --statement-id url-public --act
 aws_ lambda add-permission --function-name "$FN" --statement-id url-invoke --action lambda:InvokeFunction --principal '*' --invoked-via-function-url >/dev/null 2>&1 || true
 LHOST=$(echo "$LURL" | sed -E 's#https://([^/]+)/?#\1#')
 # keep one instance warm: a ping every 5 minutes (EventBridge), so a note after a quiet spell is not slowed by a cold start
-if [ -z "${STAGE:-}" ] && ! aws_ events describe-rule --name artha-warm >/dev/null 2>&1; then
+if [ -z "${STAGE:-}" ] && [ -z "${CI:-}" ] && [ "$(aws_ events list-targets-by-rule --rule artha-warm --query 'length(Targets)' --output text 2>/dev/null)" != "1" ]; then
   FARN=$(aws_ lambda get-function --function-name "$FN" --query Configuration.FunctionArn --output text)
   RARN=$(aws_ events put-rule --name artha-warm --schedule-expression "rate(5 minutes)" --query RuleArn --output text)
   aws_ lambda add-permission --function-name "$FN" --statement-id warm --action lambda:InvokeFunction --principal events.amazonaws.com --source-arn "$RARN" >/dev/null 2>&1 || true
-  aws_ events put-targets --rule artha-warm --targets "Id=artha,Arn=$FARN,Input={\"warm\":true}" >/dev/null || echo "  (warm-up ping not set up; the app works without it)"
+  aws_ events put-targets --rule artha-warm --targets "[{\"Id\":\"artha\",\"Arn\":\"$FARN\",\"Input\":\"{\\\"warm\\\":true}\"}]" >/dev/null || echo "  (warm-up ping not set up; the app works without it)"
 fi
 if [ -n "${STAGE:-}" ]; then echo; echo "✓ $FN is up: $LURL"; exit 0; fi
 
