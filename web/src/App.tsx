@@ -430,7 +430,7 @@ export default function App() {
           </section>
 
           <aside className="pane pane-side" aria-label="What Artha knows">
-            <Knows persona={persona} state={pstate} fresh={fresh} onReset={reset} />
+            <Knows persona={persona} state={pstate} fresh={fresh} onReset={reset} onState={applyState} />
           </aside>
         </>)}
       </main>
@@ -632,7 +632,49 @@ function Chats({ persona, state, open, setOpen, onSwitch }: { persona?: PersonaI
 }
 
 /* ================= what Artha knows ================= */
-function Knows({ persona, state, fresh, onReset }: { persona?: PersonaInfo; state: State | null; fresh: Set<string>; onReset: () => void }) {
+/** Gmail, read-only: connect, sync (with live progress), see what was learned, disconnect (forgets everything from mail). */
+function GmailCard({ pid, onState }: { pid: string; onState: (s: State) => void }) {
+  const [st, setSt] = useState<Awaited<ReturnType<typeof api.gmailStatus>> | null>(null);
+  const [busy, setBusy] = useState(''); const [err, setErr] = useState('');
+  const load = useCallback(() => api.gmailStatus(pid).then(setSt).catch(() => setSt(null)), [pid]);
+  const sync = useCallback(async () => {
+    setErr(''); setBusy('Opening your mail…');
+    try {
+      await api.gmailSync(pid, e => {
+        if (e.t === 'progress') setBusy(({ list: `Found ${e.n} new mails…`, triage: `${e.skipped} newsletters and promotions skipped · reading ${e.kept}…`, read: `Understanding ${e.n} mails${e.otp ? ` (${e.otp} OTP mail${e.otp > 1 ? 's' : ''} ignored)` : ''}…`, understood: `Filing what matters…` } as Record<string, string>)[e.stage] ?? 'Working…');
+        else if (e.t === 'state') onState(e.state);
+        else if (e.t === 'error') setErr(e.error);
+      });
+    } catch (e: any) { setErr(e.message); }
+    setBusy(''); load();
+  }, [pid, onState, load]);
+  useEffect(() => {
+    load();
+    const q = new URLSearchParams(location.search);
+    if (q.get('gmail') === 'connected') { history.replaceState(null, '', `${location.pathname}?p=${pid}`); sync(); }
+    else if (q.get('gmail') === 'failed') { setErr('Gmail was not connected. Try again.'); history.replaceState(null, '', `${location.pathname}?p=${pid}`); }
+  }, [pid]);   // eslint-disable-line react-hooks/exhaustive-deps
+  if (!st?.configured) return null;
+  const s = st.stats;
+  return (
+    <div className="mini gmail"><h4>Gmail</h4>
+      {!st.connected ? (<>
+        <p className="g-note">Read-only. Artha learns who's who, plans, bills and payments from the last 90 days. Promotions and OTP mails are never read.</p>
+        <a className="btn btn-primary g-btn" href={`${API_BASE}/api/gmail/connect?p=${encodeURIComponent(pid)}`}><I n="chat" />Connect Gmail</a>
+      </>) : (<>
+        <p className="g-note"><b>{st.email}</b>{st.lastSync ? ` · synced ${fmtTime(st.lastSync)}` : ''}</p>
+        {busy ? <p className="g-busy"><span className="g-spin" />{busy}</p> : s ? (
+          <div className="g-stats">{[['people', 'new people'], ['plans', 'plans'], ['money', 'bills & payments'], ['facts', 'facts'], ['scams', 'scam flagged']].filter(([k]) => s[k]).map(([k, l]) => <span key={k}><b>{s[k]}</b> {l}</span>)}
+            <span className="dim">{s.scanned} mails scanned · {s.skipped} skipped{s.otp ? ` · ${s.otp} OTP ignored` : ''}</span></div>) : null}
+        <div className="g-row"><button className="btn btn-ghost" onClick={sync} disabled={!!busy}><I n="refresh" />{s ? 'Sync again' : 'Sync now'}</button>
+          <button className="link" onClick={async () => { setBusy(''); const r = await api.gmailDisconnect(pid); onState(r.state); load(); }} disabled={!!busy}>Disconnect</button></div>
+      </>)}
+      {err && <p className="bad small">{err}</p>}
+    </div>
+  );
+}
+
+function Knows({ persona, state, fresh, onReset, onState }: { persona?: PersonaInfo; state: State | null; fresh: Set<string>; onReset: () => void; onState: (s: State) => void }) {
   const [all, setAll] = useState(false);
   const listRef = useEnter<HTMLDivElement>(state?.memory.length);
   if (!state || !persona) return null;
@@ -649,6 +691,7 @@ function Knows({ persona, state, fresh, onReset }: { persona?: PersonaInfo; stat
       <div key={m.fact} className={`fact ${m.learned ? 'learned' : ''} ${fresh.has(m.fact) ? 'fresh' : ''}`}><I n={m.kind === 'alias' ? 'swap' : m.learned ? 'spark' : 'brain'} /><span>{m.fact}</span></div>))}
       {facts.length > 6 && <button className="link" onClick={() => setAll(x => !x)}>{all ? 'Show less' : `+${facts.length - 6} more`}</button>}
     </div>
+    <GmailCard pid={persona.id} onState={onState} />
     <div className="mini"><h4>Connected on this phone</h4><div className="conns">{[['chat', 'WhatsApp'], ['call', 'Phone'], ['cal', 'Google Calendar'], ['rupee', 'UPI apps'], ['brain', 'Contacts · sample'], ['call', 'Equal calls · simulated']].map(([ic, l]) => <span key={l} className="conn"><I n={ic} s={{ width: 13, height: 13 }} />{l}</span>)}</div></div>
     {upcoming.length > 0 && <div className="mini"><h4>Coming up</h4>{upcoming.map((c, i) => <div key={i} className={c.added ? 'added' : ''}><span>{c.title}</span><span>{c.when_label}</span></div>)}</div>}
     {book.length > 0 && <div className="mini"><h4>Khata book</h4>{book.map(e => <div key={e.id} className={e.status === 'saved' ? 'added' : ''}><span>{({ sale: 'Sold', purchase: 'Bought', to_receive: 'To receive', to_pay: 'To pay', received: 'Received', paid: 'Paid', credit: 'Credit' } as Record<string, string>)[e.kind]}{e.party ? ` · ${e.party}` : e.item ? ` · ${e.item}` : ''}{e.day !== today ? ` · ${e.day.slice(5)}` : ''}</span><span>₹{e.amount.toLocaleString('en-IN')}</span></div>)}</div>}

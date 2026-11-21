@@ -40,11 +40,21 @@ aws_ iam put-role-policy --role-name "$ROLE" --policy-name artha-state \
   --policy-document "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Action\":[\"s3:GetObject\",\"s3:PutObject\"],\"Resource\":\"arn:aws:s3:::artha-state-$ACCT*/*\"},{\"Effect\":\"Allow\",\"Action\":\"s3:ListBucket\",\"Resource\":\"arn:aws:s3:::artha-state-$ACCT*\"}]}"
 
 say "lambda function"
-ENV="Variables={OPENAI_API_KEY=$OPENAI_API_KEY,ARTHA_BUCKET=$STATE,ARTHA_ROOT=/var/task,NODE_OPTIONS=--disable-warning=ExperimentalWarning}"
+# settings are MERGED with what the function already has, so a deploy without the Google keys (CI) never wipes them
+envval() { [ -n "${!1:-}" ] && printf '%s' "${!1}" || { [ -f .env ] && grep -E "^$1=" .env | head -1 | cut -d= -f2-; } }
+DIST0=$(aws_ cloudfront list-distributions --query "DistributionList.Items[?Comment=='artha'].DomainName | [0]" --output text 2>/dev/null || echo None)
+CURENV=$(aws_ lambda get-function-configuration --function-name "$FN" --query 'Environment.Variables' --output json 2>/dev/null || echo '{}')
+ENVFILE=$(mktemp)
+CURENV="$CURENV" OPENAI="$OPENAI_API_KEY" STATE="$STATE" GID="$(envval GOOGLE_CLIENT_ID)" GSEC="$(envval GOOGLE_CLIENT_SECRET)" TKEY="$(envval ARTHA_TOKEN_KEY)" PUB="$([ "$DIST0" != "None" ] && [ -z "${STAGE:-}" ] && echo "https://$DIST0")" node -e '
+  const cur = JSON.parse(process.env.CURENV || "{}") || {};
+  const v = { ...cur, OPENAI_API_KEY: process.env.OPENAI, ARTHA_BUCKET: process.env.STATE, ARTHA_ROOT: "/var/task", NODE_OPTIONS: "--disable-warning=ExperimentalWarning" };
+  for (const [k, e] of [["GOOGLE_CLIENT_ID", "GID"], ["GOOGLE_CLIENT_SECRET", "GSEC"], ["ARTHA_TOKEN_KEY", "TKEY"], ["ARTHA_PUBLIC_URL", "PUB"]]) if (process.env[e]) v[k] = process.env[e];
+  console.log(JSON.stringify({ Variables: v }));' > "$ENVFILE"
+ENV="file://$ENVFILE"
 if aws_ lambda get-function --function-name "$FN" >/dev/null 2>&1; then
   aws_ lambda update-function-code --function-name "$FN" --zip-file fileb://lambda.zip >/dev/null
   aws_ lambda wait function-updated --function-name "$FN"
-  aws_ lambda update-function-configuration --function-name "$FN" --environment "$ENV" --timeout 120 --memory-size 1536 >/dev/null
+  aws_ lambda update-function-configuration --function-name "$FN" --environment "$ENV" --timeout 180 --memory-size 1536 >/dev/null
 else
   for i in 1 2 3; do
     aws_ lambda create-function --function-name "$FN" --runtime nodejs24.x --architectures arm64 --handler index.handler \
@@ -53,6 +63,7 @@ else
   done
 fi
 aws_ lambda wait function-updated --function-name "$FN"
+rm -f "$ENVFILE"
 LURL=$(aws_ lambda get-function-url-config --function-name "$FN" --query FunctionUrl --output text 2>/dev/null || \
        aws_ lambda create-function-url-config --function-name "$FN" --auth-type NONE --invoke-mode RESPONSE_STREAM --query FunctionUrl --output text)
 # streamed responses (the spoken reply starts playing while it is generated)

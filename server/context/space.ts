@@ -82,6 +82,7 @@ export function space(user: string): DatabaseSync {
     db = new DatabaseSync(file(user));
     db.exec(SCHEMA);
     try { db.exec('ALTER TABLE entity ADD COLUMN about TEXT'); } catch { /* already there */ }
+    try { db.exec('ALTER TABLE entity ADD COLUMN email TEXT'); } catch { /* already there */ }
     open.set(user, db);
   }
   const last = Number((db.prepare(`SELECT v FROM meta WHERE k='swept'`).get() as any)?.v ?? 0);
@@ -134,6 +135,8 @@ export function readState(db: DatabaseSync, p: Persona): State {
     calls: all(`SELECT * FROM event WHERE source='call' ORDER BY at`).map(e => ({ contact: e.entity_id, goal: e.text, at: new Date(e.at).toISOString(), status: JSON.parse(e.data).status })),
     notes: Number((db.prepare(`SELECT v FROM meta WHERE k='notes'`).get() as any)?.v ?? 0),
     turns,
+    people: all(`SELECT id, name, email, rel FROM entity WHERE source = 'gmail'`).map(e => ({ id: e.id, name: e.name, email: e.email ?? undefined, rel: e.rel, source: 'gmail' as const })),
+    gmail: (() => { const r = db.prepare(`SELECT v FROM meta WHERE k='gmail'`).get() as any; return r ? JSON.parse(r.v) : undefined; })(),
     book: all(`SELECT * FROM book ORDER BY at, rowid`).map(b => ({ id: b.id, turn: b.turn, at: new Date(b.at).toISOString(), day: b.day, kind: b.kind, party: b.party, ...(b.entity_id ? { contact_id: b.entity_id } : {}), item: b.item, amount: b.amount, status: b.status, said: b.said })) as BookEntry[],
   };
 }
@@ -187,6 +190,10 @@ export function writeState(db: DatabaseSync, s: State, p: Persona) {
     const book = db.prepare(`INSERT OR REPLACE INTO book(id, turn, at, day, kind, party, entity_id, item, amount, status, said, expires_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)`);
     for (const b of s.book ?? []) { const at = ms(b.at); book.run(b.id, b.turn, at, b.day, b.kind, b.party, b.contact_id ?? null, b.item, b.amount, b.status, b.said, exp(at)); }
 
+    // people met in Gmail: kept 90 days from when they were added, like other learned things
+    db.exec(`DELETE FROM entity WHERE source = 'gmail'`);
+    for (const g of s.people ?? []) { ent.run(g.id, g.name, /bank|airlines|dental|fitness|broadband|kart|store|clinic/i.test(g.name) ? 'business' : 'person', g.rel, null, null, 'gmail', now, now, exp(now)); if (g.email) db.prepare(`UPDATE entity SET email = ? WHERE id = ?`).run(g.email, g.id); }
+    if (s.gmail) db.prepare(`INSERT OR REPLACE INTO meta(k, v) VALUES('gmail', ?)`).run(JSON.stringify(s.gmail)); else db.prepare(`DELETE FROM meta WHERE k='gmail'`).run();
     // people first heard in voice notes become entities too (who's who grows by itself)
     for (const b of s.book ?? []) if (b.party && !b.contact_id) {
       const id = personKey(b.party);
@@ -233,7 +240,7 @@ export function habitsOf(db: DatabaseSync, ids: string[]): Record<string, { key:
 
 /** People first heard in voice notes, as contacts the pipeline can match ("Anand Patil" next time). */
 export function voicePeople(db: DatabaseSync) {
-  return db.prepare(`SELECT id, name, rel FROM entity WHERE source = 'voice'`).all() as { id: string; name: string; rel: string }[];
+  return db.prepare(`SELECT id, name, rel FROM entity WHERE source IN ('voice', 'gmail')`).all() as { id: string; name: string; rel: string }[];
 }
 
 /** A short structured card per person: everything about them in one place, for the model. */

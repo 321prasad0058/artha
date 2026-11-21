@@ -10,6 +10,7 @@ import { embedQueryAndPending } from './context/embed.js';
 import { romanize } from './pipeline/translit.js';
 import type { Action, BookEntry, Mode, Persona, Result, State } from './types.js';
 import { scanImage } from './pipeline/scan.js';
+import { authUrl, checkState, dropToken, exchangeCode, googleConfigured, loadToken, profile, saveToken, syncEvents } from './connectors/gmail.js';
 
 /** The person's contacts plus everyone first heard in their voice notes, so "Anand Patil" is known next time. */
 function withKnownPeople(p: Persona): Persona {
@@ -152,6 +153,24 @@ export async function* noteEvents(req: Req): AsyncGenerator<Record<string, unkno
   }
 }
 
+/** Gmail sync as progress events; the result is saved into the person's context space at the end. */
+export async function* gmailSyncEvents(req: Req): AsyncGenerator<Record<string, unknown>> {
+  const b = parse(req.body);
+  const base = persona(String(b.p ?? ''));
+  const state = await loadState(base.id);
+  for await (const e of syncEvents(state, withKnownPeople(base))) yield e;
+  await saveState(state);
+  yield { t: 'state', state };
+}
+
+/** Routes that answer as a stream of newline-delimited JSON events. */
+export const STREAMS: Record<string, (req: Req) => AsyncGenerator<Record<string, unknown>>> = { '/api/note': noteEvents, '/api/gmail/sync': gmailSyncEvents };
+
+function origin(req: Req) {
+  const host = req.headers['x-forwarded-host'] ?? req.headers.host ?? 'localhost:8787';
+  return /^(localhost|127\.0\.0\.1)/.test(host) ? `http://${host}` : `https://${host}`;
+}
+
 export async function handle(req: Req): Promise<Res> {
   try {
     const { method, path: p, query } = req;
@@ -209,6 +228,44 @@ export async function handle(req: Req): Promise<Res> {
       const events: Record<string, unknown>[] = [];
       for await (const e of noteEvents(req)) events.push(e);
       return json(200, { events });
+    }
+
+    // ---- Gmail connector (read-only)
+    if (p === '/api/gmail/status' && method === 'GET') {
+      const pid = persona(query.get('p') ?? '').id;
+      const t = googleConfigured() ? await loadToken(pid) : null;
+      const s = await loadState(pid);
+      return json(200, { configured: googleConfigured(), connected: !!t, email: t?.email ?? '', lastSync: s.gmail?.lastSync ?? '', stats: s.gmail?.stats ?? null });
+    }
+    if (p === '/api/gmail/connect' && method === 'GET') {
+      if (!googleConfigured()) return json(400, { error: 'Gmail is not set up on this server yet' });
+      const pid = persona(query.get('p') ?? '').id;
+      return { status: 302, headers: { location: authUrl(pid, `${process.env.ARTHA_PUBLIC_URL || origin(req)}/api/gmail/callback`) }, body: '' };
+    }
+    if (p === '/api/gmail/callback' && method === 'GET') {
+      const pid = checkState(query.get('state') ?? '');
+      const back = process.env.ARTHA_PUBLIC_URL || origin(req);
+      if (!pid || !query.get('code')) return { status: 302, headers: { location: `${back}/?p=${pid ?? ''}&gmail=failed` }, body: '' };
+      const tok = await exchangeCode(query.get('code')!, `${back}/api/gmail/callback`);
+      const prev = await loadToken(pid);
+      const refresh = tok.refresh_token ?? prev?.refresh;
+      if (!refresh) return { status: 302, headers: { location: `${back}/?p=${pid}&gmail=failed` }, body: '' };
+      const me = await profile(tok.access_token);
+      await saveToken(pid, { refresh, email: me.emailAddress, at: nowIso() });
+      return { status: 302, headers: { location: `${back}/?p=${pid}&gmail=connected` }, body: '' };
+    }
+    if (p === '/api/gmail/disconnect' && method === 'POST') {
+      const pid = persona(parse(req.body).p).id;
+      await dropToken(pid);
+      const s = await loadState(pid);
+      // forget everything that came from Gmail
+      s.memory = s.memory.filter(m => !m.src.startsWith('Gmail'));
+      s.calendar = s.calendar.filter(c => !(c.added && s.gmail));
+      s.book = (s.book ?? []).filter(b => !b.id.startsWith('gmail:'));
+      for (const k of Object.keys(s.threads)) s.threads[k] = s.threads[k].filter(x => x.via !== 'Gmail');
+      s.people = []; s.gmail = undefined;
+      await saveState(s);
+      return json(200, { state: s });
     }
 
     // The user answered "which one?": remember it.

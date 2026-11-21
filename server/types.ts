@@ -81,6 +81,10 @@ export type State = {
   turns?: Turn[];
   /** The khata book: every entry the user dictated, structured, with its day and status. */
   book?: BookEntry[];
+  /** People first met in connected sources (Gmail senders who are not saved contacts). */
+  people?: { id: string; name: string; email?: string; rel: string; source: 'gmail' }[];
+  /** Gmail connection: what was synced, so the next sync only reads new mail. */
+  gmail?: { email: string; lastSync: string; historyId: string; seen: string[]; stats: Record<string, number> };
 };
 
 export type Turn = {
