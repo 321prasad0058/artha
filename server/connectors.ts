@@ -37,7 +37,7 @@ export function linksFor(a: Action, p: Persona): Link[] {
     const q = new URLSearchParams({ pa: c.upi, pn: c.name, am: a.amount_inr.toFixed(2), cu: 'INR', tn: a.title || `Paid via Artha` });
     links.push({ kind: 'upi', label: `Pay ₹${a.amount_inr.toLocaleString('en-IN')} in your UPI app`, href: `upi://pay?${q.toString()}` });
   }
-  if (a.type === 'ledger' && a.amount_inr > 0) {
+  if (a.type === 'ledger' && a.amount_inr > 0 && c) {
     const nudge = `${c?.name ?? ''}, aapke khate mein ₹${a.amount_inr.toLocaleString('en-IN')} likh diya hai. Dhanyavaad!`;
     links.push({ kind: 'whatsapp', label: 'Tell them on WhatsApp', href: `https://wa.me/${phone}?text=${encodeURIComponent(nudge)}` });
   }

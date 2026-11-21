@@ -21,7 +21,7 @@ export const api = {
     post<{ result: Result; state: State }>('/api/understand', { p, transcript, mode, forced }),
   answer: (p: string, mention: string, contactId: string, topic?: string, how?: 'asked' | 'changed') => post<{ state: State }>('/api/answer', { p, mention, contactId, topic, how }),
   act: (p: string, action: Action, confirmed = false) => post<{ done: string; state: State }>('/api/act', { p, action, confirmed }),
-  skip: (p: string, id?: string) => (id ? post<{ ok: boolean }>('/api/skip', { p, id }) : Promise.resolve({ ok: true })),
+  skip: (p: string, id?: string, updates?: string) => (id ? post<{ ok: boolean }>('/api/skip', { p, id, updates }) : Promise.resolve({ ok: true })),
   reset: (p: string) => post<{ state: State }>('/api/reset', { p }),
   results: () => call<any>('/api/results'),
 };

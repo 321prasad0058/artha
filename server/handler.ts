@@ -5,7 +5,7 @@ import { MODELS, speech, transcribe } from './openai.js';
 import { hintWords } from './pipeline/candidates.js';
 import { understand } from './pipeline/understand.js';
 import { freshState, loadState, persona, personas, saveState } from './store.js';
-import type { Action, Mode } from './types.js';
+import type { Action, BookEntry, Mode } from './types.js';
 
 export type Req = { method: string; path: string; query: URLSearchParams; headers: Record<string, string | undefined>; body: Buffer };
 export type Res = { status: number; headers?: Record<string, string>; body: string | Buffer };
@@ -57,6 +57,20 @@ export async function handle(req: Req): Promise<Res> {
           ],
           reply: result.reply,
         };
+        // The khata book: every ledger line is written down now (not confirmed yet), so later notes can ask about it or correct it.
+        const book = (state.book ??= []);
+        const today = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
+        for (const a of result.actions.filter(x => x.type === 'ledger')) {
+          const kind = (a.entry_kind || (a.contact_id ? 'credit' : 'sale')) as BookEntry['kind'];
+          const whenDay = a.when_iso ? new Date(a.when_iso).toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' }) : '';
+          const day = whenDay && whenDay <= today ? whenDay : today;
+          const party = a.contact_name && !['Sales', 'Purchases', 'Name not given'].includes(a.contact_name) ? a.contact_name : a.party ?? '';
+          // a correction points at its entry; a repeat of an open entry (same kind and amount, recent) is the same entry, never a copy
+          let e = book.find(x => x.id === a.updates && x.status !== 'dropped')
+            ?? book.find(x => x.status === 'proposed' && x.kind === kind && x.amount === a.amount_inr && Date.now() - Date.parse(x.at) < 3 * 3600e3 && (!x.party || !party || x.party === party));
+          if (e) { Object.assign(e, { kind, party: party || e.party, contact_id: a.contact_id || e.contact_id, item: a.item || e.item, amount: a.amount_inr, day: whenDay ? day : e.day }); a.updates = e.id; }
+          else { e = { id: a.id!, turn: turnId, at: nowIso(), day, kind, party, contact_id: a.contact_id || undefined, item: a.item ?? '', amount: a.amount_inr, status: 'proposed', said: turn.said }; book.push(e); a.updates = e.id; }
+        }
         state.turns = [...(state.turns ?? []).filter(t => !(b.forced && Object.keys(b.forced).length && t.said === turn.said)), turn].slice(-12);
         // Stage 6: Learn
         for (const f of result.learn) if (!state.memory.some(m => m.fact.toLowerCase() === f.toLowerCase())) state.memory.push({ fact: f, src: 'from a voice note', at: nowIso(), learned: true });
@@ -89,12 +103,18 @@ export async function handle(req: Req): Promise<Res> {
       const state = await loadState(who.id);
       const c = who.contacts.find(x => x.id === a.contact_id);
       const markDone = () => { for (const t of state.turns ?? []) for (const x of t.actions) if (x.id === a.id) x.status = 'done'; };
+      const entry = (state.book ?? []).find(e => e.id === (a.updates || a.id));
       let done = '';
       if (a.type === 'message' && c) { (state.threads[c.id] ??= []).push({ me: true, text: a.text, at: nowIso(), via: `Artha · ${a.language}` }); done = `Sent to ${c.name}`; }
       else if (a.type === 'call' && c) { state.calls.push({ contact: c.id, goal: a.goal, at: nowIso(), status: 'queued' }); (state.threads[c.id] ??= []).push({ me: true, text: `Artha is calling: ${a.goal}`, at: nowIso(), via: 'Artha call' }); done = `Artha will call ${c.name}`; }
       else if (a.type === 'calendar') { state.calendar.push({ title: a.title, when_iso: a.when_iso, when_label: a.when_label, contact: c?.id, added: true }); done = 'Added to calendar'; }
       else if (a.type === 'reminder') { state.reminders.push({ title: a.title, when_label: a.when_label, when_iso: a.when_iso }); done = 'Reminder set'; }
-      else if (a.type === 'ledger' && c) { state.ledger.push({ contact: c.id, amount: a.amount_inr, note: a.title || a.text || 'Credit', at: nowIso() }); done = `₹${a.amount_inr.toLocaleString('en-IN')} added to ${c.name}'s account`; }
+      else if (a.type === 'ledger') {
+        if (entry) entry.status = 'saved';
+        // a customer's running credit also updates their balance
+        if (c && (!a.entry_kind || a.entry_kind === 'credit' || a.entry_kind === 'to_receive')) state.ledger.push({ contact: c.id, amount: a.amount_inr, note: a.title || a.text || 'Credit', at: nowIso() });
+        done = `₹${a.amount_inr.toLocaleString('en-IN')} written in your khata`;
+      }
       else if (a.type === 'payment' && c) {
         if (!b.confirmed) return json(400, { error: 'Payments need confirmation' });
         state.payments.push({ contact: c.id, amount: a.amount_inr, upi: c.upi ?? '', at: nowIso() });
@@ -130,6 +150,7 @@ export async function handle(req: Req): Promise<Res> {
       const b = parse(req.body);
       const state = await loadState(persona(b.p).id);
       for (const t of state.turns ?? []) for (const x of t.actions) if (x.id === b.id) x.status = 'skipped';
+      for (const e of state.book ?? []) if (e.id === b.id || e.id === b.updates) e.status = 'dropped';
       await saveState(state);
       return json(200, { ok: true });
     }

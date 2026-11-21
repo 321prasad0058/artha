@@ -24,12 +24,18 @@ export type Action = {
   type: ActionType; contact_id: string; contact_name: string; language: string; text: string; gloss: string;
   goal: string; title: string; when_iso: string; when_label: string; amount_inr: number; predicted: boolean; why: string;
   needs_confirm?: boolean;
+  /** Khata entries: what kind, who (even if not a saved contact), what goods, and which earlier entry this corrects. */
+  entry_kind?: EntryKind | ''; party?: string; item?: string; updates?: string;
   /** Other people this could have meant, offered as one-tap "change" instead of a question. */
   alternatives?: { id: string; name: string }[];
   mention?: string;
   /** One-tap links that open the right app on a phone (WhatsApp, dialler, Google Calendar, UPI). */
   links?: { kind: string; label: string; href: string }[];
 };
+
+export type EntryKind = 'sale' | 'purchase' | 'to_receive' | 'to_pay' | 'received' | 'paid' | 'credit';
+/** One line in the user's khata book. Written the moment the user says it ("proposed"); "saved" once they tap Add. */
+export type BookEntry = { id: string; turn: string; at: string; day: string; kind: EntryKind; party: string; contact_id?: string; item: string; amount: number; status: 'proposed' | 'saved' | 'dropped'; said: string };
 
 export type Check = { rule: string; ok: boolean; note?: string };
 export type Clarify = { mention: string; question: string; options: { id: string; label: string }[] };
@@ -68,6 +74,8 @@ export type State = {
   notes: number;
   /** The conversation so far: what was said, who it was about, what was proposed and what was done. */
   turns?: Turn[];
+  /** The khata book: every entry the user dictated, structured, with its day and status. */
+  book?: BookEntry[];
 };
 
 export type Turn = {

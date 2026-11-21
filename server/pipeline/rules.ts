@@ -20,12 +20,15 @@ export function checkActions(actions: Action[], p: Persona, now = new Date()): {
   const checks: Check[] = [];
   const out: Action[] = [];
   const LANG: Record<string, string> = { ta: 'Tamil', te: 'Telugu', hi: 'Hindi', mr: 'Marathi', ur: 'Urdu', en: 'English' };
-  for (const a of actions.slice(0, 6)) {
+  for (const a of actions.slice(0, 10)) {
     if (a.language && LANG[a.language.toLowerCase()]) a.language = LANG[a.language.toLowerCase()];
     const c = p.contacts.find(x => x.id === a.contact_id);
-    const needsContact = ['message', 'call', 'payment', 'ledger'].includes(a.type);
+    // a khata line may name someone who is not a saved contact (a supplier), or nobody (a cash sale)
+    const bookOnly = a.type === 'ledger' && (!!a.party || ['sale', 'purchase', 'to_pay', 'to_receive', 'received', 'paid'].includes(a.entry_kind ?? ''));
+    const needsContact = ['message', 'call', 'payment', 'ledger'].includes(a.type) && !bookOnly;
     if (needsContact && !c) { checks.push({ rule: `Dropped a ${a.type}: no saved contact`, ok: false }); continue; }
     if (c) a.contact_name = c.name;
+    else if (a.type === 'ledger') a.contact_id = '', a.contact_name = a.party || (a.entry_kind === 'sale' ? 'Sales' : a.entry_kind === 'purchase' ? 'Purchases' : 'Name not given');
     if (a.type === 'payment' || a.type === 'ledger') {
       if (!(a.amount_inr > 0)) { checks.push({ rule: `Dropped a ${a.type}: no clear amount`, ok: false }); continue; }
       if (a.type === 'payment') a.needs_confirm = true;

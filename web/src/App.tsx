@@ -171,7 +171,7 @@ export default function App() {
     try { const r = await api.act(pid, a, confirmed); applyState(r.state); update(run.id, x => ({ done: { ...x.done, [i]: r.done }, busy: null, confirm: null })); }
     catch (e: any) { update(run.id, { busy: null }); say(e.message); }
   }
-  const skip = (run: Run, i: number) => { api.skip(pid, run.result?.actions[i]?.id).catch(() => {}); update(run.id, x => ({ done: { ...x.done, [i]: 'Skipped' }, confirm: null })); };
+  const skip = (run: Run, i: number) => { api.skip(pid, run.result?.actions[i]?.id, run.result?.actions[i]?.updates).catch(() => {}); update(run.id, x => ({ done: { ...x.done, [i]: 'Skipped' }, confirm: null })); };
   async function doAll(run: Run) { for (const [i, a] of run.result!.actions.entries()) if (['message', 'calendar', 'reminder', 'ledger'].includes(a.type) && !run.done[i]) await act(run, i); }
   /** One tap to pick someone else: Artha re-plans and quietly remembers. No question asked. */
   async function choose(run: Run, mention: string, contactId: string, how: 'asked' | 'changed') {
@@ -360,8 +360,8 @@ function ActionCard({ a, done, busy, confirming, contact, onDo, onConfirm, onSki
   const [alts, setAlts] = useState(false);
   const [why, setWhy] = useState(false);
   const who = a.contact_name || contact?.name;
-  const title = { message: who, call: `Call ${who}`, reminder: a.title || 'Reminder', calendar: a.title || 'Calendar', payment: `Pay ${who}`, ledger: `${who}’s khata`, suggestion: a.title || 'Suggestion' }[a.type];
-  const verb = { message: 'Send', call: 'Let Artha call', reminder: 'Remind me', calendar: 'Add', payment: `Pay ₹${a.amount_inr.toLocaleString('en-IN')}`, ledger: `Add ₹${a.amount_inr.toLocaleString('en-IN')}`, suggestion: 'Yes' }[a.type];
+  const title = { message: who, call: `Call ${who}`, reminder: a.title || 'Reminder', calendar: a.title || 'Calendar', payment: `Pay ${who}`, ledger: a.entry_kind && a.entry_kind !== 'credit' ? `${({ sale: 'Sale', purchase: 'Purchase', to_receive: 'To receive', to_pay: 'To pay', received: 'Received', paid: 'Paid' } as Record<string, string>)[a.entry_kind]} · ${who}` : `${who}’s khata`, suggestion: a.title || 'Suggestion' }[a.type];
+  const verb = { message: 'Send', call: 'Let Artha call', reminder: 'Remind me', calendar: 'Add', payment: `Pay ₹${a.amount_inr.toLocaleString('en-IN')}`, ledger: `${a.updates && a.updates !== a.id ? 'Update' : 'Add'} ₹${a.amount_inr.toLocaleString('en-IN')}`, suggestion: 'Yes' }[a.type];
   const body = a.type === 'message' ? a.text : a.type === 'call' ? a.goal || a.text : a.type === 'ledger' ? (a.title || a.text) : '';
   const when = (a.type === 'reminder' || a.type === 'calendar' || a.type === 'call') ? a.when_label : '';
   return (
@@ -459,6 +459,8 @@ function Knows({ persona, state, fresh, onReset }: { persona?: PersonaInfo; stat
   const shown = all ? facts : facts.slice(0, 6);
   const upcoming = [...state.calendar.filter(c => Date.parse(c.when_iso) > Date.now() - 36e5), ...state.reminders.map(r => ({ title: r.title, when_label: r.when_label, when_iso: r.when_iso, added: true }))]
     .sort((a, b) => Date.parse(a.when_iso) - Date.parse(b.when_iso)).slice(0, 4);
+  const today = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
+  const book = (state.book ?? []).filter(e => e.status !== 'dropped').slice(-6).reverse();
   const owed = Object.entries(state.ledger.reduce<Record<string, number>>((m, l) => ({ ...m, [l.contact]: (m[l.contact] ?? 0) + l.amount }), {}));
   return (<>
     <div className="knows-h"><h3>Artha knows</h3><span className="big">{state.memory.length}</span></div>
@@ -468,6 +470,7 @@ function Knows({ persona, state, fresh, onReset }: { persona?: PersonaInfo; stat
     </div>
     <div className="mini"><h4>Connected on this phone</h4><div className="conns">{[['chat', 'WhatsApp'], ['call', 'Phone'], ['cal', 'Google Calendar'], ['rupee', 'UPI apps'], ['brain', 'Contacts · sample'], ['call', 'Equal calls · simulated']].map(([ic, l]) => <span key={l} className="conn"><I n={ic} s={{ width: 13, height: 13 }} />{l}</span>)}</div></div>
     {upcoming.length > 0 && <div className="mini"><h4>Coming up</h4>{upcoming.map((c, i) => <div key={i} className={c.added ? 'added' : ''}><span>{c.title}</span><span>{c.when_label}</span></div>)}</div>}
+    {book.length > 0 && <div className="mini"><h4>Khata book</h4>{book.map(e => <div key={e.id} className={e.status === 'saved' ? 'added' : ''}><span>{({ sale: 'Sold', purchase: 'Bought', to_receive: 'To receive', to_pay: 'To pay', received: 'Received', paid: 'Paid', credit: 'Credit' } as Record<string, string>)[e.kind]}{e.party ? ` · ${e.party}` : e.item ? ` · ${e.item}` : ''}{e.day !== today ? ` · ${e.day.slice(5)}` : ''}</span><span>₹{e.amount.toLocaleString('en-IN')}</span></div>)}</div>}
     {owed.length > 0 && <div className="mini"><h4>Khata</h4>{owed.map(([c, amt]) => <div key={c}><span>{persona.contacts.find(x => x.id === c)?.name}</span><span>₹{amt.toLocaleString('en-IN')}</span></div>)}</div>}
     <button className="link reset" onClick={onReset}><I n="refresh" />Start {first(persona.name)} over</button>
   </>);

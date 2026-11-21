@@ -74,7 +74,12 @@ export function normalise(roman: string, now = new Date()): Normalised {
   let dayOffset: number | null = null;
   for (const [re, add, label] of DAY_WORDS) {
     const m = text.match(re);
-    if (m) { dayOffset = add; entities.push({ text: m[0].trim(), kind: 'date', label: `${label} → ${labelOf(isoOf(addDays(today, add)), false)}`, iso: isoOf(addDays(today, add)) }); break; }
+    if (m) {
+      // "kal / kaal" is yesterday when the sentence is in the past tense ("kaal vikla", "kal hua tha", "jhalya").
+      if (add === 1 && /^(kal|kaal)/.test(m[1]) && /\b(yesterday|jh?aal\w*|zaal\w*|hot(a|aa|e|i|ya|yaa)|vikl\w*|gel\w*|ghetl\w*|dil(a|aa|e|i|ya|yaa)|kel(a|aa|e|i|ya|yaa)|thaa?|thi|the|hua|huaa|hui|hue|gay(a|aa|i|ii)|kiy(a|aa)|bech(a|aa)|bik(a|aa))\b/.test(text)) {
+        dayOffset = -1; entities.push({ text: m[0].trim(), kind: 'date', label: `yesterday → ${labelOf(isoOf(addDays(today, -1)), false)}`, iso: isoOf(addDays(today, -1)) }); break;
+      }
+      dayOffset = add; entities.push({ text: m[0].trim(), kind: 'date', label: `${label} → ${labelOf(isoOf(addDays(today, add)), false)}`, iso: isoOf(addDays(today, add)) }); break; }
   }
   if (dayOffset === null) {
     for (const [re, wd] of WEEKDAYS) {

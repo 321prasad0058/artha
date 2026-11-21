@@ -14,11 +14,12 @@ function actionSchema(contactIds: string[] | null) {
   const contact = contactIds ? { type: 'string', enum: [...contactIds, 'none'] } : { type: 'string' };
   return {
     type: 'object', additionalProperties: false,
-    required: ['type', 'contact_id', 'language', 'text', 'gloss', 'goal', 'title', 'when_iso', 'when_label', 'amount_inr', 'predicted', 'why'],
+    required: ['type', 'contact_id', 'language', 'text', 'gloss', 'goal', 'title', 'when_iso', 'when_label', 'amount_inr', 'predicted', 'why', 'entry_kind', 'party', 'item', 'updates'],
     properties: {
       type: { type: 'string', enum: ACTION_TYPES }, contact_id: contact, language: { type: 'string' }, text: { type: 'string' }, gloss: { type: 'string' },
       goal: { type: 'string' }, title: { type: 'string' }, when_iso: { type: 'string' }, when_label: { type: 'string' }, amount_inr: { type: 'number' },
       predicted: { type: 'boolean' }, why: { type: 'string' },
+      entry_kind: { type: 'string', enum: ['', 'sale', 'purchase', 'to_receive', 'to_pay', 'received', 'paid', 'credit'] }, party: { type: 'string' }, item: { type: 'string' }, updates: { type: 'string' },
     },
   };
 }
@@ -55,7 +56,14 @@ Actions
 - call: when something must be arranged or changed with someone (rescheduling, asking, booking). Put the outcome wanted in "goal" (for Artha), AND in "text" a short message to that person in their language that could be sent instead of calling.
 - reminder or calendar: for times the user must remember or plans they made.
 - payment: only when the user asks to pay or send money; set amount_inr. If the user gives no amount, use the amount that person asked for in AMOUNTS THEY ASKED FOR. Payments always wait for the user's confirmation, so don't hold back for that.
-- ledger: ONLY when the user says to write or add an amount to someone's khata ("likh do", "khate mein daal do", "add karo"). Set amount_inr and contact. "Yaad dilao" / "remind them they owe" is NOT a ledger entry: it is a message to that person about the amount already due.
+- ledger: a line in the user's KHATA BOOK, when they ask to write, add or note amounts ("likh do", "khate mein daal do", "khatyat add kara", "nond kara", "entry karo", "hisaab mein"). ONE ledger action PER entry: a note with four amounts gives four ledger actions. For each set:
+  entry_kind: sale (goods sold, money in), purchase (stock bought), to_receive (someone owes the user, e.g. "1200 supplier se lene hain"), to_pay (the user owes someone, "5000 dene hain"), received (money came in), paid (money went out), credit (a customer took goods on khata).
+  party: the person or business exactly as named, EVEN IF they are not in CANDIDATES (then contact_id "none"). If no name was given ("doosra supplier"), party "" and title says what is missing.
+  item: goods and quantity if said ("5 kg rice"). amount_inr: the amount. title: a short line like "5 kg rice sold" or "To receive from Anand Patil (supplier)". when_iso: the day it happened if said (yesterday etc.), else "".
+  updates: "" for a new entry. If the user CORRECTS or COMPLETES an entry already in KHATA BOOK (gives the missing name, a new amount, says it was a different person), return that entry again with all fields filled and updates = its id. Never create a second copy of an entry.
+  "Yaad dilao" / "remind them they owe" is NOT a ledger entry: it is a message to that person about the amount already due.
+- Non-ledger actions: entry_kind "", party "", item "", updates "".
+- If a name the user gives answers an earlier open question (an entry with a missing party), that IS the correction: update that entry.
 - suggestion: at most one helpful next step predicted from a clear habit in MEMORY (for example, a reminder 1 hour before appointments). Mark predicted=true. Do not invent habits.
 - Never put an OTP, PIN, password, card or Aadhaar number into any action.
 - Fill fields that don't apply with "" , 0 or false. contact_id is "none" when no person applies.
@@ -65,7 +73,8 @@ Also
 - learn: 0 to 2 short new facts worth remembering (a changed plan, a new preference). Not things already in MEMORY.
 - reply: one short line to the user, in their own language mix, Roman script, saying what is READY for them ("Amma ke liye message ready hai"). Never say something was sent, paid or done: the user confirms with one tap.
 - reply_speech: the same reply written for reading aloud, in the NATIVE script of the user's language (Devanagari for Hindi, Hinglish, Marathi and Urdu; Telugu script; Tamil script; English stays English). Keep English words like "appointment" in that script too (अपॉइंटमेंट). Short and warm.
-- If the user ASKS something (their schedule, a khata balance, what they told you), answer it in "reply" and return NO actions.
+- If the user ASKS something (their schedule, a khata balance, what they told you), answer it in "reply" and return NO actions. For khata questions read KHATA BOOK: list the entries asked for (who or what, amount, saved or not yet confirmed) and the totals. If they ask for a day with no entries but entries were recorded in this conversation, give those and say when they were recorded. Never say you cannot see entries that are in KHATA BOOK. If they ask you to tell, repeat or list the entries again, LIST THEM in the reply right away (each entry with amount, then totals); never answer with a question like "should I tell you again?".
+- reply and reply_speech may be up to 4 short sentences when listing entries; otherwise one line.
 - If the requested calendar entry or reminder ALREADY EXISTS in TIMELINE at that time, do not add it again: say in "reply" that it is already there. This never removes a message: "bol do / bolo / sang / sanga / cheppu / sollu / tell" ALWAYS means a message to that person.
 - CANCEL: if the user cancels something that is still PROPOSED (not done), just confirm it is dropped and return NO actions. Only if it was DONE, create what undoes it (for example a call or message to cancel).
 - A follow-up that changes one thing (time, day, person) re-plans ONLY that action. Do not repeat other actions from earlier turns.
@@ -83,6 +92,21 @@ function eventWhen(day: number, time: string, now: Date) {
   const d = new Date(now.getTime() + day * 864e5);
   const p = Object.fromEntries(new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(d).map(x => [x.type, x.value]));
   return labelOf(isoOf({ y: +p.year, m: +p.month, d: +p.day }, h, m));
+}
+
+const KIND_LABEL: Record<string, string> = { sale: 'sold', purchase: 'bought', to_receive: 'to receive', to_pay: 'to pay', received: 'received', paid: 'paid', credit: 'customer credit' };
+/** The khata book as the model sees it: every entry with its id (so corrections can point at it), and totals per day, computed in code. */
+function bookSection(state: State, now: Date) {
+  const book = (state.book ?? []).filter(e => e.status !== 'dropped').slice(-40);
+  if (!book.length) return 'KHATA BOOK: (no entries yet)';
+  const today = now.toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
+  const days = [...new Set(book.map(e => e.day))];
+  const totals = days.map(d => {
+    const sum = (k: string) => book.filter(e => e.day === d && e.kind === k).reduce((s, e) => s + e.amount, 0);
+    const parts = Object.keys(KIND_LABEL).map(k => [KIND_LABEL[k], sum(k)] as const).filter(([, v]) => v > 0).map(([l, v]) => `${l} ₹${v.toLocaleString('en-IN')}`);
+    return `${d}${d === today ? ' (today)' : ''}: ${parts.join(', ')}`;
+  });
+  return `KHATA BOOK (every entry the user dictated, structured; "day" is the business day the entry is for, "recorded" is when they told Artha; correct an entry by returning it with updates = its id):\n${JSON.stringify(book.map(e => ({ id: e.id, day: e.day, kind: e.kind, party: e.party || '(name not given yet)', item: e.item || undefined, inr: e.amount, status: e.status === 'saved' ? 'saved' : 'not confirmed yet', recorded: e.at.slice(0, 16) })))}\nTOTALS BY DAY (code): ${totals.join(' | ')}`;
 }
 
 type PlanOut = { language: string; mentions: Mention[]; actions: Action[]; clarify_question: string; learn: string[]; reply: string; reply_speech: string };
@@ -141,7 +165,7 @@ export async function understand(args: { persona: Persona; state: State; transcr
 
   t = Date.now();
   // Knowledge base retrieval: likely people, facts about them, the topic, what the user taught before.
-  const turns = (state.turns ?? []).filter(t => now.getTime() - Date.parse(t.at) < 3 * 3600e3).slice(-4);
+  const turns = (state.turns ?? []).filter(t => now.getTime() - Date.parse(t.at) < 3 * 3600e3).slice(-6);
   const talkedAbout = [...new Set(turns.slice().reverse().flatMap(t => [...t.people.map(x => x.id), ...t.actions.map(a => a.contact_id)]).filter(Boolean))];
   const kb = retrieve(roman, p, state, now, talkedAbout);
   const shortlist = kb.candidates;
@@ -159,13 +183,23 @@ export async function understand(args: { persona: Persona; state: State; transcr
     `CODE_VALUES: ${norm.entities.length ? norm.entities.map(e => `"${e.text}" = ${e.label}`).join('; ') : 'none'}${norm.when ? `; combined when = ${norm.when.iso} (${norm.when.label})` : ''}`,
     `CANDIDATES (code_score comes from name sound, topic fit, recency and past corrections; trust it unless the note clearly says otherwise): ${JSON.stringify(contactInfo)}`,
     kb.pending.length ? `AMOUNTS THEY ASKED FOR (code found these in their own messages): ${kb.pending.map(x => `${x.name}: ₹${x.amount.toLocaleString('en-IN')} ("${x.said}")`).join('; ')}` : '',
-    `CONVERSATION (latest last; follow-ups refer to this):\n${turns.length ? turns.map(t => `- ${Math.round((now.getTime() - Date.parse(t.at)) / 60000)} min ago, user said: "${t.said}"\n  people: ${t.people.map(x => `${x.name} [${x.id}]`).join(', ') || 'none'}\n  actions: ${t.actions.map(a => `${a.id} ${a.type} ${a.contact_id ? `→ ${a.contact_name} [${a.contact_id}] ` : ''}${a.title || a.text ? `"${(a.title || a.text).slice(0, 80)}" ` : ''}${a.when_iso ? `at ${a.when_iso} ` : ''}${a.amount_inr ? `₹${a.amount_inr} ` : ''}· ${a.status.toUpperCase()}`).join(' | ') || 'none'}`).join('\n') : '- (new conversation)'}`,
+    `CONVERSATION (latest last; follow-ups refer to this):\n${turns.length ? turns.map(t => `- ${Math.round((now.getTime() - Date.parse(t.at)) / 60000)} min ago, user said: "${t.said}"\n  people: ${t.people.map(x => `${x.name} [${x.id}]`).join(', ') || 'none'}\n  actions: ${t.actions.map(a => `${a.id} ${a.type} ${a.contact_id ? `→ ${a.contact_name} [${a.contact_id}] ` : ''}${a.title || a.text ? `"${(a.title || a.text).slice(0, 80)}" ` : ''}${a.when_iso ? `at ${a.when_iso} ` : ''}${a.amount_inr ? `₹${a.amount_inr} ` : ''}· ${a.status.toUpperCase()}`).join(' | ') || 'none'}${t.reply ? `\n  Artha replied: "${t.reply.slice(0, 200)}"` : ''}`).join('\n') : '- (new conversation)'}`,
     `TIMELINE (structured, upcoming): ${JSON.stringify([...state.calendar.filter(c => Date.parse(c.when_iso) > now.getTime() - 3600e3).map(c => ({ what: c.title, with: c.contact ?? null, at: c.when_iso })), ...state.reminders.map(r => ({ what: `reminder: ${r.title}`, at: r.when_iso }))].slice(0, 12))}`,
     `PREFERENCES AND HABITS:\n${state.memory.filter(m => !m.learned).map(m => `- ${m.fact}`).join('\n') || '- none'}`,
     `CORRECTIONS THE USER MADE (always follow): ${JSON.stringify(state.memory.filter(m => m.kind === 'alias').map(m => ({ said: m.mention, topic: m.topic ?? 'any', means: m.about })))}`,
     `LEARNED NOTES:\n${state.memory.filter(m => m.learned && m.kind !== 'alias').map(m => `- ${m.fact}`).join('\n') || '- none'}`,
     `RELEVANT FACTS ABOUT THESE PEOPLE:\n${kb.facts.map(f => `- ${f.text}`).join('\n') || '- none'}`,
     `RECENT ACTIVITY (calls and messages):\n${kb.recent.join('\n')}`,
+    bookSection(state, now),
+    ...(() => {   // open questions and day mismatches, spelled out so the model cannot miss them
+      const open = (state.book ?? []).filter(e => e.status !== 'dropped' && !e.party && e.kind !== 'sale' && e.kind !== 'purchase' && now.getTime() - Date.parse(e.at) < 3 * 3600e3);
+      const asked = norm.entities.find(e => e.kind === 'date' && e.iso)?.iso?.slice(0, 10);
+      const book = (state.book ?? []).filter(e => e.status !== 'dropped');
+      return [
+        open.length ? `OPEN QUESTION: ${open.map(e => `entry ${e.id} (${e.kind} ₹${e.amount})`).join(', ')} has no name yet. If this note gives a name, it is the name for ${open.length === 1 ? 'that entry' : 'the entry it fits'}: return it as a ledger action with party set and updates = its id.` : '',
+        asked && book.length && !book.some(e => e.day === asked) ? `NOTE: there are no entries for ${asked}. The entries in KHATA BOOK were recorded ${[...new Set(book.map(e => e.day))].join(', ')}. If the user asks about ${asked}, list the KHATA BOOK entries anyway (they likely mean what they just told you), say which day they are saved under, and offer to move them.` : '',
+      ];
+    })(),
     state.ledger.length ? `KHATA BALANCES (credit due, structured): ${JSON.stringify(Object.entries(state.ledger.reduce<Record<string, number>>((m, l) => ({ ...m, [l.contact]: (m[l.contact] ?? 0) + l.amount }), {})).map(([id, due]) => ({ id, name: p.contacts.find(c => c.id === id)?.name, due_inr: due })))}` : '',
     state.payments.length ? `PAYMENTS MADE: ${JSON.stringify(state.payments.slice(-5).map(x => ({ to: x.contact, inr: x.amount, at: x.at })))}` : '',
     Object.keys(forced).length ? `FORCED: ${JSON.stringify(forced)} (the user already chose these people)` : '',
@@ -183,6 +217,18 @@ export async function understand(args: { persona: Persona; state: State; transcr
     }
   } // fixed schema = cached by OpenAI; ids are validated in code below
   const msPlan = Date.now() - t;
+  { // "Their name is Sunil Sharma": fill the one open khata entry, even if the model only said "noted".
+    const open = (state.book ?? []).filter(e => e.status !== 'dropped' && !e.party && e.kind !== 'sale' && e.kind !== 'purchase' && now.getTime() - Date.parse(e.at) < 3 * 3600e3);
+    const name = out.mentions.find(m => m.kind === 'person')?.text;
+    if (open.length === 1 && name && !out.actions.some(a => a.type === 'ledger' && a.party) && /\b(naav|nav|naam|nam|name|naavh)\b|नाव|नाम|పేరు|பெயர்/i.test(`${transcript} ${roman}`)) {
+      const e = open[0];
+      out.actions = out.actions.filter(a => a.type !== 'ledger');
+      const kind = { to_pay: p.speaks[0] === 'Marathi' ? 'द्यायचे' : 'dene hain', to_receive: p.speaks[0] === 'Marathi' ? 'घ्यायचे' : 'lene hain' }[e.kind as 'to_pay'] ?? '';
+      const say = p.speaks[0] === 'Marathi' ? `ठीक आहे, ₹${e.amount.toLocaleString('en-IN')} ${kind} ती नोंद ${name} यांच्या नावाने केली.` : p.speaks[0] === 'English' ? `Done, the ₹${e.amount.toLocaleString('en-IN')} entry is now under ${name}.` : `Theek hai, ₹${e.amount.toLocaleString('en-IN')} wali entry ${name} ke naam se kar di.`;
+      out.reply = say; out.reply_speech = say; out.clarify_question = '';
+      out.actions.push({ type: 'ledger', contact_id: 'none', contact_name: '', language: '', text: '', gloss: '', goal: '', title: '', when_iso: '', when_label: '', amount_inr: e.amount, predicted: false, why: 'The name for the open entry', entry_kind: e.kind, party: name, item: e.item, updates: e.id });
+    }
+  }
 
   // Make every mention's candidates readable and honour forced picks
   const mentions: Mention[] = out.mentions.map(m => ({
@@ -241,6 +287,11 @@ export async function understand(args: { persona: Persona; state: State; transcr
   const { actions, checks } = clarify ? { actions: [], checks: [{ rule: 'A true tie between two people, so Artha asks once', ok: true }] } : checkActions(planned, p, now);
   // A time said in the note belongs on the action, even if the model only wrote it into the message text.
   if (norm.when) for (const a of actions) if (!a.when_iso && ['message', 'call', 'reminder', 'calendar'].includes(a.type)) { a.when_iso = norm.when.iso; a.when_label = norm.when.label; }
+  // a khata line that is already in the book exactly like this is a confirmation, not a new card
+  for (let i = actions.length - 1; i >= 0; i--) {
+    const a = actions[i];
+    if (a.type === 'ledger' && (state.book ?? []).some(e => e.status !== 'dropped' && e.amount === a.amount_inr && e.kind === (a.entry_kind || e.kind) && !!e.party && e.party === (a.party || a.contact_name) && (!a.updates || a.updates === e.id))) actions.splice(i, 1);
+  }
   for (const a of actions) a.links = linksFor(a, p);
   // Fewer questions: attach the runner-up to each action as a one-tap "change".
   for (const a of actions) {
