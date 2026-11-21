@@ -4,7 +4,7 @@ import path from 'node:path';
 import { MODELS, speechStream, transcribe } from './openai.js';
 import { hintWords } from './pipeline/candidates.js';
 import { understand } from './pipeline/understand.js';
-import { ensurePersona, loadState, persona, personas, resetState, saveState, saveUser } from './store.js';
+import { deleteUser, ensurePersona, loadState, persona, personas, resetState, saveState, saveUser } from './store.js';
 import crypto from 'node:crypto';
 import { file, habitsOf, learnHabit, personCard, space, voicePeople, TTL_MS } from './context/space.js';
 import { embedQueryAndPending } from './context/embed.js';
@@ -293,12 +293,37 @@ export async function handle(req: Req): Promise<Res> {
       const s = await loadState(pid);
       // forget everything that came from Gmail
       s.memory = s.memory.filter(m => !m.src.startsWith('Gmail'));
-      s.calendar = s.calendar.filter(c => !(c.added && s.gmail));
+      s.calendar = s.calendar.filter(c => c.source !== 'gmail');
       s.book = (s.book ?? []).filter(b => !b.id.startsWith('gmail:'));
       for (const k of Object.keys(s.threads)) s.threads[k] = s.threads[k].filter(x => x.via !== 'Gmail');
       s.people = []; s.gmail = undefined;
       await saveState(s);
       return json(200, { state: s });
+    }
+
+    // ---- settings: your profile, forgetting, deleting
+    if (p === '/api/profile' && method === 'POST') {
+      const b = parse(req.body);
+      const cur = persona(String(b.p ?? ''));
+      if (cur.source !== 'gmail') return json(400, { error: 'Sample people cannot be edited' });
+      const clean = (v: unknown, n: number) => String(v ?? '').trim().slice(0, n);
+      const name = clean(b.name, 60) || cur.name;
+      const next = { ...cur, name, city: clean(b.city, 60), about: clean(b.about, 240), speaks: Array.isArray(b.speaks) ? b.speaks.map((x: unknown) => clean(x, 20)).filter(Boolean).slice(0, 6) : cur.speaks,
+        avatar: name.split(/\s+/).map((w: string) => w[0]).join('').slice(0, 2).toUpperCase() };
+      await saveUser(next);
+      return json(200, { persona: next });
+    }
+    if (p === '/api/me/forget' && method === 'POST') {
+      const pid = persona(String(parse(req.body).p ?? '')).id;
+      const prev = await loadState(pid);
+      const s = await resetState(pid);
+      if (prev.gmail) { s.gmail = { ...prev.gmail, seen: [], stats: {}, lastSync: '' }; await saveState(s); }   // still connected; the next sync re-reads mail
+      return json(200, { state: s });
+    }
+    if (p === '/api/me/delete' && method === 'POST') {
+      const pid = String(parse(req.body).p ?? '');
+      await dropToken(pid); await deleteUser(pid);
+      return json(200, { ok: true });
     }
 
     // The user answered "which one?": remember it.

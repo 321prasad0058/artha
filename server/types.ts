@@ -73,7 +73,7 @@ export type State = {
   persona: string;
   memory: { fact: string; src: string; at: string; learned?: boolean; kind?: string; about?: string; mention?: string; topic?: string; uses?: number; last_used?: string }[];
   threads: Record<string, { me: boolean; text: string; at: string; via?: string }[]>;
-  calendar: { title: string; when_iso: string; when_label: string; contact?: string; added?: boolean }[];
+  calendar: { title: string; when_iso: string; when_label: string; contact?: string; added?: boolean; source?: 'gmail' }[];
   reminders: { title: string; when_label: string; when_iso: string }[];
   ledger: { contact: string; amount: number; note: string; at: string }[];
   payments: { contact: string; amount: number; upi: string; at: string }[];

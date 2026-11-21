@@ -193,7 +193,7 @@ export function file(state: State, p: Persona, mails: Mail[], items: Item[]) {
     const dateOnly = /^\d{4}-\d{2}-\d{2}$/.test(it.when_iso);
     const when = dateOnly ? `${it.when_iso}T09:00:00+05:30` : it.when_iso && !Number.isNaN(Date.parse(it.when_iso)) ? it.when_iso : '';
     if (when && ['appointment', 'travel', 'invite', 'work', 'person'].includes(it.kind) && !state.calendar.some(c => c.when_iso === when)) {
-      state.calendar.push({ title: it.title, when_iso: when, when_label: labelOf(when, !dateOnly), contact: p.contacts.some(c => c.id === cid) ? cid : undefined, added: true }); stats.plans++;
+      state.calendar.push({ title: it.title, when_iso: when, when_label: labelOf(when, !dateOnly), contact: p.contacts.some(c => c.id === cid) ? cid : undefined, added: true, source: 'gmail' }); stats.plans++;
     }
     if (it.money && it.amount_inr > 0) {
       const kind = it.money as BookEntry['kind'];

@@ -19,6 +19,7 @@ const P: Record<string, string> = {
   speak: 'M4 10v4h4l5 4V6L8 10zM16 9a4 4 0 0 1 0 6M18.5 6.5a8 8 0 0 1 0 11', mute: 'M4 10v4h4l5 4V6L8 10zM17 9l5 6M22 9l-5 6',
   user: 'M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8M4 21a8 8 0 0 1 16 0', box: 'M3 7l9-4 9 4-9 4zM3 7v10l9 4 9-4V7M12 11v10', pin: 'M12 21s-7-6-7-11a7 7 0 0 1 14 0c0 5-7 11-7 11zM12 8a2 2 0 1 0 0 4 2 2 0 0 0 0-4',
   camera: 'M3 8h4l2-3h6l2 3h4v12H3zM12 10a4 4 0 1 0 0 8 4 4 0 0 0 0-8', alert: 'M12 3l10 18H2zM12 10v5M12 18v.5', chev: 'M6 9l6 6 6-6', ask: 'M9 9a3 3 0 1 1 4 2.8c-.7.3-1 .8-1 1.5V14M12 17.5v.5',
+  gear: 'M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z', trash: 'M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3',
   vs: 'M4 5l4 14 4-14M14 17c1 1.5 2.5 2 4 2 2 0 3-1 3-2.5 0-3.5-7-2-7-6 0-1.5 1.2-2.5 3-2.5 1.4 0 2.6.5 3.5 1.5',
 };
 const I = ({ n, s }: { n: string; s?: React.CSSProperties }) => <svg className="ico" viewBox="0 0 24 24" style={s} aria-hidden="true"><path d={P[n]} /></svg>;
@@ -266,6 +267,97 @@ function SetupScreen({ pid, onDone }: { pid: string; onDone: (s: State | null) =
   );
 }
 
+/** Settings: your profile, Gmail, what Artha knows, voice, and your data (forget, delete, sign out). */
+function Settings({ persona, state, voiceOn, onVoice, onClose, onState, onPersona, onKnows, onSignOut }: {
+  persona: PersonaInfo; state: State | null; voiceOn: boolean; onVoice: () => void; onClose: () => void; onState: (s: State) => void;
+  onPersona: (p: PersonaInfo) => void; onKnows: () => void; onSignOut: () => void;
+}) {
+  const own = persona.source === 'gmail';
+  const [edit, setEdit] = useState(false);
+  const [form, setForm] = useState({ name: persona.name, city: persona.city, about: persona.about, speaks: persona.speaks.join(', ') });
+  const [g, setG] = useState<Awaited<ReturnType<typeof api.gmailStatus>> | null>(null);
+  const [counts, setCounts] = useState<Record<string, number> | null>(null);
+  const [confirm, setConfirm] = useState<'' | 'disconnect' | 'forget' | 'delete'>('');
+  const [busy, setBusy] = useState(''); const [msg, setMsg] = useState('');
+  const refresh = useCallback(() => { api.gmailStatus(persona.id).then(setG).catch(() => setG(null)); api.context(persona.id).then(c => setCounts(c.counts)).catch(() => {}); }, [persona.id]);
+  useEffect(refresh, [refresh]);
+  useEffect(() => { const k = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); }; addEventListener('keydown', k); return () => removeEventListener('keydown', k); }, [onClose]);
+  const fromMail = state ? { facts: state.memory.filter(m => m.src.startsWith('Gmail')).length, plans: state.calendar.filter(c => c.source === 'gmail').length, money: (state.book ?? []).filter(b => b.id.startsWith('gmail:')).length } : null;
+  const run = async (label: string, fn: () => Promise<void>) => { setBusy(label); setMsg(''); try { await fn(); } catch (e: any) { setMsg(e.message); } setBusy(''); setConfirm(''); refresh(); };
+  return (
+    <div className="sheet-bg" onClick={onClose}>
+      <div className="sheet" role="dialog" aria-label="Settings" onClick={e => e.stopPropagation()}>
+        <div className="sheet-head"><h2>Settings</h2><button className="icon-btn" onClick={onClose} aria-label="Close"><I n="x" /></button></div>
+
+        <section className="set">
+          <h3>Profile</h3>
+          {!edit ? (
+            <div className="prof"><span className="av lg ink">{persona.avatar}</span>
+              <div><b>{persona.name}</b><small>{[persona.email, persona.city].filter(Boolean).join(' · ') || 'Sample person'}</small>
+                <div className="chips">{persona.speaks.map(l => <span key={l} className="chip">{l}</span>)}</div>
+                {persona.about && <p>{persona.about}</p>}</div>
+              {own ? <button className="btn btn-ghost" onClick={() => setEdit(true)}>Edit</button> : <span className="chip">Sample</span>}
+            </div>
+          ) : (
+            <form className="prof-form" onSubmit={e => { e.preventDefault(); run('Saving', async () => { const r = await api.saveProfile(persona.id, { ...form, speaks: form.speaks.split(',').map(x => x.trim()).filter(Boolean) }); onPersona(r.persona); setEdit(false); setMsg('Profile saved'); }); }}>
+              <label>Name<input id="set-name" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} /></label>
+              <label>City<input id="set-city" value={form.city} onChange={e => setForm({ ...form, city: e.target.value })} /></label>
+              <label>Languages you use<input id="set-langs" value={form.speaks} onChange={e => setForm({ ...form, speaks: e.target.value })} placeholder="Marathi, Hindi, English" /></label>
+              <label>About you<textarea id="set-about" rows={2} value={form.about} onChange={e => setForm({ ...form, about: e.target.value })} /></label>
+              <div className="row"><button className="btn btn-primary" disabled={!!busy}>Save</button><button type="button" className="link" onClick={() => setEdit(false)}>Cancel</button></div>
+            </form>
+          )}
+        </section>
+
+        <section className="set">
+          <h3>Gmail</h3>
+          {!own ? <p className="muted">Gmail is available when you set up Artha for yourself, from the start screen.</p>
+            : !g?.connected ? (<>
+              <p className="muted">Not connected. Connect to let Artha learn your people, plans and bills from mail. Read-only.</p>
+              <a className="btn btn-primary set-btn" href={`${API_BASE}/api/gmail/connect?p=${encodeURIComponent(persona.id)}`}>Connect Gmail</a>
+            </>) : (<>
+              <div className="kv2"><span>Account</span><b>{g.email}</b><span>Last read</span><b>{g.lastSync ? new Date(g.lastSync).toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' }) : 'Not yet'}</b>
+                {g.stats && <><span>From mail</span><b>{[g.stats.facts && `${g.stats.facts} facts`, g.stats.plans && `${g.stats.plans} plans`, g.stats.money && `${g.stats.money} bills & payments`].filter(Boolean).join(' · ') || 'Nothing new'}</b>
+                <span>Skipped</span><b>{g.stats.skipped ?? 0} promotions{g.stats.otp ? ` · ${g.stats.otp} OTP mails` : ''}</b></>}</div>
+              <div className="row">
+                <button className="btn btn-ghost" disabled={!!busy} onClick={() => run('Reading new mail', async () => { await api.gmailSync(persona.id, e => { if (e.t === 'state') onState(e.state); }); setMsg('Up to date'); })}><I n="refresh" />{busy === 'Reading new mail' ? 'Reading…' : 'Sync now'}</button>
+                <button className="link bad" onClick={() => setConfirm('disconnect')}>Disconnect</button>
+              </div>
+              {confirm === 'disconnect' && <div className="confirm"><p>Disconnect Gmail? Artha stops reading your mail and forgets what came from it{fromMail ? `: ${fromMail.facts} facts, ${fromMail.plans} plans, ${fromMail.money} bills & payments` : ''}. Your people and voice notes stay.</p>
+                <div className="row"><button className="btn btn-primary danger" disabled={!!busy} onClick={() => run('Disconnecting', async () => { const r = await api.gmailDisconnect(persona.id); onState(r.state); setMsg('Gmail disconnected'); })}>Disconnect</button><button className="link" onClick={() => setConfirm('')}>Cancel</button></div></div>}
+            </>)}
+        </section>
+
+        <section className="set">
+          <h3>What Artha knows</h3>
+          <div className="counts">{[['people', 'people'], ['facts', 'facts'], ['turns', 'conversations'], ['calendar', 'plans'], ['khata_entries', 'khata entries'], ['vectors', 'memories searchable by meaning']].map(([k, l]) => <div key={k}><b>{counts?.[k] ?? '–'}</b><span>{l}</span></div>)}</div>
+          <button className="link" onClick={onKnows}>See everything Artha knows</button>
+        </section>
+
+        <section className="set">
+          <h3>Voice</h3>
+          <label className="toggle"><input type="checkbox" checked={voiceOn} onChange={onVoice} id="set-voice" /><span>Artha speaks its replies</span></label>
+        </section>
+
+        <section className="set">
+          <h3>Your data</h3>
+          <p className="muted">Kept for 90 days in your own private space, then forgotten unless it keeps being useful. Nothing is shared or sold.</p>
+          <div className="row flexwrap">
+            <button className="btn btn-ghost" onClick={() => setConfirm('forget')}><I n="refresh" />Forget what Artha learned</button>
+            {own && <button className="btn btn-ghost danger-txt" onClick={() => setConfirm('delete')}><I n="trash" />Delete my Artha</button>}
+            {own && <button className="link" onClick={onSignOut}>Sign out on this device</button>}
+          </div>
+          {confirm === 'forget' && <div className="confirm"><p>Forget all memories, conversations, plans and khata entries? {own ? 'Your profile and Gmail stay connected; the next sync re-reads your mail.' : 'This sample person goes back to the start.'}</p>
+            <div className="row"><button className="btn btn-primary danger" disabled={!!busy} onClick={() => run('Forgetting', async () => { const r = await api.forget(persona.id); onState(r.state); setMsg('Done. Artha starts fresh.'); })}>Forget</button><button className="link" onClick={() => setConfirm('')}>Cancel</button></div></div>}
+          {confirm === 'delete' && <div className="confirm"><p>Delete your Artha? Your profile, everything it learned and the Gmail connection are removed. This cannot be undone.</p>
+            <div className="row"><button className="btn btn-primary danger" disabled={!!busy} onClick={() => run('Deleting', async () => { await api.deleteMe(persona.id); onSignOut(); })}>Delete everything</button><button className="link" onClick={() => setConfirm('')}>Cancel</button></div></div>}
+        </section>
+        {(busy || msg) && <p className="set-msg">{busy ? `${busy}…` : msg}</p>}
+      </div>
+    </div>
+  );
+}
+
 /* ================= APP ================= */
 export default function App() {
   const [personas, setPersonas] = useState<PersonaInfo[]>([]);
@@ -273,6 +365,7 @@ export default function App() {
   // the user's own Artha (created by signing in with Google), remembered on this device
   const [me, setMe] = useState<PersonaInfo | null>(null);
   const [welcome, setWelcome] = useState(shouldWelcome);
+  const [settings, setSettings] = useState(false);
   const [setup, setSetup] = useState(() => { const q = new URLSearchParams(location.search); return q.get('new') === '1' && (q.get('p') ?? '').startsWith('u-'); });
   const [pstate, setPstate] = useState<State | null>(null);
   const [intro, setIntro] = useState(shouldShowIntro);
@@ -479,6 +572,7 @@ export default function App() {
           {([['artha', 'Artha'], ['chats', 'Chats'], ['results', 'Results'], ['about', 'About']] as const).map(([t, l]) => (
             <button key={t} className={t === 'chats' ? 'only-mid' : ''} aria-current={tab === t || (t === 'artha' && tab === 'memory') ? 'page' : undefined} onClick={() => go(t)}>{l}</button>))}
         </nav>
+        <button className="icon-btn" onClick={() => setSettings(true)} aria-label="Settings"><I n="gear" /></button>
         <button className="icon-btn voice-tg" onClick={toggleVoice} aria-label={voiceOn ? 'Mute Artha’s voice' : 'Let Artha speak'} aria-pressed={voiceOn}><I n={voiceOn ? 'speak' : 'mute'} /></button>
         {persona && <button className="who-btn" onClick={() => setMenu(true)} aria-label={`Testing as ${persona.name}. Switch person`}><span className="av ink">{persona.avatar}</span><span className="nm">{first(persona.name)}</span><I n="swap" s={{ width: 14, height: 14, opacity: .6 }} /></button>}
       </header>
@@ -534,11 +628,15 @@ export default function App() {
               <button key={p.id} aria-current={p.id === pid} onClick={() => { setPid(p.id); setMenu(false); setTab('artha'); }}>
                 <span className="av lg ink">{p.avatar}</span><span><b>{p.name}</b><small>{p.city} · {p.speaks.join(', ')}</small></span>
               </button>))}
+            <button className="link reset" onClick={() => { setMenu(false); setSettings(true); }}><I n="gear" />Settings</button>
             <button className="link reset" onClick={() => { setMenu(false); setWelcome(true); }}><I n="back" />Back to start</button>
           </div>
         </div>)}
       {welcome && !setup && <Welcome me={me} samples={personas} onPick={id => { setPid(id); setWelcome(false); setTab('artha'); try { sessionStorage.setItem('artha.welcomed', '1'); } catch { /* */ } }} />}
       {setup && <SetupScreen pid={pid} onDone={(st) => { if (st) applyState(st); loadMe(pid); setSetup(false); setWelcome(false); history.replaceState(null, '', `${location.pathname}?p=${pid}`); try { sessionStorage.setItem('artha.welcomed', '1'); } catch { /* */ } }} />}
+      {settings && persona && <Settings persona={persona} state={pstate} voiceOn={voiceOn} onVoice={toggleVoice} onClose={() => setSettings(false)}
+        onState={applyState} onPersona={p => { setMe(p); }} onKnows={() => { setSettings(false); go('memory'); }}
+        onSignOut={() => { try { localStorage.removeItem('artha.me'); sessionStorage.removeItem('artha.welcomed'); } catch { /* */ } setMe(null); setSettings(false); setPid('aditya'); setWelcome(true); }} />}
       {toast && <div className="toast" role="status">{toast}</div>}
     </div>
   );

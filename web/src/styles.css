@@ -473,3 +473,24 @@ a.btn { text-decoration: none; }
 .s-stats div { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 12px; display: grid; } .s-stats b { font-size: 26px; letter-spacing: -.03em; } .s-stats span { font-size: 12.5px; color: var(--muted); }
 .setup .btn-primary { justify-self: start; height: 46px; padding: 0 22px; }
 @media (max-width: 760px) { .w-grid { grid-template-columns: minmax(0, 1fr); } .s-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+/* ================= settings ================= */
+.sheet-bg { position: fixed; inset: 0; z-index: 80; background: rgba(15, 16, 20, .32); backdrop-filter: blur(3px); display: grid; justify-items: end; }
+.sheet { width: min(520px, 100%); height: 100%; overflow: auto; background: var(--bg); border-left: 1px solid var(--line); display: grid; gap: 12px; align-content: start;
+  padding-left: max(18px, env(safe-area-inset-left, 0px)); padding-right: max(18px, env(safe-area-inset-right, 0px)); padding-block: max(16px, env(safe-area-inset-top, 0px)) 40px; }
+.sheet-head { display: flex; align-items: center; justify-content: space-between; } .sheet-head h2 { font-size: 24px; }
+.set { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 16px; display: grid; gap: 10px; }
+.set h3 { font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.prof { display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: start; } .prof > div { display: grid; gap: 4px; min-width: 0; } .prof b { font-size: 17px; } .prof small { color: var(--muted); } .prof p { font-size: 14px; color: var(--ink-2); }
+.prof-form { display: grid; gap: 10px; } .prof-form label { display: grid; gap: 4px; font-size: 13px; font-weight: 600; color: var(--muted); }
+.prof-form input, .prof-form textarea { font: inherit; font-size: 15px; color: var(--ink); background: var(--surface-2); border: 1px solid var(--line); border-radius: 12px; padding: 9px 12px; resize: vertical; }
+.prof-form input:focus, .prof-form textarea:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+.set .row { display: flex; align-items: center; gap: 12px; } .set .row.flexwrap { flex-wrap: wrap; } .set .row .btn { height: 38px; }
+.set-btn { justify-self: start; height: 40px; text-decoration: none; }
+.kv2 { display: grid; grid-template-columns: 100px 1fr; gap: 6px 12px; font-size: 14px; } .kv2 span { color: var(--muted); } .kv2 b { font-weight: 600; min-width: 0; overflow-wrap: anywhere; }
+.counts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; } .counts div { background: var(--surface-2); border: 1px solid var(--line); border-radius: 12px; padding: 10px; display: grid; } .counts b { font-size: 20px; font-variant-numeric: tabular-nums; } .counts span { font-size: 12px; color: var(--muted); }
+.toggle { display: flex; align-items: center; gap: 10px; font-size: 15px; } .toggle input { width: 18px; height: 18px; accent-color: var(--accent); }
+.confirm { background: var(--red-soft); border-radius: 14px; padding: 12px; display: grid; gap: 10px; } .confirm p { font-size: 14px; color: var(--ink-2); }
+.btn.danger { background: var(--red); color: #fff; } .danger-txt { color: var(--red); } .link.bad { color: var(--red); }
+.set-msg { color: var(--accent); font-weight: 600; font-size: 14px; }
+@media (max-width: 520px) { .sheet { border-left: 0; } .counts { grid-template-columns: repeat(2, minmax(0, 1fr)); } .prof { grid-template-columns: auto 1fr; } .prof > :last-child { grid-column: 1 / -1; justify-self: start; } }

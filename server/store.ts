@@ -37,6 +37,14 @@ export async function saveUser(p: Persona) {
   fs.mkdirSync(USER_DIR, { recursive: true }); fs.writeFileSync(path.join(USER_DIR, `${p.id}.json`), body);
 }
 
+/** Deletes a user created from Gmail: profile, context space and saved login. */
+export async function deleteUser(id: string) {
+  if (!id.startsWith('u-')) throw new Error('Sample people cannot be deleted');
+  users.delete(id); dropSpace(id);
+  if (BUCKET) { const { mod, client } = await s3(); for (const Key of [`users/${id}.json`, `context/${id}.db`]) await client.send(new mod.DeleteObjectCommand({ Bucket: BUCKET, Key })).catch(() => {}); return; }
+  fs.rmSync(path.join(USER_DIR, `${id}.json`), { force: true });
+}
+
 export function persona(id: string): Persona {
   const p = personas().find(x => x.id === id) ?? users.get(id);
   if (!p) throw Object.assign(new Error(`Unknown person "${id}"`), { status: 404 });

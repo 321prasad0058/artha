@@ -128,7 +128,7 @@ export function readState(db: DatabaseSync, p: Persona): State {
     persona: p.id,
     memory: all(`SELECT * FROM fact ORDER BY rowid`).map(f => ({ fact: f.text, src: f.src, at: f.at ? new Date(f.at).toISOString() : '', ...(f.learned ? { learned: true } : {}), ...(f.kind ? { kind: f.kind } : {}), ...(f.subject ? { about: f.subject } : {}), ...(f.mention ? { mention: f.mention } : {}), ...(f.topic ? { topic: f.topic } : {}), uses: f.uses, last_used: f.last_used ? new Date(f.last_used).toISOString() : undefined })),
     threads,
-    calendar: all(`SELECT * FROM cal WHERE kind='calendar' ORDER BY when_iso`).map(c => ({ title: c.title, when_iso: c.when_iso, when_label: c.when_label, ...(c.entity_id ? { contact: c.entity_id } : {}), ...(c.added ? { added: true } : {}) })),
+    calendar: all(`SELECT * FROM cal WHERE kind='calendar' ORDER BY when_iso`).map(c => ({ title: c.title, when_iso: c.when_iso, when_label: c.when_label, ...(c.entity_id ? { contact: c.entity_id } : {}), ...(c.added ? { added: true } : {}), ...(c.added === 2 ? { source: 'gmail' as const } : {}) })),
     reminders: all(`SELECT * FROM cal WHERE kind='reminder' ORDER BY when_iso`).map(c => ({ title: c.title, when_iso: c.when_iso, when_label: c.when_label })),
     ledger: [...carried, ...all(`SELECT * FROM ledger ORDER BY at`).map(l => ({ contact: l.entity_id, amount: l.amount, note: l.note, at: new Date(l.at).toISOString() }))],
     payments: all(`SELECT * FROM event WHERE source='upi' ORDER BY at`).map(e => ({ contact: e.entity_id, amount: JSON.parse(e.data).amount, upi: JSON.parse(e.data).upi, at: new Date(e.at).toISOString() })),
@@ -175,7 +175,7 @@ export function writeState(db: DatabaseSync, s: State, p: Persona) {
     for (const x of s.payments) { const at = ms(x.at); ev.run(hash(`upi${x.contact}${x.at}`), 'upi', x.contact, 1, `Paid ₹${x.amount}`, 'UPI', at, JSON.stringify({ amount: x.amount, upi: x.upi }), exp(at)); }
     for (const x of s.calls) { const at = ms(x.at); ev.run(hash(`call${x.contact}${x.at}`), 'call', x.contact, 1, x.goal, 'Artha call', at, JSON.stringify({ status: x.status }), exp(at)); }
     const cal = db.prepare(`INSERT OR REPLACE INTO cal(id, kind, title, when_iso, when_label, entity_id, added, expires_at) VALUES(?,?,?,?,?,?,?,?)`);
-    for (const c of s.calendar) cal.run(hash(`cal${c.title}${c.when_iso}`), 'calendar', c.title, c.when_iso, c.when_label, c.contact ?? null, c.added ? 1 : 0, exp(ms(c.when_iso)));
+    for (const c of s.calendar) cal.run(hash(`cal${c.title}${c.when_iso}`), 'calendar', c.title, c.when_iso, c.when_label, c.contact ?? null, c.source === 'gmail' ? 2 : c.added ? 1 : 0, exp(ms(c.when_iso)));   // 2 = from Gmail
     for (const r of s.reminders) cal.run(hash(`rem${r.title}${r.when_iso}`), 'reminder', r.title, r.when_iso, r.when_label, null, 1, exp(ms(r.when_iso)));
     const led = db.prepare(`INSERT OR REPLACE INTO ledger(id, entity_id, amount, note, at, expires_at) VALUES(?,?,?,?,?,?)`);
     s.ledger.filter(l => l.note !== 'Carried forward').forEach((l, i) => { const at = ms(l.at); led.run(hash(`led${l.contact}${l.at}${i}`), l.contact, l.amount, l.note, at, exp(at)); });
