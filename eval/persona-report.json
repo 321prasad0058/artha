@@ -1,5 +1,5 @@
 {
- "at": "2026-11-21T12:06:38.470Z",
+ "at": "2026-11-21T12:40:27.840Z",
  "pass": 26,
  "total": 26,
  "report": [
@@ -38,7 +38,7 @@
      "type": "message",
      "contact_id": "santosh",
      "language": "Telugu",
-     "text": "అన్నా, పార్సెల్‌ను సెక్యూరిటీ దగ్గర పెట్టండి.",
+     "text": "అన్నా, పార్సెల్‌ను సెక్యూరిటీ దగ్గర వదిలేయండి.",
      "gloss": "Anna, please leave the parcel with security.",
      "goal": "",
      "title": "",
@@ -56,12 +56,12 @@
       {
        "kind": "whatsapp",
        "label": "Send on WhatsApp",
-       "href": "https://wa.me/?text=%E0%B0%85%E0%B0%A8%E0%B1%8D%E0%B0%A8%E0%B0%BE%2C%20%E0%B0%AA%E0%B0%BE%E0%B0%B0%E0%B1%8D%E0%B0%B8%E0%B1%86%E0%B0%B2%E0%B1%8D%E2%80%8C%E0%B0%A8%E0%B1%81%20%E0%B0%B8%E0%B1%86%E0%B0%95%E0%B1%8D%E0%B0%AF%E0%B1%82%E0%B0%B0%E0%B0%BF%E0%B0%9F%E0%B1%80%20%E0%B0%A6%E0%B0%97%E0%B1%8D%E0%B0%97%E0%B0%B0%20%E0%B0%AA%E0%B1%86%E0%B0%9F%E0%B1%8D%E0%B0%9F%E0%B0%82%E0%B0%A1%E0%B0%BF."
+       "href": "https://wa.me/?text=%E0%B0%85%E0%B0%A8%E0%B1%8D%E0%B0%A8%E0%B0%BE%2C%20%E0%B0%AA%E0%B0%BE%E0%B0%B0%E0%B1%8D%E0%B0%B8%E0%B1%86%E0%B0%B2%E0%B1%8D%E2%80%8C%E0%B0%A8%E0%B1%81%20%E0%B0%B8%E0%B1%86%E0%B0%95%E0%B1%8D%E0%B0%AF%E0%B1%82%E0%B0%B0%E0%B0%BF%E0%B0%9F%E0%B1%80%20%E0%B0%A6%E0%B0%97%E0%B1%8D%E0%B0%97%E0%B0%B0%20%E0%B0%B5%E0%B0%A6%E0%B0%BF%E0%B0%B2%E0%B1%87%E0%B0%AF%E0%B0%82%E0%B0%A1%E0%B0%BF."
       },
       {
        "kind": "sms",
        "label": "SMS",
-       "href": "sms:?&body=%E0%B0%85%E0%B0%A8%E0%B1%8D%E0%B0%A8%E0%B0%BE%2C%20%E0%B0%AA%E0%B0%BE%E0%B0%B0%E0%B1%8D%E0%B0%B8%E0%B1%86%E0%B0%B2%E0%B1%8D%E2%80%8C%E0%B0%A8%E0%B1%81%20%E0%B0%B8%E0%B1%86%E0%B0%95%E0%B1%8D%E0%B0%AF%E0%B1%82%E0%B0%B0%E0%B0%BF%E0%B0%9F%E0%B1%80%20%E0%B0%A6%E0%B0%97%E0%B1%8D%E0%B0%97%E0%B0%B0%20%E0%B0%AA%E0%B1%86%E0%B0%9F%E0%B1%8D%E0%B0%9F%E0%B0%82%E0%B0%A1%E0%B0%BF."
+       "href": "sms:?&body=%E0%B0%85%E0%B0%A8%E0%B1%8D%E0%B0%A8%E0%B0%BE%2C%20%E0%B0%AA%E0%B0%BE%E0%B0%B0%E0%B1%8D%E0%B0%B8%E0%B1%86%E0%B0%B2%E0%B1%8D%E2%80%8C%E0%B0%A8%E0%B1%81%20%E0%B0%B8%E0%B1%86%E0%B0%95%E0%B1%8D%E0%B0%AF%E0%B1%82%E0%B0%B0%E0%B0%BF%E0%B0%9F%E0%B1%80%20%E0%B0%A6%E0%B0%97%E0%B1%8D%E0%B0%97%E0%B0%B0%20%E0%B0%B5%E0%B0%A6%E0%B0%BF%E0%B0%B2%E0%B1%87%E0%B0%AF%E0%B0%82%E0%B0%A1%E0%B0%BF."
       }
      ],
      "mention": "Anna",
@@ -72,15 +72,15 @@
      "type": "call",
      "contact_id": "mehta",
      "language": "English",
-     "text": "Could you please reschedule my appointment to Monday, 23 November at 6 PM?",
-     "gloss": "",
-     "goal": "Reschedule the existing appointment to Monday, 23 November at 6 PM.",
+     "text": "Could you please move my appointment to Monday, 23 November at 6 PM?",
+     "gloss": "Could you please move my appointment to Monday, 23 November at 6 PM?",
+     "goal": "Reschedule the appointment to Monday, 23 November at 6 PM.",
      "title": "",
      "when_iso": "2026-11-23T18:00:00+05:30",
      "when_label": "Mon 23 Nov, 6:00 PM",
      "amount_inr": 0,
      "predicted": false,
-     "why": "Appointment change requires arranging with clinic.",
+     "why": "Appointment rescheduling requires arranging with clinic.",
      "entry_kind": "",
      "party": "",
      "item": "",
@@ -90,28 +90,56 @@
       {
        "kind": "whatsapp",
        "label": "Message instead",
-       "href": "https://wa.me/?text=Could%20you%20please%20reschedule%20my%20appointment%20to%20Monday%2C%2023%20November%20at%206%20PM%3F"
+       "href": "https://wa.me/?text=Could%20you%20please%20move%20my%20appointment%20to%20Monday%2C%2023%20November%20at%206%20PM%3F"
       },
       {
        "kind": "gcal",
        "label": "Add to Google Calendar",
-       "href": "https://calendar.google.com/calendar/render?action=TEMPLATE&text=Call%20Dr.%20Mehta's%20Clinic&dates=20261123T123000Z/20261123T130000Z&details=Could%20you%20please%20reschedule%20my%20appointment%20to%20Monday%2C%2023%20November%20at%206%20PM%3F%0AAdded%20by%20Artha&ctz=Asia/Kolkata"
+       "href": "https://calendar.google.com/calendar/render?action=TEMPLATE&text=Call%20Dr.%20Mehta's%20Clinic&dates=20261123T123000Z/20261123T130000Z&details=Could%20you%20please%20move%20my%20appointment%20to%20Monday%2C%2023%20November%20at%206%20PM%3F%0AAdded%20by%20Artha&ctz=Asia/Kolkata"
       }
      ],
      "mention": "Mehta ji",
      "alternatives": [],
      "id": "t1:2"
+    },
+    {
+     "type": "reminder",
+     "contact_id": "none",
+     "language": "",
+     "text": "",
+     "gloss": "",
+     "goal": "",
+     "title": "Take previous reports to Dr. Mehta appointment",
+     "when_iso": "2026-11-23T17:00:00+05:30",
+     "when_label": "Mon 23 Nov, 5:00 PM",
+     "amount_inr": 0,
+     "predicted": true,
+     "why": "Appointment reminder habit; bring previous reports.",
+     "entry_kind": "",
+     "party": "",
+     "item": "",
+     "updates": "",
+     "contact_name": "",
+     "links": [
+      {
+       "kind": "gcal",
+       "label": "Add to Google Calendar",
+       "href": "https://calendar.google.com/calendar/render?action=TEMPLATE&text=Take%20previous%20reports%20to%20Dr.%20Mehta%20appointment&dates=20261123T113000Z/20261123T120000Z&details=Take%20previous%20reports%20to%20Dr.%20Mehta%20appointment%0AAdded%20by%20Artha&ctz=Asia/Kolkata"
+      }
+     ],
+     "id": "t1:3"
     }
    ],
    "did": [
     "Sent to Santosh Anna",
-    "Artha will call Dr. Mehta's Clinic"
+    "Artha will call Dr. Mehta's Clinic",
+    "Reminder set"
    ],
-   "reply": "संतोष अन्ना के लिए पार्सल संदेश और डॉ. मेहता का अपॉइंटमेंट बदलने की रिक्वेस्ट तैयार है।",
+   "reply": "संतोष अन्ना के लिए पार्सल वाला मैसेज तैयार है; क्लिनिक से अपॉइंटमेंट शिफ्ट करने की रिक्वेस्ट तैयार है। रिपोर्ट्स ले जाने का रिमाइंडर भी सेट करने के लिए तैयार है।",
    "ms": {
-    "meaning": 1,
-    "who": 5,
-    "plan": 5241
+    "meaning": 2,
+    "who": 7,
+    "plan": 5933
    }
   },
   {
@@ -130,7 +158,7 @@
     }
    ],
    "who": [
-    "Shankar bhaiya → Shankar 100%"
+    "Shankar bhaiya → Shankar 99%"
    ],
    "topics": [
     "money"
@@ -149,7 +177,7 @@
      "when_label": "",
      "amount_inr": 250,
      "predicted": false,
-     "why": "User asked to send; Shankar requested ₹250",
+     "why": "He asked for the same pending fare.",
      "entry_kind": "",
      "party": "",
      "item": "",
@@ -171,11 +199,11 @@
    "did": [
     "Paid ₹250 (demo)"
    ],
-   "reply": "शंकर भैया को ₹250 भेजने का पेमेंट रेडी है।",
+   "reply": "शंकर भैया को ₹२५० भेजने के लिए पेमेंट तैयार है।",
    "ms": {
     "meaning": 4,
-    "who": 2,
-    "plan": 3361
+    "who": 1,
+    "plan": 3458
    }
   },
   {
@@ -199,7 +227,7 @@
     }
    ],
    "who": [
-    "Priya → Priya 99%"
+    "Priya → Priya 100%"
    ],
    "topics": [
     "family"
@@ -210,8 +238,8 @@
      "type": "message",
      "contact_id": "priya",
      "language": "Hindi",
-     "text": "Priya, aaj dinner bahar karte hain, 8:30 baje?",
-     "gloss": "Priya, shall we have dinner out today at 8:30?",
+     "text": "Priya, aaj dinner bahar karte hain?",
+     "gloss": "Priya, shall we have dinner out today?",
      "goal": "",
      "title": "",
      "when_iso": "2026-11-21T20:30:00+05:30",
@@ -228,12 +256,12 @@
       {
        "kind": "whatsapp",
        "label": "Send on WhatsApp",
-       "href": "https://wa.me/?text=Priya%2C%20aaj%20dinner%20bahar%20karte%20hain%2C%208%3A30%20baje%3F"
+       "href": "https://wa.me/?text=Priya%2C%20aaj%20dinner%20bahar%20karte%20hain%3F"
       },
       {
        "kind": "sms",
        "label": "SMS",
-       "href": "sms:?&body=Priya%2C%20aaj%20dinner%20bahar%20karte%20hain%2C%208%3A30%20baje%3F"
+       "href": "sms:?&body=Priya%2C%20aaj%20dinner%20bahar%20karte%20hain%3F"
       }
      ],
      "mention": "Priya",
@@ -274,11 +302,11 @@
     "Sent to Priya",
     "Added to calendar"
    ],
-   "reply": "प्रिया के लिए डिनर का मेसेज और ८:३० बजे का कैलेंडर एंट्री रेडी है।",
+   "reply": "प्रिया के लिए डिनर का मेसेज और आज साढ़े आठ बजे का कैलेंडर एंट्री तैयार है।",
    "ms": {
-    "meaning": 2,
-    "who": 5,
-    "plan": 4062
+    "meaning": 1,
+    "who": 3,
+    "plan": 4074
    }
   },
   {
@@ -346,11 +374,11 @@
    "did": [
     "Sent to Amma"
    ],
-   "reply": "అమ్మకు రేపు లంచ్‌కి వస్తానని మెసేజ్ సిద్ధంగా ఉంది.",
+   "reply": "అమ్మకి చెప్పడానికి మెసేజ్ రెడీగా ఉంది.",
    "ms": {
-    "meaning": 1,
-    "who": 4,
-    "plan": 3876
+    "meaning": 2,
+    "who": 2,
+    "plan": 3693
    }
   },
   {
@@ -386,8 +414,8 @@
      "type": "message",
      "contact_id": "rahul_v",
      "language": "English",
-     "text": "Rahul, let’s schedule tomorrow’s meeting for 4 PM.",
-     "gloss": "Let’s schedule tomorrow’s meeting for 4 PM.",
+     "text": "Rahul, let's have tomorrow's meeting at 4 PM.",
+     "gloss": "Rahul, let's have tomorrow's meeting at 4 PM.",
      "goal": "",
      "title": "",
      "when_iso": "2026-11-22T16:00:00+05:30",
@@ -404,12 +432,12 @@
       {
        "kind": "whatsapp",
        "label": "Send on WhatsApp",
-       "href": "https://wa.me/?text=Rahul%2C%20let%E2%80%99s%20schedule%20tomorrow%E2%80%99s%20meeting%20for%204%20PM."
+       "href": "https://wa.me/?text=Rahul%2C%20let's%20have%20tomorrow's%20meeting%20at%204%20PM."
       },
       {
        "kind": "sms",
        "label": "SMS",
-       "href": "sms:?&body=Rahul%2C%20let%E2%80%99s%20schedule%20tomorrow%E2%80%99s%20meeting%20for%204%20PM."
+       "href": "sms:?&body=Rahul%2C%20let's%20have%20tomorrow's%20meeting%20at%204%20PM."
       }
      ],
      "mention": "Rahul",
@@ -420,11 +448,11 @@
    "did": [
     "Sent to Rahul Verma"
    ],
-   "reply": "राहुल के लिए कल 4 बजे मीटिंग रखने का मैसेज रेडी है।",
+   "reply": "राहुल वर्मा के लिए कल 4 बजे मीटिंग का मैसेज रेडी है।",
    "ms": {
-    "meaning": 13,
-    "who": 7,
-    "plan": 4205
+    "meaning": 1,
+    "who": 3,
+    "plan": 3864
    }
   },
   {
@@ -437,18 +465,18 @@
    "changed": "",
    "understood": [],
    "who": [
-    "Rahul → Rahul Kulkarni 70% (next: Rahul Verma 30%)"
+    "Rahul → Rahul Kulkarni 65% (next: Rahul Verma 35%)"
    ],
    "topics": [],
    "blocked": false,
    "actions": [
     {
-     "type": "call",
+     "type": "message",
      "contact_id": "rahul_k",
      "language": "Marathi",
-     "text": "Rahul dada, tumhi Pune la kadhi yenar aahat?",
+     "text": "Rahul dada, Pune la kadhi yet aahes?",
      "gloss": "Rahul dada, when are you coming to Pune?",
-     "goal": "Ask when Rahul is coming to Pune.",
+     "goal": "",
      "title": "",
      "when_iso": "",
      "when_label": "",
@@ -463,8 +491,13 @@
      "links": [
       {
        "kind": "whatsapp",
-       "label": "Message instead",
-       "href": "https://wa.me/?text=Rahul%20dada%2C%20tumhi%20Pune%20la%20kadhi%20yenar%20aahat%3F"
+       "label": "Send on WhatsApp",
+       "href": "https://wa.me/?text=Rahul%20dada%2C%20Pune%20la%20kadhi%20yet%20aahes%3F"
+      },
+      {
+       "kind": "sms",
+       "label": "SMS",
+       "href": "sms:?&body=Rahul%20dada%2C%20Pune%20la%20kadhi%20yet%20aahes%3F"
       }
      ],
      "mention": "Rahul",
@@ -478,13 +511,13 @@
     }
    ],
    "did": [
-    "Artha will call Rahul Kulkarni"
+    "Sent to Rahul Kulkarni"
    ],
-   "reply": "राहुल नाम के दो लोग हैं—कुलकर्णी दादा या वर्मा?",
+   "reply": "राहुल कुलकर्णी से पुणे आने का समय पूछने के लिए मेसेज रेडी है।",
    "ms": {
     "meaning": 1,
-    "who": 4,
-    "plan": 4530
+    "who": 3,
+    "plan": 3701
    }
   },
   {
@@ -497,7 +530,7 @@
    "changed": "",
    "understood": [],
    "who": [
-    "Usko → Santosh Anna 90%"
+    "Usko → Santosh Anna 100%"
    ],
    "topics": [
     "delivery"
@@ -508,7 +541,7 @@
      "type": "message",
      "contact_id": "santosh",
      "language": "Telugu",
-     "text": "అన్నా, నేను 10 నిమిషాల్లో కిందికి వస్తాను. పార్సెల్ తీసుకుంటాను.",
+     "text": "అన్నా, 10 నిమిషాల్లో కిందకు వస్తున్నాను, పార్సెల్ తీసుకుంటాను.",
      "gloss": "Anna, I’ll come downstairs in 10 minutes and take the parcel.",
      "goal": "",
      "title": "",
@@ -516,7 +549,7 @@
      "when_label": "",
      "amount_inr": 0,
      "predicted": false,
-     "why": "Santosh just said he is arriving with parcel.",
+     "why": "Replying to his parcel arrival message.",
      "entry_kind": "",
      "party": "",
      "item": "",
@@ -526,12 +559,12 @@
       {
        "kind": "whatsapp",
        "label": "Send on WhatsApp",
-       "href": "https://wa.me/?text=%E0%B0%85%E0%B0%A8%E0%B1%8D%E0%B0%A8%E0%B0%BE%2C%20%E0%B0%A8%E0%B1%87%E0%B0%A8%E0%B1%81%2010%20%E0%B0%A8%E0%B0%BF%E0%B0%AE%E0%B0%BF%E0%B0%B7%E0%B0%BE%E0%B0%B2%E0%B1%8D%E0%B0%B2%E0%B1%8B%20%E0%B0%95%E0%B0%BF%E0%B0%82%E0%B0%A6%E0%B0%BF%E0%B0%95%E0%B0%BF%20%E0%B0%B5%E0%B0%B8%E0%B1%8D%E0%B0%A4%E0%B0%BE%E0%B0%A8%E0%B1%81.%20%E0%B0%AA%E0%B0%BE%E0%B0%B0%E0%B1%8D%E0%B0%B8%E0%B1%86%E0%B0%B2%E0%B1%8D%20%E0%B0%A4%E0%B1%80%E0%B0%B8%E0%B1%81%E0%B0%95%E0%B1%81%E0%B0%82%E0%B0%9F%E0%B0%BE%E0%B0%A8%E0%B1%81."
+       "href": "https://wa.me/?text=%E0%B0%85%E0%B0%A8%E0%B1%8D%E0%B0%A8%E0%B0%BE%2C%2010%20%E0%B0%A8%E0%B0%BF%E0%B0%AE%E0%B0%BF%E0%B0%B7%E0%B0%BE%E0%B0%B2%E0%B1%8D%E0%B0%B2%E0%B1%8B%20%E0%B0%95%E0%B0%BF%E0%B0%82%E0%B0%A6%E0%B0%95%E0%B1%81%20%E0%B0%B5%E0%B0%B8%E0%B1%8D%E0%B0%A4%E0%B1%81%E0%B0%A8%E0%B1%8D%E0%B0%A8%E0%B0%BE%E0%B0%A8%E0%B1%81%2C%20%E0%B0%AA%E0%B0%BE%E0%B0%B0%E0%B1%8D%E0%B0%B8%E0%B1%86%E0%B0%B2%E0%B1%8D%20%E0%B0%A4%E0%B1%80%E0%B0%B8%E0%B1%81%E0%B0%95%E0%B1%81%E0%B0%82%E0%B0%9F%E0%B0%BE%E0%B0%A8%E0%B1%81."
       },
       {
        "kind": "sms",
        "label": "SMS",
-       "href": "sms:?&body=%E0%B0%85%E0%B0%A8%E0%B1%8D%E0%B0%A8%E0%B0%BE%2C%20%E0%B0%A8%E0%B1%87%E0%B0%A8%E0%B1%81%2010%20%E0%B0%A8%E0%B0%BF%E0%B0%AE%E0%B0%BF%E0%B0%B7%E0%B0%BE%E0%B0%B2%E0%B1%8D%E0%B0%B2%E0%B1%8B%20%E0%B0%95%E0%B0%BF%E0%B0%82%E0%B0%A6%E0%B0%BF%E0%B0%95%E0%B0%BF%20%E0%B0%B5%E0%B0%B8%E0%B1%8D%E0%B0%A4%E0%B0%BE%E0%B0%A8%E0%B1%81.%20%E0%B0%AA%E0%B0%BE%E0%B0%B0%E0%B1%8D%E0%B0%B8%E0%B1%86%E0%B0%B2%E0%B1%8D%20%E0%B0%A4%E0%B1%80%E0%B0%B8%E0%B1%81%E0%B0%95%E0%B1%81%E0%B0%82%E0%B0%9F%E0%B0%BE%E0%B0%A8%E0%B1%81."
+       "href": "sms:?&body=%E0%B0%85%E0%B0%A8%E0%B1%8D%E0%B0%A8%E0%B0%BE%2C%2010%20%E0%B0%A8%E0%B0%BF%E0%B0%AE%E0%B0%BF%E0%B0%B7%E0%B0%BE%E0%B0%B2%E0%B1%8D%E0%B0%B2%E0%B1%8B%20%E0%B0%95%E0%B0%BF%E0%B0%82%E0%B0%A6%E0%B0%95%E0%B1%81%20%E0%B0%B5%E0%B0%B8%E0%B1%8D%E0%B0%A4%E0%B1%81%E0%B0%A8%E0%B1%8D%E0%B0%A8%E0%B0%BE%E0%B0%A8%E0%B1%81%2C%20%E0%B0%AA%E0%B0%BE%E0%B0%B0%E0%B1%8D%E0%B0%B8%E0%B1%86%E0%B0%B2%E0%B1%8D%20%E0%B0%A4%E0%B1%80%E0%B0%B8%E0%B1%81%E0%B0%95%E0%B1%81%E0%B0%82%E0%B0%9F%E0%B0%BE%E0%B0%A8%E0%B1%81."
       }
      ],
      "mention": "Usko",
@@ -542,11 +575,11 @@
    "did": [
     "Sent to Santosh Anna"
    ],
-   "reply": "సంతోష్ అన్నకు పార్సెల్ తీసుకోవడానికి కిందికి వస్తానని మెసేజ్ సిద్ధంగా ఉంది.",
+   "reply": "సంతోష్ అన్నకి పార్సెల్ తీసుకోవడానికి కిందికి వస్తున్నానని మెసేజ్ రెడీగా ఉంది.",
    "ms": {
     "meaning": 1,
-    "who": 3,
-    "plan": 7570
+    "who": 4,
+    "plan": 8487
    }
   },
   {
@@ -591,14 +624,14 @@
    "persona": "aditya",
    "summary": {
     "sent": [
-     "santosh: అన్నా, పార్సెల్‌ను సెక్యూరిటీ దగ్గర పెట్టండి.",
-     "santosh: అన్నా, నేను 10 నిమిషాల్లో కిందికి వస్తాను. పార్సెల్ తీసుకుంట",
-     "mehta: Artha is calling: Reschedule the existing appointment to Mon",
-     "rahul_v: Rahul, let’s schedule tomorrow’s meeting for 4 PM.",
-     "rahul_k: Artha is calling: Ask when Rahul is coming to Pune.",
+     "santosh: అన్నా, పార్సెల్‌ను సెక్యూరిటీ దగ్గర వదిలేయండి.",
+     "santosh: అన్నా, 10 నిమిషాల్లో కిందకు వస్తున్నాను, పార్సెల్ తీసుకుంటాన",
+     "mehta: Artha is calling: Reschedule the appointment to Monday, 23 N",
+     "rahul_v: Rahul, let's have tomorrow's meeting at 4 PM.",
+     "rahul_k: Rahul dada, Pune la kadhi yet aahes?",
      "amma: అమ్మా, రేపు మధ్యాహ్నం లంచ్‌కి వస్తాను.",
      "shankar: Paid ₹250 by UPI (demo, no real money)",
-     "priya: Priya, aaj dinner bahar karte hain, 8:30 baje?"
+     "priya: Priya, aaj dinner bahar karte hain?"
     ],
     "calendar": [
      {
@@ -609,13 +642,19 @@
       "added": true
      }
     ],
-    "reminders": [],
+    "reminders": [
+     {
+      "title": "Take previous reports to Dr. Mehta appointment",
+      "when_iso": "2026-11-23T17:00:00+05:30",
+      "when_label": "Mon 23 Nov, 5:00 PM"
+     }
+    ],
     "payments": [
      {
       "contact": "shankar",
       "amount": 250,
       "upi": "shankar.rides@upi",
-      "at": "2026-11-21T12:05:12.177Z"
+      "at": "2026-11-21T12:38:52.746Z"
      }
     ],
     "ledger": [],
@@ -623,8 +662,11 @@
      {
       "fact": "Unknown caller (said HDFC) is a likely scam; Artha answers their calls",
       "src": "you marked it",
-      "at": "2026-11-21T12:05:36.496Z",
-      "learned": true
+      "at": "2026-11-21T12:39:18.492Z",
+      "learned": true,
+      "kind": "note",
+      "about": "hdfc_caller",
+      "uses": 0
      }
     ]
    }
@@ -651,7 +693,7 @@
     }
    ],
    "who": [
-    "Pawar doctoranna → Dr. Pawar 99%"
+    "Pawar doctoranna → Dr. Pawar 100%"
    ],
    "topics": [],
    "blocked": false,
@@ -668,7 +710,7 @@
      "when_label": "Sun, 22 Nov, 11:00 am",
      "amount_inr": 0,
      "predicted": false,
-     "why": "",
+     "why": "She wants to confirm the visit.",
      "entry_kind": "",
      "party": "",
      "item": "",
@@ -694,11 +736,11 @@
    "did": [
     "Sent to Dr. Pawar"
    ],
-   "reply": "डॉ. पवारांसाठी मेसेज तयार आहे.",
+   "reply": "डॉ. पवारांना पाठवण्यासाठी मेसेज तयार आहे.",
    "ms": {
     "meaning": 1,
-    "who": 4,
-    "plan": 3316
+    "who": 6,
+    "plan": 3597
    }
   },
   {
@@ -725,12 +767,12 @@
      "text": "",
      "gloss": "",
      "goal": "",
-     "title": "Pay this month’s milk bill by UPI",
+     "title": "Send this month’s milk bill by UPI",
      "when_iso": "",
      "when_label": "",
      "amount_inr": 1850,
      "predicted": false,
-     "why": "",
+     "why": "Amount requested today; UPI is usual.",
      "entry_kind": "",
      "party": "",
      "item": "",
@@ -741,7 +783,7 @@
       {
        "kind": "upi",
        "label": "Pay ₹1,850 in your UPI app",
-       "href": "upi://pay?pa=pawardairy%40upi&pn=Pawar+Dudhwale&am=1850.00&cu=INR&tn=Pay+this+month%E2%80%99s+milk+bill+by+UPI"
+       "href": "upi://pay?pa=pawardairy%40upi&pn=Pawar+Dudhwale&am=1850.00&cu=INR&tn=Send+this+month%E2%80%99s+milk+bill+by+UPI"
       }
      ],
      "mention": "Dudhwalyanna",
@@ -752,11 +794,11 @@
    "did": [
     "Paid ₹1,850 (demo)"
    ],
-   "reply": "पवार दूधवाल्यांना ₹१,८५० यूपीआय पेमेंट कन्फर्मेशनसाठी तयार आहे.",
+   "reply": "पवार दूधवाल्यांना ₹१,८५० यूपीआयने पाठवण्यासाठी पेमेंट तयार आहे.",
    "ms": {
     "meaning": 0,
     "who": 2,
-    "plan": 3604
+    "plan": 3552
    }
   },
   {
@@ -781,7 +823,7 @@
     }
    ],
    "who": [
-    "Tai → Vaishali 74% (next: Mangal tai 26%)"
+    "Tai → Vaishali 85% (next: Mangal tai 15%)"
    ],
    "topics": [
     "family"
@@ -831,11 +873,11 @@
    "did": [
     "Sent to Vaishali"
    ],
-   "reply": "वैशाली ताईंसाठी मेसेज तयार आहे.",
+   "reply": "वैशाली ताईंना पाठवण्यासाठी मेसेज तयार आहे.",
    "ms": {
-    "meaning": 0,
-    "who": 2,
-    "plan": 3527
+    "meaning": 1,
+    "who": 4,
+    "plan": 3725
    }
   },
   {
@@ -855,7 +897,7 @@
     }
    ],
    "who": [
-    "Tai → Vaishali 85% (next: Mangal tai 15%)"
+    "Tai → Vaishali 70% (next: Mangal tai 30%)"
    ],
    "topics": [],
    "blocked": false,
@@ -872,7 +914,7 @@
      "when_label": "Sun, 22 Nov",
      "amount_inr": 0,
      "predicted": false,
-     "why": "",
+     "why": "Vaishali invited you for Sunday.",
      "entry_kind": "",
      "party": "",
      "item": "",
@@ -907,7 +949,7 @@
    "ms": {
     "meaning": 1,
     "who": 3,
-    "plan": 3647
+    "plan": 3830
    }
   },
   {
@@ -930,7 +972,7 @@
      "contact_id": "rohit",
      "language": "English",
      "text": "Rohit, come after Diwali. I’ll be waiting for you.",
-     "gloss": "Come after Diwali. I’ll be waiting for you.",
+     "gloss": "Rohit, come after Diwali. I’ll be waiting for you.",
      "goal": "",
      "title": "",
      "when_iso": "",
@@ -963,11 +1005,11 @@
    "did": [
     "Sent to Rohit"
    ],
-   "reply": "रोहित के लिए इंग्लिश मेसेज रेडी है।",
+   "reply": "रोहितला पाठवण्यासाठी मेसेज तयार आहे.",
    "ms": {
     "meaning": 1,
-    "who": 2,
-    "plan": 3439
+    "who": 4,
+    "plan": 3599
    }
   },
   {
@@ -994,16 +1036,16 @@
     {
      "type": "reminder",
      "contact_id": "none",
-     "language": "Marathi",
+     "language": "",
      "text": "",
      "gloss": "",
      "goal": "",
-     "title": "गोळी घ्यायची आठवण",
+     "title": "गولي घ्यायची आठवण",
      "when_iso": "2026-11-21T21:00:00+05:30",
-     "when_label": "आज रात्री ९ वाजता",
+     "when_label": "Sat 21 Nov, 9:00 PM",
      "amount_inr": 0,
      "predicted": false,
-     "why": "आजच्या ९ वाजताच्या औषधाच्या आठवणीची विनंती",
+     "why": "",
      "entry_kind": "",
      "party": "",
      "item": "",
@@ -1013,7 +1055,7 @@
       {
        "kind": "gcal",
        "label": "Add to Google Calendar",
-       "href": "https://calendar.google.com/calendar/render?action=TEMPLATE&text=%E0%A4%97%E0%A5%8B%E0%A4%B3%E0%A5%80%20%E0%A4%98%E0%A5%8D%E0%A4%AF%E0%A4%BE%E0%A4%AF%E0%A4%9A%E0%A5%80%20%E0%A4%86%E0%A4%A0%E0%A4%B5%E0%A4%A3&dates=20261121T153000Z/20261121T160000Z&details=%E0%A4%97%E0%A5%8B%E0%A4%B3%E0%A5%80%20%E0%A4%98%E0%A5%8D%E0%A4%AF%E0%A4%BE%E0%A4%AF%E0%A4%9A%E0%A5%80%20%E0%A4%86%E0%A4%A0%E0%A4%B5%E0%A4%A3%0AAdded%20by%20Artha&ctz=Asia/Kolkata"
+       "href": "https://calendar.google.com/calendar/render?action=TEMPLATE&text=%E0%A4%97%D9%88%D9%84%D9%8A%20%E0%A4%98%E0%A5%8D%E0%A4%AF%E0%A4%BE%E0%A4%AF%E0%A4%9A%E0%A5%80%20%E0%A4%86%E0%A4%A0%E0%A4%B5%E0%A4%A3&dates=20261121T153000Z/20261121T160000Z&details=%E0%A4%97%D9%88%D9%84%D9%8A%20%E0%A4%98%E0%A5%8D%E0%A4%AF%E0%A4%BE%E0%A4%AF%E0%A4%9A%E0%A5%80%20%E0%A4%86%E0%A4%A0%E0%A4%B5%E0%A4%A3%0AAdded%20by%20Artha&ctz=Asia/Kolkata"
       }
      ],
      "id": "t6:1"
@@ -1022,11 +1064,11 @@
    "did": [
     "Reminder set"
    ],
-   "reply": "आज रात्री ९ वाजता गोळीची आठवण तयार आहे.",
+   "reply": "आज रात्री ९ वाजता गोळी घ्यायची आठवण तयार आहे.",
    "ms": {
     "meaning": 1,
-    "who": 2,
-    "plan": 3348
+    "who": 3,
+    "plan": 3179
    }
   },
   {
@@ -1042,9 +1084,9 @@
     "calendar": [],
     "reminders": [
      {
-      "title": "गोळी घ्यायची आठवण",
-      "when_label": "आज रात्री ९ वाजता",
-      "when_iso": "2026-11-21T21:00:00+05:30"
+      "title": "गولي घ्यायची आठवण",
+      "when_iso": "2026-11-21T21:00:00+05:30",
+      "when_label": "Sat 21 Nov, 9:00 PM"
      }
     ],
     "payments": [
@@ -1052,7 +1094,7 @@
       "contact": "pawar_milk",
       "amount": 1850,
       "upi": "pawardairy@upi",
-      "at": "2026-11-21T12:05:43.434Z"
+      "at": "2026-11-21T12:39:26.818Z"
      }
     ],
     "ledger": [],
@@ -1090,15 +1132,15 @@
      "text": "",
      "gloss": "",
      "goal": "",
-     "title": "Sharma ji ke khate mein credit",
+     "title": "₹2,500 added to Sharma ji’s khata",
      "when_iso": "",
      "when_label": "",
      "amount_inr": 2500,
      "predicted": false,
-     "why": "",
+     "why": "User explicitly asks to add credit",
      "entry_kind": "credit",
      "party": "Sharma ji",
-     "item": "kirana saman",
+     "item": "",
      "updates": "t1:1",
      "contact_name": "Sharma ji",
      "links": [
@@ -1116,11 +1158,11 @@
    "did": [
     "₹2,500 written in your khata"
    ],
-   "reply": "शर्मा जी के खाते में ₹2,500 क्रेडिट एंट्री तैयार है।",
+   "reply": "शर्मा जी के खाते में ₹2,500 की एंट्री तैयार है।",
    "ms": {
-    "meaning": 1,
-    "who": 1,
-    "plan": 3548
+    "meaning": 0,
+    "who": 3,
+    "plan": 3223
    }
   },
   {
@@ -1145,7 +1187,7 @@
     }
    ],
    "who": [
-    "Sharma wale → Sharma Traders 100%"
+    "Sharma wale → Sharma Traders 99%"
    ],
    "topics": [
     "shop_supply",
@@ -1157,8 +1199,8 @@
      "type": "message",
      "contact_id": "sharma_traders",
      "language": "Hindi",
-     "text": "Sharma ji, kal atta shaam 4 baje tak bhej dijiye.",
-     "gloss": "Please send the flour by 4 PM tomorrow, Sharma ji.",
+     "text": "Sharma ji, kal atta chaar baje tak bhej dijiye.",
+     "gloss": "Please send the flour by four tomorrow.",
      "goal": "",
      "title": "",
      "when_iso": "2026-11-22T16:00:00+05:30",
@@ -1175,12 +1217,12 @@
       {
        "kind": "whatsapp",
        "label": "Send on WhatsApp",
-       "href": "https://wa.me/?text=Sharma%20ji%2C%20kal%20atta%20shaam%204%20baje%20tak%20bhej%20dijiye."
+       "href": "https://wa.me/?text=Sharma%20ji%2C%20kal%20atta%20chaar%20baje%20tak%20bhej%20dijiye."
       },
       {
        "kind": "sms",
        "label": "SMS",
-       "href": "sms:?&body=Sharma%20ji%2C%20kal%20atta%20shaam%204%20baje%20tak%20bhej%20dijiye."
+       "href": "sms:?&body=Sharma%20ji%2C%20kal%20atta%20chaar%20baje%20tak%20bhej%20dijiye."
       }
      ],
      "mention": "Sharma wale",
@@ -1193,9 +1235,9 @@
    ],
    "reply": "शर्मा ट्रेडर्स के लिए कल चार बजे तक आटा भेजने का मैसेज तैयार है।",
    "ms": {
-    "meaning": 2,
+    "meaning": 1,
     "who": 2,
-    "plan": 3592
+    "plan": 3389
    }
   },
   {
@@ -1214,7 +1256,7 @@
     }
    ],
    "who": [
-    "Gupta ji → Gupta ji 99% (next: Sharma Traders 1%)"
+    "Gupta ji → Gupta ji 100%"
    ],
    "topics": [
     "shop_credit"
@@ -1225,8 +1267,8 @@
      "type": "message",
      "contact_id": "gupta_ji",
      "language": "Hindi",
-     "text": "Gupta ji, aapke ₹650 baaki hain. Kripya yaad se de dijiye.",
-     "gloss": "Gupta ji, ₹650 is still due from you. Please remember to pay it.",
+     "text": "Gupta ji, aapke ₹650 baaki hain. Kripya de dijiye.",
+     "gloss": "Gupta ji, you have ₹650 outstanding. Please pay it.",
      "goal": "",
      "title": "",
      "when_iso": "",
@@ -1243,12 +1285,12 @@
       {
        "kind": "whatsapp",
        "label": "Send on WhatsApp",
-       "href": "https://wa.me/?text=Gupta%20ji%2C%20aapke%20%E2%82%B9650%20baaki%20hain.%20Kripya%20yaad%20se%20de%20dijiye."
+       "href": "https://wa.me/?text=Gupta%20ji%2C%20aapke%20%E2%82%B9650%20baaki%20hain.%20Kripya%20de%20dijiye."
       },
       {
        "kind": "sms",
        "label": "SMS",
-       "href": "sms:?&body=Gupta%20ji%2C%20aapke%20%E2%82%B9650%20baaki%20hain.%20Kripya%20yaad%20se%20de%20dijiye."
+       "href": "sms:?&body=Gupta%20ji%2C%20aapke%20%E2%82%B9650%20baaki%20hain.%20Kripya%20de%20dijiye."
       }
      ],
      "mention": "Gupta ji",
@@ -1261,9 +1303,9 @@
    ],
    "reply": "गुप्ता जी को ₹650 बाकी होने की याद दिलाने का मैसेज तैयार है।",
    "ms": {
-    "meaning": 1,
+    "meaning": 0,
     "who": 2,
-    "plan": 3731
+    "plan": 3342
    }
   },
   {
@@ -1301,7 +1343,7 @@
      "goal": "",
      "title": "",
      "when_iso": "2026-11-22T08:00:00+05:30",
-     "when_label": "Sun 22 Nov, 8:00 AM",
+     "when_label": "Sun, 22 Nov, 8:00 am",
      "amount_inr": 0,
      "predicted": false,
      "why": "",
@@ -1333,8 +1375,8 @@
    "reply": "बिलाल को कल सुबह 8 बजे दुकान खोलने का मैसेज तैयार है।",
    "ms": {
     "meaning": 1,
-    "who": 3,
-    "plan": 3533
+    "who": 1,
+    "plan": 3374
    }
   },
   {
@@ -1366,15 +1408,15 @@
      "type": "message",
      "contact_id": "rakesh",
      "language": "Hindi",
-     "text": "Rakesh ji, Parle-G ke 10 carton bhej dijiye. Payment kal delivery ke baad UPI se kar dunga.",
-     "gloss": "Rakesh, please send 10 cartons of Parle-G. I’ll pay by UPI tomorrow after delivery.",
+     "text": "Rakesh bhai, Parle-G ke 10 carton kal bhej dijiye. Payment delivery ke baad UPI se kar dunga.",
+     "gloss": "Rakesh, please send 10 cartons of Parle-G tomorrow. I’ll pay by UPI after delivery.",
      "goal": "",
      "title": "",
      "when_iso": "2026-11-22T10:00:00+05:30",
-     "when_label": "Sun, 22 Nov",
+     "when_label": "Sun 22 Nov, 10:00 AM",
      "amount_inr": 0,
      "predicted": false,
-     "why": "Order request to Parle distributor",
+     "why": "Order for the Parle distributor; payment after delivery.",
      "entry_kind": "",
      "party": "",
      "item": "",
@@ -1384,12 +1426,12 @@
       {
        "kind": "whatsapp",
        "label": "Send on WhatsApp",
-       "href": "https://wa.me/?text=Rakesh%20ji%2C%20Parle-G%20ke%2010%20carton%20bhej%20dijiye.%20Payment%20kal%20delivery%20ke%20baad%20UPI%20se%20kar%20dunga."
+       "href": "https://wa.me/?text=Rakesh%20bhai%2C%20Parle-G%20ke%2010%20carton%20kal%20bhej%20dijiye.%20Payment%20delivery%20ke%20baad%20UPI%20se%20kar%20dunga."
       },
       {
        "kind": "sms",
        "label": "SMS",
-       "href": "sms:?&body=Rakesh%20ji%2C%20Parle-G%20ke%2010%20carton%20bhej%20dijiye.%20Payment%20kal%20delivery%20ke%20baad%20UPI%20se%20kar%20dunga."
+       "href": "sms:?&body=Rakesh%20bhai%2C%20Parle-G%20ke%2010%20carton%20kal%20bhej%20dijiye.%20Payment%20delivery%20ke%20baad%20UPI%20se%20kar%20dunga."
       }
      ],
      "mention": "Rakesh",
@@ -1400,11 +1442,11 @@
    "did": [
     "Sent to Rakesh (Parle distributor)"
    ],
-   "reply": "राकेश को १० कार्टन पारले-जी भेजने का मैसेज तैयार है।",
+   "reply": "राकेश को कल 10 कार्टन पारले-जी भेजने का मैसेज तैयार है।",
    "ms": {
     "meaning": 1,
     "who": 2,
-    "plan": 4157
+    "plan": 4291
    }
   },
   {
@@ -1436,7 +1478,7 @@
      "when_label": "",
      "amount_inr": 0,
      "predicted": false,
-     "why": "",
+     "why": "Ammi’s BP medicine comes from this store.",
      "entry_kind": "",
      "party": "",
      "item": "",
@@ -1462,21 +1504,21 @@
    "did": [
     "Sent to Lucknow Medical Store"
    ],
-   "reply": "अम्मी की बीपी की दवाई मंगवाने का मैसेज रेडी है।",
+   "reply": "लखनऊ मेडिकल स्टोर को अम्मी की बीपी की दवाई भेजने का मैसेज रेडी है।",
    "ms": {
     "meaning": 0,
-    "who": 1,
-    "plan": 3449
+    "who": 3,
+    "plan": 3593
    }
   },
   {
    "persona": "imran",
    "summary": {
     "sent": [
-     "sharma_traders: Sharma ji, kal atta shaam 4 baje tak bhej dijiye.",
-     "gupta_ji: Gupta ji, aapke ₹650 baaki hain. Kripya yaad se de dijiye.",
+     "sharma_traders: Sharma ji, kal atta chaar baje tak bhej dijiye.",
+     "gupta_ji: Gupta ji, aapke ₹650 baaki hain. Kripya de dijiye.",
      "bilal: Bilal, kal subah 8 baje dukaan khol dena.",
-     "rakesh: Rakesh ji, Parle-G ke 10 carton bhej dijiye. Payment kal del",
+     "rakesh: Rakesh bhai, Parle-G ke 10 carton kal bhej dijiye. Payment d",
      "medical: Namaste, Ammi ki BP ki dawai bhej dijiye."
     ],
     "calendar": [],
@@ -1484,22 +1526,22 @@
     "payments": [],
     "ledger": [
      {
-      "contact": "sharma_ji",
-      "amount": 1200,
-      "note": "Ration on credit",
-      "at": "2026-11-21T10:00:00+05:30"
-     },
-     {
       "contact": "gupta_ji",
       "amount": 650,
       "note": "Oil and sugar on credit",
-      "at": "2026-11-19T10:00:00+05:30"
+      "at": "2026-11-19T04:30:00.000Z"
+     },
+     {
+      "contact": "sharma_ji",
+      "amount": 1200,
+      "note": "Ration on credit",
+      "at": "2026-11-21T04:30:00.000Z"
      },
      {
       "contact": "sharma_ji",
       "amount": 2500,
-      "note": "Sharma ji ke khate mein credit",
-      "at": "2026-11-21T12:06:00.983Z"
+      "note": "₹2,500 added to Sharma ji’s khata",
+      "at": "2026-11-21T12:39:46.541Z"
      }
     ],
     "learned": []
@@ -1531,7 +1573,7 @@
      "contact_id": "selvi",
      "language": "Tamil",
      "text": "செல்வி, நாளைக்கு வர வேண்டாம்.",
-     "gloss": "Selvi, please don’t come tomorrow.",
+     "gloss": "Selvi, please don't come tomorrow.",
      "goal": "",
      "title": "",
      "when_iso": "2026-11-22T10:00:00+05:30",
@@ -1564,11 +1606,11 @@
    "did": [
     "Sent to Selvi"
    ],
-   "reply": "செல்விக்கு அனுப்ப மெசேஜ் தயார்.",
+   "reply": "செல்விக்கு நாளைக்கு வர வேண்டாம் என்று மெசேஜ் தயார்.",
    "ms": {
-    "meaning": 1,
-    "who": 3,
-    "plan": 3612
+    "meaning": 0,
+    "who": 4,
+    "plan": 3773
    }
   },
   {
@@ -1604,7 +1646,7 @@
      "type": "message",
      "contact_id": "auto_ramesh",
      "language": "Tamil",
-     "text": "அண்ணா, நாளை காலை ஆறு மணிக்கு வாங்க.",
+     "text": "அண்ணா, நாளைக்கு காலை ஆறு மணிக்கு வாங்க.",
      "gloss": "Anna, please come tomorrow at six in the morning.",
      "goal": "",
      "title": "",
@@ -1622,12 +1664,12 @@
       {
        "kind": "whatsapp",
        "label": "Send on WhatsApp",
-       "href": "https://wa.me/?text=%E0%AE%85%E0%AE%A3%E0%AF%8D%E0%AE%A3%E0%AE%BE%2C%20%E0%AE%A8%E0%AE%BE%E0%AE%B3%E0%AF%88%20%E0%AE%95%E0%AE%BE%E0%AE%B2%E0%AF%88%20%E0%AE%86%E0%AE%B1%E0%AF%81%20%E0%AE%AE%E0%AE%A3%E0%AE%BF%E0%AE%95%E0%AF%8D%E0%AE%95%E0%AF%81%20%E0%AE%B5%E0%AE%BE%E0%AE%99%E0%AF%8D%E0%AE%95."
+       "href": "https://wa.me/?text=%E0%AE%85%E0%AE%A3%E0%AF%8D%E0%AE%A3%E0%AE%BE%2C%20%E0%AE%A8%E0%AE%BE%E0%AE%B3%E0%AF%88%E0%AE%95%E0%AF%8D%E0%AE%95%E0%AF%81%20%E0%AE%95%E0%AE%BE%E0%AE%B2%E0%AF%88%20%E0%AE%86%E0%AE%B1%E0%AF%81%20%E0%AE%AE%E0%AE%A3%E0%AE%BF%E0%AE%95%E0%AF%8D%E0%AE%95%E0%AF%81%20%E0%AE%B5%E0%AE%BE%E0%AE%99%E0%AF%8D%E0%AE%95."
       },
       {
        "kind": "sms",
        "label": "SMS",
-       "href": "sms:?&body=%E0%AE%85%E0%AE%A3%E0%AF%8D%E0%AE%A3%E0%AE%BE%2C%20%E0%AE%A8%E0%AE%BE%E0%AE%B3%E0%AF%88%20%E0%AE%95%E0%AE%BE%E0%AE%B2%E0%AF%88%20%E0%AE%86%E0%AE%B1%E0%AF%81%20%E0%AE%AE%E0%AE%A3%E0%AE%BF%E0%AE%95%E0%AF%8D%E0%AE%95%E0%AF%81%20%E0%AE%B5%E0%AE%BE%E0%AE%99%E0%AF%8D%E0%AE%95."
+       "href": "sms:?&body=%E0%AE%85%E0%AE%A3%E0%AF%8D%E0%AE%A3%E0%AE%BE%2C%20%E0%AE%A8%E0%AE%BE%E0%AE%B3%E0%AF%88%E0%AE%95%E0%AF%8D%E0%AE%95%E0%AF%81%20%E0%AE%95%E0%AE%BE%E0%AE%B2%E0%AF%88%20%E0%AE%86%E0%AE%B1%E0%AF%81%20%E0%AE%AE%E0%AE%A3%E0%AE%BF%E0%AE%95%E0%AF%8D%E0%AE%95%E0%AF%81%20%E0%AE%B5%E0%AE%BE%E0%AE%99%E0%AF%8D%E0%AE%95."
       }
      ],
      "mention": "Auto Ramesh",
@@ -1638,11 +1680,11 @@
    "did": [
     "Sent to Auto Ramesh"
    ],
-   "reply": "ஆட்டோ ரமேஷுக்கு செய்தி தயாராக உள்ளது; 6 மணிக்கு கோயில் பயணம் ஏற்கனவே காலெண்டரில் உள்ளது.",
+   "reply": "ஆட்டோ ரமேஷுக்கு நாளை காலை 6 மணிக்கு வரச் சொல்லி மெசேஜ் தயார்.",
    "ms": {
     "meaning": 0,
-    "who": 5,
-    "plan": 3789
+    "who": 4,
+    "plan": 3513
    }
   },
   {
@@ -1661,7 +1703,7 @@
     }
    ],
    "who": [
-    "Doctor Ramesh → Dr. Ramesh 100%"
+    "Doctor Ramesh → Dr. Ramesh 99% (next: Auto Ramesh 1%)"
    ],
    "topics": [
     "health"
@@ -1672,15 +1714,15 @@
      "type": "call",
      "contact_id": "dr_ramesh",
      "language": "English",
-     "text": "Doctor, I have an appointment on Monday at 5 PM. Could you please reschedule it to Tuesday?",
-     "gloss": "Doctor, I have an appointment on Monday at 5 PM. Could you please reschedule it to Tuesday?",
-     "goal": "Reschedule the Dr. Ramesh review from Monday, 23 Nov at 5 PM to Tuesday, 24 Nov at 10 AM.",
+     "text": "Dr. Ramesh, could we move my appointment to Tuesday, 24 November, at 10:00 AM?",
+     "gloss": "",
+     "goal": "Reschedule the appointment to Tuesday, 24 November, at 10:00 AM.",
      "title": "",
      "when_iso": "2026-11-24T10:00:00+05:30",
      "when_label": "Tue 24 Nov, 10:00 AM",
      "amount_inr": 0,
      "predicted": false,
-     "why": "Current review is Monday at 5 PM.",
+     "why": "Appointment change needs arranging.",
      "entry_kind": "",
      "party": "",
      "item": "",
@@ -1690,12 +1732,12 @@
       {
        "kind": "whatsapp",
        "label": "Message instead",
-       "href": "https://wa.me/?text=Doctor%2C%20I%20have%20an%20appointment%20on%20Monday%20at%205%20PM.%20Could%20you%20please%20reschedule%20it%20to%20Tuesday%3F"
+       "href": "https://wa.me/?text=Dr.%20Ramesh%2C%20could%20we%20move%20my%20appointment%20to%20Tuesday%2C%2024%20November%2C%20at%2010%3A00%20AM%3F"
       },
       {
        "kind": "gcal",
        "label": "Add to Google Calendar",
-       "href": "https://calendar.google.com/calendar/render?action=TEMPLATE&text=Call%20Dr.%20Ramesh&dates=20261124T043000Z/20261124T050000Z&details=Doctor%2C%20I%20have%20an%20appointment%20on%20Monday%20at%205%20PM.%20Could%20you%20please%20reschedule%20it%20to%20Tuesday%3F%0AAdded%20by%20Artha&ctz=Asia/Kolkata"
+       "href": "https://calendar.google.com/calendar/render?action=TEMPLATE&text=Call%20Dr.%20Ramesh&dates=20261124T043000Z/20261124T050000Z&details=Dr.%20Ramesh%2C%20could%20we%20move%20my%20appointment%20to%20Tuesday%2C%2024%20November%2C%20at%2010%3A00%20AM%3F%0AAdded%20by%20Artha&ctz=Asia/Kolkata"
       }
      ],
      "mention": "Doctor Ramesh",
@@ -1706,11 +1748,11 @@
    "did": [
     "Artha will call Dr. Ramesh"
    ],
-   "reply": "டாக்டர் ரமேஷிடம் அப்பாயிண்ட்மெண்டை செவ்வாய்க்கு மாற்றக் கேட்க அழைப்பு தயார்.",
+   "reply": "டாக்டர் ரமேஷின் அப்பாயிண்ட்மெண்டை செவ்வாய்க்கிழமை, நவம்பர் 24, காலை 10 மணிக்கு மாற்றக் கோரிக்கை தயார்.",
    "ms": {
     "meaning": 1,
     "who": 3,
-    "plan": 4204
+    "plan": 4712
    }
   },
   {
@@ -1735,7 +1777,7 @@
     }
    ],
    "who": [
-    "Karthik → Karthik 100%"
+    "Karthik → Karthik 99%"
    ],
    "topics": [],
    "blocked": false,
@@ -1749,7 +1791,7 @@
      "goal": "",
      "title": "",
      "when_iso": "2026-11-22T18:00:00+05:30",
-     "when_label": "Sun, 22 Nov, 6:00 pm",
+     "when_label": "Sun 22 Nov, 6:00 PM",
      "amount_inr": 0,
      "predicted": false,
      "why": "",
@@ -1778,11 +1820,11 @@
    "did": [
     "Sent to Karthik"
    ],
-   "reply": "கார்த்திக்குக்கு ஞாயிறு மாலை பேசலாம்னு மெசேஜ் தயார்.",
+   "reply": "கார்த்திக்குக்கு ஞாயிறு மாலை பேசலாம்னு செய்தி தயார்.",
    "ms": {
     "meaning": 1,
-    "who": 3,
-    "plan": 3655
+    "who": 2,
+    "plan": 3527
    }
   },
   {
@@ -1841,18 +1883,18 @@
    "blocked": false,
    "actions": [
     {
-     "type": "call",
+     "type": "message",
      "contact_id": "medicals",
      "language": "Tamil",
-     "text": "BP மாத்திரைகளை ஆர்டர் செய்யுங்கள். வீட்டுக்கு டெலிவரி செய்ய முடியுமா?",
-     "gloss": "Please order the BP tablets. Can you deliver them to my home?",
-     "goal": "Arrange an order and delivery of BP tablets.",
+     "text": "அண்ணா, எனக்கு BP மாத்திரைகள் ஆர்டர் செய்து தர முடியுமா?",
+     "gloss": "Could you please order my BP tablets for me?",
+     "goal": "",
      "title": "",
      "when_iso": "",
      "when_label": "",
      "amount_inr": 0,
      "predicted": false,
-     "why": "Order requested from medical shop",
+     "why": "",
      "entry_kind": "",
      "party": "",
      "item": "",
@@ -1861,8 +1903,13 @@
      "links": [
       {
        "kind": "whatsapp",
-       "label": "Message instead",
-       "href": "https://wa.me/?text=BP%20%E0%AE%AE%E0%AE%BE%E0%AE%A4%E0%AF%8D%E0%AE%A4%E0%AE%BF%E0%AE%B0%E0%AF%88%E0%AE%95%E0%AE%B3%E0%AF%88%20%E0%AE%86%E0%AE%B0%E0%AF%8D%E0%AE%9F%E0%AE%B0%E0%AF%8D%20%E0%AE%9A%E0%AF%86%E0%AE%AF%E0%AF%8D%E0%AE%AF%E0%AF%81%E0%AE%99%E0%AF%8D%E0%AE%95%E0%AE%B3%E0%AF%8D.%20%E0%AE%B5%E0%AF%80%E0%AE%9F%E0%AF%8D%E0%AE%9F%E0%AF%81%E0%AE%95%E0%AF%8D%E0%AE%95%E0%AF%81%20%E0%AE%9F%E0%AF%86%E0%AE%B2%E0%AE%BF%E0%AE%B5%E0%AE%B0%E0%AE%BF%20%E0%AE%9A%E0%AF%86%E0%AE%AF%E0%AF%8D%E0%AE%AF%20%E0%AE%AE%E0%AF%81%E0%AE%9F%E0%AE%BF%E0%AE%AF%E0%AF%81%E0%AE%AE%E0%AE%BE%3F"
+       "label": "Send on WhatsApp",
+       "href": "https://wa.me/?text=%E0%AE%85%E0%AE%A3%E0%AF%8D%E0%AE%A3%E0%AE%BE%2C%20%E0%AE%8E%E0%AE%A9%E0%AE%95%E0%AF%8D%E0%AE%95%E0%AF%81%20BP%20%E0%AE%AE%E0%AE%BE%E0%AE%A4%E0%AF%8D%E0%AE%A4%E0%AE%BF%E0%AE%B0%E0%AF%88%E0%AE%95%E0%AE%B3%E0%AF%8D%20%E0%AE%86%E0%AE%B0%E0%AF%8D%E0%AE%9F%E0%AE%B0%E0%AF%8D%20%E0%AE%9A%E0%AF%86%E0%AE%AF%E0%AF%8D%E0%AE%A4%E0%AF%81%20%E0%AE%A4%E0%AE%B0%20%E0%AE%AE%E0%AF%81%E0%AE%9F%E0%AE%BF%E0%AE%AF%E0%AF%81%E0%AE%AE%E0%AE%BE%3F"
+      },
+      {
+       "kind": "sms",
+       "label": "SMS",
+       "href": "sms:?&body=%E0%AE%85%E0%AE%A3%E0%AF%8D%E0%AE%A3%E0%AE%BE%2C%20%E0%AE%8E%E0%AE%A9%E0%AE%95%E0%AF%8D%E0%AE%95%E0%AF%81%20BP%20%E0%AE%AE%E0%AE%BE%E0%AE%A4%E0%AF%8D%E0%AE%A4%E0%AE%BF%E0%AE%B0%E0%AF%88%E0%AE%95%E0%AE%B3%E0%AF%8D%20%E0%AE%86%E0%AE%B0%E0%AF%8D%E0%AE%9F%E0%AE%B0%E0%AF%8D%20%E0%AE%9A%E0%AF%86%E0%AE%AF%E0%AF%8D%E0%AE%A4%E0%AF%81%20%E0%AE%A4%E0%AE%B0%20%E0%AE%AE%E0%AF%81%E0%AE%9F%E0%AE%BF%E0%AE%AF%E0%AF%81%E0%AE%AE%E0%AE%BE%3F"
       }
      ],
      "mention": "Medical shop",
@@ -1871,13 +1918,13 @@
     }
    ],
    "did": [
-    "Artha will call Mylapore Medicals"
+    "Sent to Mylapore Medicals"
    ],
-   "reply": "மயிலாப்பூர் மெடிக்கல்ஸுக்கு பிபி மாத்திரைகள் ஆர்டர் செய்யக் கோரிக்கை தயாராக உள்ளது.",
+   "reply": "மைலாப்பூர் மெடிக்கல்ஸுக்கு பிபி மாத்திரைகள் ஆர்டர் செய்யச் சொல்லி மெசேஜ் தயார்.",
    "ms": {
-    "meaning": 1,
-    "who": 1,
-    "plan": 3680
+    "meaning": 0,
+    "who": 2,
+    "plan": 3618
    }
   },
   {
@@ -1885,10 +1932,10 @@
    "summary": {
     "sent": [
      "karthik: Karthik, let’s talk Sunday evening.",
-     "dr_ramesh: Artha is calling: Reschedule the Dr. Ramesh review from Mond",
-     "auto_ramesh: அண்ணா, நாளை காலை ஆறு மணிக்கு வாங்க.",
+     "dr_ramesh: Artha is calling: Reschedule the appointment to Tuesday, 24 ",
+     "auto_ramesh: அண்ணா, நாளைக்கு காலை ஆறு மணிக்கு வாங்க.",
      "selvi: செல்வி, நாளைக்கு வர வேண்டாம்.",
-     "medicals: Artha is calling: Arrange an order and delivery of BP tablet"
+     "medicals: அண்ணா, எனக்கு BP மாத்திரைகள் ஆர்டர் செய்து தர முடியுமா?"
     ],
     "calendar": [],
     "reminders": [],
@@ -1898,8 +1945,11 @@
      {
       "fact": "Unknown caller (said pension office) is a likely scam; Artha answers their calls",
       "src": "you marked it",
-      "at": "2026-11-21T12:06:34.781Z",
-      "learned": true
+      "at": "2026-11-21T12:40:23.676Z",
+      "learned": true,
+      "kind": "note",
+      "about": "pension_caller",
+      "uses": 0
      }
     ]
    }

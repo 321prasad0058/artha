@@ -7,6 +7,9 @@ import { linksFor } from '../connectors.js';
 import { isoOf, labelOf, normalise } from './normalize.js';
 import { checkActions, needsClarify, secretCheck } from './rules.js';
 import { romanize } from './translit.js';
+import type { DatabaseSync } from 'node:sqlite';
+import { personCard, touchFacts } from '../context/space.js';
+import { recall } from '../context/embed.js';
 
 const ACTION_TYPES = ['message', 'call', 'reminder', 'calendar', 'payment', 'ledger', 'suggestion'] as const;
 
@@ -58,7 +61,7 @@ Actions
 - payment: only when the user asks to pay or send money; set amount_inr. If the user gives no amount, use the amount that person asked for in AMOUNTS THEY ASKED FOR. Payments always wait for the user's confirmation, so don't hold back for that.
 - ledger: a line in the user's KHATA BOOK, when they ask to write, add or note amounts ("likh do", "khate mein daal do", "khatyat add kara", "nond kara", "entry karo", "hisaab mein"). ONE ledger action PER entry: a note with four amounts gives four ledger actions. For each set:
   entry_kind: sale (goods sold, money in), purchase (stock bought), to_receive (someone owes the user, e.g. "1200 supplier se lene hain"), to_pay (the user owes someone, "5000 dene hain"), received (money came in), paid (money went out), credit (a customer took goods on khata).
-  party: the person or business exactly as named, EVEN IF they are not in CANDIDATES (then contact_id "none"). If no name was given ("doosra supplier"), party "" and title says what is missing.
+  party: the person's or business's NAME only, without role words ("Anand Patil", not "Anand Patil supplier"), exactly as named, EVEN IF they are not in CANDIDATES (then contact_id "none"). If no name was given ("doosra supplier"), party "" and title says what is missing.
   item: goods and quantity if said ("5 kg rice"). amount_inr: the amount. title: a short line like "5 kg rice sold" or "To receive from Anand Patil (supplier)". when_iso: the day it happened if said (yesterday etc.), else "".
   updates: "" for a new entry. If the user CORRECTS or COMPLETES an entry already in KHATA BOOK (gives the missing name, a new amount, says it was a different person), return that entry again with all fields filled and updates = its id. Never create a second copy of an entry.
   "Yaad dilao" / "remind them they owe" is NOT a ledger entry: it is a message to that person about the amount already due.
@@ -79,6 +82,7 @@ Also
 - CANCEL: if the user cancels something that is still PROPOSED (not done), just confirm it is dropped and return NO actions. Only if it was DONE, create what undoes it (for example a call or message to cancel).
 - A follow-up that changes one thing (time, day, person) re-plans ONLY that action. Do not repeat other actions from earlier turns.
 - FOLLOW-UPS: short notes often continue the CONVERSATION. "Calendar mein daal do / add karo / add it" = add the latest proposed thing as a calendar entry with the same time and person; if that thing is marked "already in calendar", say it is already there. "Time 5 baje kar do / change to Monday" = the same action again with the new time. "Usko / unko bhi bata do / tell him too" = the people in the latest turn. "Cancel karo / rehne do" = cancel what was just set up. Use the people, times and amounts from CONVERSATION; do not ask again for things it already has.
+- PEOPLE CARDS "habits" come from what the user actually confirmed before (for example "reach by: call (3×)"): prefer them when the note does not say. FROM MEMORY is background: use it to understand references to older things ("wahi jo pichle hafte bola tha").
 - mentions: list ONLY people mentioned, using the exact words from the transcript.
 - Keep every "why" under 10 words. Be brief everywhere: speed matters.`;
 
@@ -111,7 +115,7 @@ function bookSection(state: State, now: Date) {
 
 type PlanOut = { language: string; mentions: Mention[]; actions: Action[]; clarify_question: string; learn: string[]; reply: string; reply_speech: string };
 
-export async function understand(args: { persona: Persona; state: State; transcript: string; mode: Mode; forced?: Record<string, string>; now?: Date }): Promise<Result> {
+export async function understand(args: { persona: Persona; state: State; transcript: string; mode: Mode; forced?: Record<string, string>; now?: Date; ctx?: { db: DatabaseSync; query: Promise<Float32Array | null> } }): Promise<Result> {
   const { persona: p, state, transcript, mode } = args;
   const forced = args.forced ?? {};
   const now = args.now ?? new Date();
@@ -173,6 +177,19 @@ export async function understand(args: { persona: Persona; state: State; transcr
   for (const c of p.contacts) if (filled.length < 12 && !filled.some(x => x.id === c.id)) filled.push({ id: c.id, name: c.name, rel: c.rel, score: 0, why: 'No match in the note' });
   const msWho = Date.now() - t;
 
+  // The context space: a card per likely person, and older memories that MEAN the same as this note (vector recall).
+  let cards: unknown[] = [], memories: string[] = [];
+  if (args.ctx) {
+    const ids = [...new Set([...shortlist.filter(c => c.score >= 0.3).slice(0, 4).map(c => c.id), ...talkedAbout.slice(0, 2)])];
+    cards = ids.map(id => personCard(args.ctx!.db, id, now.getTime())).filter(Boolean);
+    const q = await args.ctx.query;
+    if (q) {
+      const shown = new Set([...turns.map(x => x.id), ...(state.book ?? []).map(b => b.id)]);   // already in CONVERSATION / KHATA BOOK
+      const hits = recall(args.ctx.db, q, { people: ids, exclude: shown, k: 6, now: now.getTime() });
+      touchFacts(args.ctx.db, hits.filter(h => h.kind === 'fact').map(h => h.ref));
+      memories = hits.map(h => `- [${h.kind}${h.at ? `, ${Math.max(0, Math.round((now.getTime() - h.at) / 864e5))}d ago` : ''}, match ${h.sim.toFixed(2)}] ${h.text.replace(/\n/g, ' · ').slice(0, 220)}`);
+    }
+  }
   const contactInfo = filled.map(c => { const k = p.contacts.find(x => x.id === c.id)!; return { id: k.id, name: k.name, relation: k.rel, lang: k.lang, called: k.aliases, code_score: Number(c.score.toFixed(2)), code_reason: c.why }; });
   const input = [
     `TODAY: ${istNowLabel(now)} (Asia/Kolkata)`,
@@ -182,6 +199,8 @@ export async function understand(args: { persona: Persona; state: State; transcr
     `TOPIC (from code): ${kb.topics.join(', ') || 'unclear'}`,
     `CODE_VALUES: ${norm.entities.length ? norm.entities.map(e => `"${e.text}" = ${e.label}`).join('; ') : 'none'}${norm.when ? `; combined when = ${norm.when.iso} (${norm.when.label})` : ''}`,
     `CANDIDATES (code_score comes from name sound, topic fit, recency and past corrections; trust it unless the note clearly says otherwise): ${JSON.stringify(contactInfo)}`,
+    cards.length ? `PEOPLE CARDS (structured, from the user's context space: who they are, what the user calls them, last contact, money, next plan, habits learned from what the user confirmed):\n${cards.map(c => JSON.stringify(c)).join('\n')}` : '',
+    memories.length ? `FROM MEMORY (older things that mean the same as this note, found by meaning; use if relevant, ignore if not):\n${memories.join('\n')}` : '',
     kb.pending.length ? `AMOUNTS THEY ASKED FOR (code found these in their own messages): ${kb.pending.map(x => `${x.name}: ₹${x.amount.toLocaleString('en-IN')} ("${x.said}")`).join('; ')}` : '',
     `CONVERSATION (latest last; follow-ups refer to this):\n${turns.length ? turns.map(t => `- ${Math.round((now.getTime() - Date.parse(t.at)) / 60000)} min ago, user said: "${t.said}"\n  people: ${t.people.map(x => `${x.name} [${x.id}]`).join(', ') || 'none'}\n  actions: ${t.actions.map(a => `${a.id} ${a.type} ${a.contact_id ? `→ ${a.contact_name} [${a.contact_id}] ` : ''}${a.title || a.text ? `"${(a.title || a.text).slice(0, 80)}" ` : ''}${a.when_iso ? `at ${a.when_iso} ` : ''}${a.amount_inr ? `₹${a.amount_inr} ` : ''}· ${a.status.toUpperCase()}`).join(' | ') || 'none'}${t.reply ? `\n  Artha replied: "${t.reply.slice(0, 200)}"` : ''}`).join('\n') : '- (new conversation)'}`,
     `TIMELINE (structured, upcoming): ${JSON.stringify([...state.calendar.filter(c => Date.parse(c.when_iso) > now.getTime() - 3600e3).map(c => ({ what: c.title, with: c.contact ?? null, at: c.when_iso })), ...state.reminders.map(r => ({ what: `reminder: ${r.title}`, at: r.when_iso }))].slice(0, 12))}`,

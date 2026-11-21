@@ -4,8 +4,17 @@ import path from 'node:path';
 import { MODELS, speech, transcribe } from './openai.js';
 import { hintWords } from './pipeline/candidates.js';
 import { understand } from './pipeline/understand.js';
-import { freshState, loadState, persona, personas, saveState } from './store.js';
-import type { Action, BookEntry, Mode } from './types.js';
+import { loadState, persona, personas, resetState, saveState } from './store.js';
+import { file, habitsOf, learnHabit, personCard, space, voicePeople, TTL_MS } from './context/space.js';
+import { embedQuery } from './context/embed.js';
+import { romanize } from './pipeline/translit.js';
+import type { Action, BookEntry, Mode, Persona } from './types.js';
+
+/** The person's contacts plus everyone first heard in their voice notes, so "Anand Patil" is known next time. */
+function withKnownPeople(p: Persona): Persona {
+  const extra = voicePeople(space(p.id)).filter(v => !p.contacts.some(c => c.id === v.id));
+  return extra.length ? { ...p, contacts: [...p.contacts, ...extra.map(v => ({ id: v.id, name: v.name, rel: v.rel, lang: p.speaks[0], aliases: [...new Set([romanize(v.name), romanize(v.name.split(' ')[0])])] }))] } : p;
+}
 
 export type Req = { method: string; path: string; query: URLSearchParams; headers: Record<string, string | undefined>; body: Buffer };
 export type Res = { status: number; headers?: Record<string, string>; body: string | Buffer };
@@ -31,7 +40,7 @@ export async function handle(req: Req): Promise<Res> {
     if (p === '/api/transcribe' && method === 'POST') {
       const who = persona(query.get('p') ?? '');
       const mode = (query.get('mode') ?? 'artha') as Mode;
-      const hints = mode === 'artha' ? `A short WhatsApp-style voice note from India, may mix Hindi, Marathi, Telugu, Tamil, Urdu and English. Names that may come up: ${hintWords(who).join(', ')}.` : undefined;
+      const hints = mode === 'artha' ? `A short WhatsApp-style voice note from India, may mix Hindi, Marathi, Telugu, Tamil, Urdu and English. Names that may come up: ${hintWords(withKnownPeople(who)).join(', ')}.` : undefined;
       const t = Date.now();
       const text = await transcribe(req.body, req.headers['content-type'] ?? 'audio/webm', hints);
       return json(200, { text, ms: Date.now() - t, hints: mode === 'artha' ? hintWords(who) : [] });
@@ -40,9 +49,13 @@ export async function handle(req: Req): Promise<Res> {
     // Stages 2–5: Meaning, Who, Plan, Rules
     if (p === '/api/understand' && method === 'POST') {
       const b = parse(req.body);
-      const who = persona(b.p);
-      const state = await loadState(who.id);
-      const result = await understand({ persona: who, state, transcript: String(b.transcript ?? '').slice(0, 1200), mode: (b.mode ?? 'artha') as Mode, forced: b.forced ?? {} });
+      const state = await loadState(persona(b.p).id);
+      const who = withKnownPeople(persona(b.p));
+      const transcript = String(b.transcript ?? '').slice(0, 1200);
+      const mode = (b.mode ?? 'artha') as Mode;
+      // the note's meaning as a vector starts now, in parallel with the code stages
+      const ctx = mode === 'artha' ? { db: space(who.id), query: embedQuery(transcript) } : undefined;
+      const result = await understand({ persona: who, state, transcript, mode, forced: b.forced ?? {}, ctx });
       if (result.mode === 'artha') {
         state.notes += 1;
         // Remember this turn of the conversation (a re-plan after "which one?" replaces the previous turn).
@@ -64,7 +77,7 @@ export async function handle(req: Req): Promise<Res> {
           const kind = (a.entry_kind || (a.contact_id ? 'credit' : 'sale')) as BookEntry['kind'];
           const whenDay = a.when_iso ? new Date(a.when_iso).toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' }) : '';
           const day = whenDay && whenDay <= today ? whenDay : today;
-          const party = a.contact_name && !['Sales', 'Purchases', 'Name not given'].includes(a.contact_name) ? a.contact_name : a.party ?? '';
+          const party = (a.contact_name && !['Sales', 'Purchases', 'Name not given'].includes(a.contact_name) ? a.contact_name : a.party ?? '').replace(/\s*\(?(सप्लायर|supplier|wale|wala|वाले|वाला|यांच्याकडून|kadun)\)?$/i, '').trim();
           // a correction points at its entry; a repeat of an open entry (same kind and amount, recent) is the same entry, never a copy
           let e = book.find(x => x.id === a.updates && x.status !== 'dropped')
             ?? book.find(x => x.status === 'proposed' && x.kind === kind && x.amount === a.amount_inr && Date.now() - Date.parse(x.at) < 3 * 3600e3 && (!x.party || !party || x.party === party));
@@ -126,6 +139,14 @@ export async function handle(req: Req): Promise<Res> {
       } else return json(400, { error: 'Cannot do this action' });
       markDone();
       await saveState(state);
+      // personalisation from what the user confirmed: how they reach each person, at what time, in what language
+      const db = space(who.id);
+      if (a.contact_id) {
+        if (a.type === 'message' || a.type === 'call') learnHabit(db, a.contact_id, 'reach by', a.type);
+        if (a.type === 'message' && a.language) learnHabit(db, a.contact_id, 'language', a.language);
+        if (a.when_iso && ['call', 'calendar', 'reminder'].includes(a.type)) learnHabit(db, a.contact_id, 'time of day', (h => (h < 12 ? 'morning' : h < 16 ? 'afternoon' : h < 20 ? 'evening' : 'night'))(Number(new Date(a.when_iso).toLocaleString('en-GB', { hour: '2-digit', hourCycle: 'h23', timeZone: 'Asia/Kolkata' }))));
+      }
+      if (a.type === 'reminder' && a.predicted) learnHabit(db, '', 'accepts predicted reminders', 'yes');
       return json(200, { done, state });
     }
 
@@ -155,11 +176,24 @@ export async function handle(req: Req): Promise<Res> {
       return json(200, { ok: true });
     }
 
+    // The context space, for us: what Artha holds about one user, how big it is, what expires when.
+    if (p === '/api/context' && method === 'GET') {
+      const who = persona(query.get('p') ?? '');
+      await loadState(who.id);
+      const db = space(who.id);
+      const count = (t: string, w = '') => (db.prepare(`SELECT COUNT(*) AS n FROM ${t} ${w}`).get() as any).n;
+      const people = (db.prepare(`SELECT id FROM entity ORDER BY interactions DESC`).all() as any[]).map(r => personCard(db, r.id));
+      return json(200, {
+        user: who.id, ttl_days: TTL_MS / 864e5, bytes: fs.statSync(file(who.id)).size,
+        counts: { people: count('entity'), aliases: count('alias'), facts: count('fact'), turns: count('turn'), actions: count('action'), events: count('event'), calendar: count('cal'), khata_entries: count('book'), habits: count('habit'), vectors: count('vec', 'WHERE emb IS NOT NULL'), vectors_pending: count('vec', 'WHERE emb IS NULL') },
+        expiring_in_7_days: count('vec', `WHERE expires_at < ${Date.now() + 7 * 864e5}`),
+        people, habits: habitsOf(db, ['']), book_daily: db.prepare(`SELECT * FROM v_book_daily LIMIT 14`).all(),
+      });
+    }
+
     if (p === '/api/reset' && method === 'POST') {
       const b = parse(req.body);
-      const s = freshState(persona(b.p));
-      await saveState(s);
-      return json(200, { state: s });
+      return json(200, { state: await resetState(persona(b.p).id) });
     }
 
     if (p === '/api/results' && method === 'GET') {

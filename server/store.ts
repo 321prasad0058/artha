@@ -48,31 +48,57 @@ export function freshState(p: Persona): State {
   };
 }
 
-// ---- storage backends
+// ---- storage: each user's context space (SQLite file). On AWS the file is synced to S3 around each request.
+import { dropSpace, file, hasState, readState, space, writeState } from './context/space.js';
+import { embedPending } from './context/embed.js';
+
 async function s3() {
   const mod: any = await import('@aws-sdk/client-s3' as string);
   return { mod, client: new mod.S3Client({}) };
 }
+async function pull(id: string) {
+  if (!BUCKET) return;
+  try {
+    const { mod, client } = await s3();
+    const r = await client.send(new mod.GetObjectCommand({ Bucket: BUCKET, Key: `context/${id}.db` }));
+    fs.mkdirSync(path.dirname(file(id)), { recursive: true });
+    dropSpace(id);
+    fs.writeFileSync(file(id), Buffer.from(await r.Body.transformToByteArray()));
+  } catch { /* new user */ }
+}
+async function push(id: string) {
+  if (!BUCKET) return;
+  const db = space(id); db.exec('PRAGMA wal_checkpoint(TRUNCATE)');
+  const { mod, client } = await s3();
+  await client.send(new mod.PutObjectCommand({ Bucket: BUCKET, Key: `context/${id}.db`, Body: fs.readFileSync(file(id)) }));
+}
+
 export async function loadState(id: string): Promise<State> {
   const p = persona(id);
-  try {
-    if (BUCKET) {
-      const { mod, client } = await s3();
-      const r = await client.send(new mod.GetObjectCommand({ Bucket: BUCKET, Key: `state/${id}.json` }));
-      return JSON.parse(await r.Body.transformToString());
-    }
-    return JSON.parse(fs.readFileSync(path.join(STATE_DIR, `${id}.json`), 'utf8'));
-  } catch {
-    return freshState(p);
+  await pull(id);
+  const db = space(id);
+  if (!hasState(db)) {
+    // first time: build the space from what the phone is connected to (contacts, chats, calendar, khata), or
+    // migrate an older JSON state file if there is one
+    let s = freshState(p);
+    try { s = JSON.parse(fs.readFileSync(path.join(STATE_DIR, `${id}.json`), 'utf8')); } catch { /* none */ }
+    writeState(db, s, p);
+    void embedPending(db).catch(() => {});
   }
+  return readState(db, p);
 }
 export async function saveState(s: State): Promise<void> {
-  const body = JSON.stringify(s, null, 1);
-  if (BUCKET) {
-    const { mod, client } = await s3();
-    await client.send(new mod.PutObjectCommand({ Bucket: BUCKET, Key: `state/${s.persona}.json`, Body: body, ContentType: 'application/json' }));
-    return;
-  }
-  fs.mkdirSync(STATE_DIR, { recursive: true });
-  fs.writeFileSync(path.join(STATE_DIR, `${s.persona}.json`), body);
+  const db = space(s.persona);
+  writeState(db, s, persona(s.persona));
+  void embedPending(db).catch(e => console.warn('embed', e.message));   // vectors fill in the background
+  await push(s.persona);
+}
+export async function resetState(id: string): Promise<State> {
+  dropSpace(id);
+  const s = freshState(persona(id));
+  const db = space(id);
+  writeState(db, s, persona(id));
+  await embedPending(db).catch(() => 0);
+  await push(id);
+  return readState(db, persona(id));
 }
