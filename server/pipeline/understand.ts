@@ -66,6 +66,8 @@ Also
 - reply: one short line to the user, in their own language mix, Roman script, saying what is READY for them ("Amma ke liye message ready hai"). Never say something was sent, paid or done: the user confirms with one tap.
 - reply_speech: the same reply written for reading aloud, in the NATIVE script of the user's language (Devanagari for Hindi, Hinglish, Marathi and Urdu; Telugu script; Tamil script; English stays English). Keep English words like "appointment" in that script too (अपॉइंटमेंट). Short and warm.
 - If the user ASKS something (their schedule, a khata balance, what they told you), answer it in "reply" and return NO actions.
+- If the requested calendar entry or reminder ALREADY EXISTS in TIMELINE at that time, do not add it again: say in "reply" that it is already there.
+- FOLLOW-UPS: short notes often continue the CONVERSATION. "Calendar mein daal do / add karo / add it" = add the latest proposed thing as a calendar entry with the same time and person. "Time 5 baje kar do / change to Monday" = the same action again with the new time. "Usko / unko bhi bata do / tell him too" = the people in the latest turn. "Cancel karo / rehne do" = cancel what was just set up. Use the people, times and amounts from CONVERSATION; do not ask again for things it already has.
 - mentions: list ONLY people mentioned, using the exact words from the transcript.
 - Keep every "why" under 10 words. Be brief everywhere: speed matters.`;
 
@@ -117,11 +119,26 @@ export async function understand(args: { persona: Persona; state: State; transcr
 
   let t = Date.now();
   const norm = normalise(roman, now);
+  {
+    // A follow-up that changes only the time keeps the day (and morning/evening) of the plan being discussed.
+    const prev = (state.turns ?? []).filter(x => now.getTime() - Date.parse(x.at) < 3 * 3600e3).flatMap(x => x.actions).reverse().find(a => a.when_iso);
+    const hasDay = norm.entities.some(e => e.kind === 'date');
+    if (norm.when && !hasDay && prev && norm.entities.some(e => e.kind === 'time')) {
+      const [hh, mm] = norm.when.iso.slice(11, 16).split(':').map(Number);
+      const prevH = Number(new Date(prev.when_iso).toLocaleString('en-GB', { hour: '2-digit', hourCycle: 'h23', timeZone: 'Asia/Kolkata' }));
+      const h = [hh % 12, (hh % 12) + 12].sort((a, b) => Math.abs(a - prevH) - Math.abs(b - prevH))[0];
+      const iso = `${prev.when_iso.slice(0, 10)}T${String(h).padStart(2, '0')}:${String(mm).padStart(2, '0')}:00+05:30`;
+      norm.when = { iso, label: labelOf(iso) };
+      norm.entities.push({ text: '(same day as the plan being discussed)', kind: 'date', label: labelOf(iso, false), iso });
+    }
+  }
   const msMeaning = Date.now() - t;
 
   t = Date.now();
   // Knowledge base retrieval: likely people, facts about them, the topic, what the user taught before.
-  const kb = retrieve(roman, p, state, now);
+  const turns = (state.turns ?? []).filter(t => now.getTime() - Date.parse(t.at) < 3 * 3600e3).slice(-4);
+  const talkedAbout = [...new Set(turns.slice().reverse().flatMap(t => [...t.people.map(x => x.id), ...t.actions.map(a => a.contact_id)]).filter(Boolean))];
+  const kb = retrieve(roman, p, state, now, talkedAbout);
   const shortlist = kb.candidates;
   const filled: Candidate[] = [...shortlist];
   for (const c of p.contacts) if (filled.length < 12 && !filled.some(x => x.id === c.id)) filled.push({ id: c.id, name: c.name, rel: c.rel, score: 0, why: 'No match in the note' });
@@ -137,10 +154,15 @@ export async function understand(args: { persona: Persona; state: State; transcr
     `CODE_VALUES: ${norm.entities.length ? norm.entities.map(e => `"${e.text}" = ${e.label}`).join('; ') : 'none'}${norm.when ? `; combined when = ${norm.when.iso} (${norm.when.label})` : ''}`,
     `CANDIDATES (code_score comes from name sound, topic fit, recency and past corrections; trust it unless the note clearly says otherwise): ${JSON.stringify(contactInfo)}`,
     kb.pending.length ? `AMOUNTS THEY ASKED FOR (code found these in their own messages): ${kb.pending.map(x => `${x.name}: ₹${x.amount.toLocaleString('en-IN')} ("${x.said}")`).join('; ')}` : '',
-    `RELEVANT FACTS:\n${kb.facts.map(f => `- ${f.text}`).join('\n') || '- none'}`,
-    `RECENT ACTIVITY:\n${kb.recent.join('\n')}`,
-    `CALENDAR: ${state.calendar.map(c => `${c.title} (${c.when_label})`).join('; ') || 'empty'}`,
-    state.ledger.length && kb.topics.some(t => t.startsWith('shop')) ? `LEDGER (credit due): ${state.ledger.map(l => `${p.contacts.find(c => c.id === l.contact)?.name}: ₹${l.amount} ${l.note}`).join('; ')}` : '',
+    `CONVERSATION (latest last; follow-ups refer to this):\n${turns.length ? turns.map(t => `- ${Math.round((now.getTime() - Date.parse(t.at)) / 60000)} min ago, user said: "${t.said}"\n  people: ${t.people.map(x => `${x.name} [${x.id}]`).join(', ') || 'none'}\n  actions: ${t.actions.map(a => `${a.id} ${a.type} ${a.contact_id ? `→ ${a.contact_name} [${a.contact_id}] ` : ''}${a.title || a.text ? `"${(a.title || a.text).slice(0, 80)}" ` : ''}${a.when_iso ? `at ${a.when_iso} ` : ''}${a.amount_inr ? `₹${a.amount_inr} ` : ''}· ${a.status.toUpperCase()}`).join(' | ') || 'none'}`).join('\n') : '- (new conversation)'}`,
+    `TIMELINE (structured, upcoming): ${JSON.stringify([...state.calendar.filter(c => Date.parse(c.when_iso) > now.getTime() - 3600e3).map(c => ({ what: c.title, with: c.contact ?? null, at: c.when_iso })), ...state.reminders.map(r => ({ what: `reminder: ${r.title}`, at: r.when_iso }))].slice(0, 12))}`,
+    `PREFERENCES AND HABITS:\n${state.memory.filter(m => !m.learned).map(m => `- ${m.fact}`).join('\n') || '- none'}`,
+    `CORRECTIONS THE USER MADE (always follow): ${JSON.stringify(state.memory.filter(m => m.kind === 'alias').map(m => ({ said: m.mention, topic: m.topic ?? 'any', means: m.about })))}`,
+    `LEARNED NOTES:\n${state.memory.filter(m => m.learned && m.kind !== 'alias').map(m => `- ${m.fact}`).join('\n') || '- none'}`,
+    `RELEVANT FACTS ABOUT THESE PEOPLE:\n${kb.facts.map(f => `- ${f.text}`).join('\n') || '- none'}`,
+    `RECENT ACTIVITY (calls and messages):\n${kb.recent.join('\n')}`,
+    state.ledger.length ? `KHATA BALANCES (credit due, structured): ${JSON.stringify(Object.entries(state.ledger.reduce<Record<string, number>>((m, l) => ({ ...m, [l.contact]: (m[l.contact] ?? 0) + l.amount }), {})).map(([id, due]) => ({ id, name: p.contacts.find(c => c.id === id)?.name, due_inr: due })))}` : '',
+    state.payments.length ? `PAYMENTS MADE: ${JSON.stringify(state.payments.slice(-5).map(x => ({ to: x.contact, inr: x.amount, at: x.at })))}` : '',
     Object.keys(forced).length ? `FORCED: ${JSON.stringify(forced)} (the user already chose these people)` : '',
   ].filter(Boolean).join('\n\n');
 
@@ -160,6 +182,16 @@ export async function understand(args: { persona: Persona; state: State; transcr
     .filter(a => (a.text || a.goal || a.title || a.amount_inr > 0))                 // no empty cards
     .filter(a => !((a.type === 'calendar' || a.type === 'reminder') && !a.when_iso)) // a reminder needs a time
     .filter(a => !sameAsCalendar(a));                                               // never duplicate what is already there
+  // one message per person per note
+  for (let i = planned.length - 1; i >= 0; i--) { const a = planned[i]; if (a.type === 'message' && planned.findIndex(x => x.type === 'message' && x.contact_id === a.contact_id) !== i) planned.splice(i, 1); }
+  // if everything asked for is already in the calendar, say so plainly instead of "ready"
+  const dupes = out.actions.filter(a => (a.type === 'calendar' || a.type === 'reminder') && a.when_iso && state.calendar.some(c => Math.abs(Date.parse(c.when_iso) - Date.parse(a.when_iso)) < 60e3));
+  if (!planned.length && dupes.length) {
+    const c = state.calendar.find(x => Math.abs(Date.parse(x.when_iso) - Date.parse(dupes[0].when_iso)) < 60e3)!;
+    const lang = p.speaks[0];
+    const say = lang === 'Marathi' ? `हे आधीच तुमच्या कॅलेंडरमध्ये आहे: ${c.title}, ${c.when_label}.` : lang === 'Tamil' ? `இது ஏற்கனவே உங்கள் காலெண்டரில் உள்ளது: ${c.title}, ${c.when_label}.` : lang === 'English' ? `That's already in your calendar: ${c.title}, ${c.when_label}.` : `Ye pehle se aapke calendar mein hai: ${c.title}, ${c.when_label}.`;
+    out.reply = say; out.reply_speech = say;
+  }
   let clarify = needsClarify(mentions, forced, out.clarify_question, planned);
   // The model asked "which one?" in words: give the user buttons, from the code shortlist.
   if (!clarify && !planned.length && out.clarify_question) {

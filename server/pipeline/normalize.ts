@@ -21,10 +21,10 @@ const NUM: Record<string, number> = {
 const numOf = (w: string): number | null => (/^\d+(\.\d+)?$/.test(w) ? Number(w) : NUM[w] ?? null);
 
 const DAY_WORDS: [RegExp, number, string][] = [
-  [/\b(aaj|aj|today|ivvala|eeroju|eroju|indru|inniki|innaikku|aaja)\b/, 0, 'today'],
-  [/\b(parso|parson|parsoon|ellundi|parva|parwa|day after tomorrow|naalai marunaal|nalaiku marunaal|marunaal)\b/, 2, 'day after tomorrow'],
-  [/\b(narso|narson|tarvadi|tarwadi)\b/, 3, 'in 3 days'],
-  [/\b(kal|kaal|tomorrow|repu|reypu|udya|udyaa|uddya|naalai|nalai|naalaikku|nalaikku|naalaiku|nalaiku)\b/, 1, 'tomorrow'],
+  [/\b(aaj|aj|today|ivvala|eeroju|eroju|indru|inniki|innaikku|aaja)(chi|chee|chaa|cha|chya|chyaa|che|ch|la|laa|ti|tee|nchi)?\b/, 0, 'today'],
+  [/\b(parso|parson|parsoon|ellundi|parva|parwa|day after tomorrow|naalai marunaal|nalaiku marunaal|marunaal)(chi|chee|chaa|cha|chya|chyaa|che|ch|la|laa|ti|tee|nchi)?\b/, 2, 'day after tomorrow'],
+  [/\b(narso|narson|tarvadi|tarwadi)(chi|chee|chaa|cha|chya|chyaa|che|ch|la|laa|ti|tee|nchi)?\b/, 3, 'in 3 days'],
+  [/\b(kal|kaal|tomorrow|repu|reypu|udya|udyaa|uddya|repati|naalai|nalai|naalaikku|nalaikku|naalaiku|nalaiku)(chi|chee|chaa|cha|chya|chyaa|che|ch|la|laa|ti|tee|nchi)?\b/, 1, 'tomorrow'],
 ];
 const WEEKDAYS: [RegExp, number][] = [
   [/\b(sunday|ravivar|itvaar|itwar|aadivaram|adivaram|nyayiru|gnayiru|ravivari)\b/, 0],

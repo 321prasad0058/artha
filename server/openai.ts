@@ -38,7 +38,9 @@ export async function jsonCall<T>(opts: { instructions: string; input: string; s
     const r = await fetch(`${BASE}/responses`, { method: 'POST', headers: { Authorization: `Bearer ${key()}`, 'content-type': 'application/json' }, body: JSON.stringify(body) });
     const j: any = await r.json();
     if (!r.ok) {
-      if (attempt < 1 && (r.status === 429 || r.status >= 500)) { await new Promise(res => setTimeout(res, 800)); continue; }
+      const flagged = /flagged|usage policy/i.test(j?.error?.message ?? '');
+      if (attempt < 1 && (r.status === 429 || r.status >= 500 || flagged)) { await new Promise(res => setTimeout(res, 800)); continue; }
+      if (flagged) throw new Error('Artha could not process that note. Please say it a little differently.');
       throw new Error(`Model call failed: ${j?.error?.message ?? r.status}`);
     }
     // Use the first output_text part, and only its first complete JSON object.

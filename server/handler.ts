@@ -45,6 +45,16 @@ export async function handle(req: Req): Promise<Res> {
       const result = await understand({ persona: who, state, transcript: String(b.transcript ?? '').slice(0, 1200), mode: (b.mode ?? 'artha') as Mode, forced: b.forced ?? {} });
       if (result.mode === 'artha') {
         state.notes += 1;
+        // Remember this turn of the conversation (a re-plan after "which one?" replaces the previous turn).
+        const turnId = `t${state.notes}`;
+        result.actions.forEach((a, i) => (a.id = `${turnId}:${i + 1}`));
+        const turn = {
+          id: turnId, at: nowIso(), said: String(b.transcript ?? '').slice(0, 300),
+          people: result.mentions.filter(m => m.kind === 'person' && m.candidates.length).map(m => { const c = [...m.candidates].sort((x, y) => y.score - x.score)[0]; return { mention: m.text, id: c.id, name: c.name }; }),
+          actions: result.actions.map(a => ({ id: a.id!, type: a.type, contact_id: a.contact_id, contact_name: a.contact_name, title: a.title, text: a.text, when_iso: a.when_iso, when_label: a.when_label, amount_inr: a.amount_inr, status: 'proposed' as const })),
+          reply: result.reply,
+        };
+        state.turns = [...(state.turns ?? []).filter(t => !(b.forced && Object.keys(b.forced).length && t.said === turn.said)), turn].slice(-12);
         // Stage 6: Learn
         for (const f of result.learn) if (!state.memory.some(m => m.fact.toLowerCase() === f.toLowerCase())) state.memory.push({ fact: f, src: 'from a voice note', at: nowIso(), learned: true });
         await saveState(state);
@@ -75,6 +85,7 @@ export async function handle(req: Req): Promise<Res> {
       const a = b.action as Action;
       const state = await loadState(who.id);
       const c = who.contacts.find(x => x.id === a.contact_id);
+      const markDone = () => { for (const t of state.turns ?? []) for (const x of t.actions) if (x.id === a.id) x.status = 'done'; };
       let done = '';
       if (a.type === 'message' && c) { (state.threads[c.id] ??= []).push({ me: true, text: a.text, at: nowIso(), via: `Artha · ${a.language}` }); done = `Sent to ${c.name}`; }
       else if (a.type === 'call' && c) { state.calls.push({ contact: c.id, goal: a.goal, at: nowIso(), status: 'queued' }); (state.threads[c.id] ??= []).push({ me: true, text: `Artha is calling: ${a.goal}`, at: nowIso(), via: 'Artha call' }); done = `Artha will call ${c.name}`; }
@@ -90,6 +101,7 @@ export async function handle(req: Req): Promise<Res> {
         if (/scam/i.test(a.title)) state.memory.push({ fact: `${c?.name ?? 'That caller'} is a likely scam; Artha answers their calls`, src: 'you marked it', at: nowIso(), learned: true });
         done = 'Done';
       } else return json(400, { error: 'Cannot do this action' });
+      markDone();
       await saveState(state);
       return json(200, { done, state });
     }
@@ -109,6 +121,14 @@ export async function handle(req: Req): Promise<Res> {
         voiceCache.set(key, audio);
       }
       return { status: 200, headers: { 'content-type': 'audio/mpeg', 'cache-control': 'max-age=86400' }, body: audio };
+    }
+
+    if (p === '/api/skip' && method === 'POST') {
+      const b = parse(req.body);
+      const state = await loadState(persona(b.p).id);
+      for (const t of state.turns ?? []) for (const x of t.actions) if (x.id === b.id) x.status = 'skipped';
+      await saveState(state);
+      return json(200, { ok: true });
     }
 
     if (p === '/api/reset' && method === 'POST') {

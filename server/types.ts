@@ -19,6 +19,8 @@ export type Mention = { text: string; kind: EntityKind; value: string; candidate
 
 export type ActionType = 'message' | 'call' | 'reminder' | 'calendar' | 'payment' | 'ledger' | 'suggestion';
 export type Action = {
+  /** Stable id ("<turn>:<n>") so a later note or a tap can refer back to this exact action. */
+  id?: string;
   type: ActionType; contact_id: string; contact_name: string; language: string; text: string; gloss: string;
   goal: string; title: string; when_iso: string; when_label: string; amount_inr: number; predicted: boolean; why: string;
   needs_confirm?: boolean;
@@ -62,4 +64,13 @@ export type State = {
   payments: { contact: string; amount: number; upi: string; at: string }[];
   calls: { contact: string; goal: string; at: string; status: string }[];
   notes: number;
+  /** The conversation so far: what was said, who it was about, what was proposed and what was done. */
+  turns?: Turn[];
+};
+
+export type Turn = {
+  id: string; at: string; said: string;
+  people: { mention: string; id: string; name: string }[];
+  actions: { id: string; type: ActionType; contact_id: string; contact_name: string; title: string; text: string; when_iso: string; when_label: string; amount_inr: number; status: 'proposed' | 'done' | 'skipped' }[];
+  reply: string;
 };

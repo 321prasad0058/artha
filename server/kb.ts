@@ -29,7 +29,7 @@ const NOTE_TOPICS: [RegExp, Topic][] = [
   [/\b(ride|drop|pickup|auto|rapido|cab|gaadi|temple|kovil)\b/, 'transport'],
   [/\b(lunch|dinner|bhojanam|khana|jevan|saapadu|ghar|ghari|intiki|veetuku)\b/, 'family'],
   [/\b(kaam|kamala|pani|vela|doodh|dudh|milk|cylinder|safai)\b/, 'home'],
-  [/\b(khata|khaata|khate|udhaar|udhar|credit|likh|likho|hisaab|hisab)\b/, 'shop_credit'],
+  [/\b(khata|khaata|khate|udhaar|udhar|credit|likh|likho|hisaab|hisab|total|baaki|baki|balance|kitna)\b/, 'shop_credit'],
   [/\b(maal|bori|atta|aata|dal|carton|stock|supply|bill)\b/, 'shop_supply'],
   [/\b(paise|paisa|pay|upi|bhej|bhejo|rupaye|rupees|fare)\b/, 'money'],
   [/\b(gym|workout|session|trainer)\b/, 'fitness'],
@@ -63,7 +63,7 @@ export function factsOf(p: Persona, s: State): KbFact[] {
   });
 }
 
-export function retrieve(roman: string, p: Persona, s: State, now = new Date()): Retrieved {
+export function retrieve(roman: string, p: Persona, s: State, now = new Date(), talkedAbout: string[] = []): Retrieved {
   const topics = topicsOf(roman);
   const facts = factsOf(p, s);
   const byId = new Map<string, Candidate>(findCandidates(roman, p, 10).map(c => [c.id, { ...c }]));
@@ -98,7 +98,18 @@ export function retrieve(roman: string, p: Persona, s: State, now = new Date()):
     const shared = said.find(w => w.length >= 4 && !STOP.has(w) && noteWords.has(w));
     if (shared) { c.score = Math.min(0.99, c.score + 0.12); note(c, `You talked about “${shared}”`); }
   }
-  // 4) Recency: someone you were talking to today is more likely.
+  // 4) The conversation: someone we were just talking about is the likely "usko", "unko", "wahi".
+  const pointer = /\b(usko|use|usse|uske|unko|unhe|unka|wahi|vahi|woh|vo|tyala|tila|tyanna|tyanchi|vaadu|aame|avanga|avarukku|him|her|them|same)\b/.test(` ${roman.toLowerCase()} `);
+  talkedAbout.forEach((id, i) => {
+    if (!p.contacts.some(c => c.id === id)) return;
+    const c = byId.get(id) ?? { id, name: contact(id).name, rel: contact(id).rel, score: 0, why: '' };
+    if (pointer) { c.score = Math.max(Math.min(0.99, c.score + 0.1), 0.85 - i * 0.15); note(c, 'Just talked about'); }   // "usko" = who we were just discussing
+    else if (c.score > 0) { c.score = Math.min(0.99, c.score + 0.1); note(c, 'Just talked about'); }
+    else if (byId.size === 0) { c.score = 0.7 - i * 0.1; note(c, 'Just talked about'); }
+    else return;
+    byId.set(id, c);
+  });
+  // 5) Recency: someone you were talking to today is more likely.
   const today = p.events.filter(e => e.day === 0).map(e => e.contact);
   for (const c of byId.values()) if (c.score > 0 && today.includes(c.id)) { c.score = Math.min(0.99, c.score + 0.05); note(c, 'Spoke today'); }
 

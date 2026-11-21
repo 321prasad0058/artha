@@ -171,7 +171,7 @@ export default function App() {
     try { const r = await api.act(pid, a, confirmed); applyState(r.state); update(run.id, x => ({ done: { ...x.done, [i]: r.done }, busy: null, confirm: null })); }
     catch (e: any) { update(run.id, { busy: null }); say(e.message); }
   }
-  const skip = (run: Run, i: number) => update(run.id, x => ({ done: { ...x.done, [i]: 'Skipped' }, confirm: null }));
+  const skip = (run: Run, i: number) => { api.skip(pid, run.result?.actions[i]?.id).catch(() => {}); update(run.id, x => ({ done: { ...x.done, [i]: 'Skipped' }, confirm: null })); };
   async function doAll(run: Run) { for (const [i, a] of run.result!.actions.entries()) if (['message', 'calendar', 'reminder', 'ledger'].includes(a.type) && !run.done[i]) await act(run, i); }
   /** One tap to pick someone else: Artha re-plans and quietly remembers. No question asked. */
   async function choose(run: Run, mention: string, contactId: string, how: 'asked' | 'changed') {

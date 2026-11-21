@@ -19,7 +19,9 @@ export const maskNumbers = (s: string) => s.replace(/\d(?:[\s-]?\d){5,}/g, 'â€¢â
 export function checkActions(actions: Action[], p: Persona, now = new Date()): { actions: Action[]; checks: Check[] } {
   const checks: Check[] = [];
   const out: Action[] = [];
+  const LANG: Record<string, string> = { ta: 'Tamil', te: 'Telugu', hi: 'Hindi', mr: 'Marathi', ur: 'Urdu', en: 'English' };
   for (const a of actions.slice(0, 6)) {
+    if (a.language && LANG[a.language.toLowerCase()]) a.language = LANG[a.language.toLowerCase()];
     const c = p.contacts.find(x => x.id === a.contact_id);
     const needsContact = ['message', 'call', 'payment', 'ledger'].includes(a.type);
     if (needsContact && !c) { checks.push({ rule: `Dropped a ${a.type}: no saved contact`, ok: false }); continue; }
