@@ -11,7 +11,8 @@
     "test": "node --import tsx --test tests/*.test.ts",
     "clips": "tsx scripts/make-clips.ts",
     "eval": "tsx scripts/eval.ts",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "build:firebase": "VITE_API_BASE=https://djq9jnhg6rg4f.cloudfront.net vite build"
   },
   "dependencies": {
     "gsap": "^3.12.5",

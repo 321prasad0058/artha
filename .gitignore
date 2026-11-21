@@ -16,3 +16,4 @@ docs/demos/*.mp4
 data/context/
 dist-lambda/
 lambda.zip
+.firebase/

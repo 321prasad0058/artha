@@ -2,7 +2,7 @@ import gsap from 'gsap';
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { romanize } from '../../server/pipeline/translit';
 import type { Action, Result, State } from '../../server/types';
-import { api, type PersonaInfo, type Sample, type Scan } from './api';
+import { API_BASE, api, type PersonaInfo, type Sample, type Scan } from './api';
 import { Orb, type OrbMode } from './Orb';
 import { Intro, shouldShowIntro } from './Intro';
 import { startRecording, type Recording } from './recorder';
@@ -251,7 +251,7 @@ export default function App() {
     const text = r.reply_speech || r.reply;
     if (!text || (!voiceOn && !force)) return;
     try {
-      const res = await fetch('/api/speak', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ p: pid, text }) });
+      const res = await fetch(`${API_BASE}/api/speak`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ p: pid, text }) });
       if (!res.ok) return;
       const url = URL.createObjectURL(await res.blob());
       update(runId, { replyUrl: url });

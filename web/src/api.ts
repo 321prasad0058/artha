@@ -5,8 +5,11 @@ export type { Scan };
 export type PersonaInfo = { id: string; name: string; age: number; about: string; city: string; speaks: string[]; avatar: string; contacts: Contact[] };
 export type Sample = { id: string; persona: string; text: string; lang: string; label: string; file: string; synthetic: boolean };
 
+/** Where the API lives. Empty = same site (local, CloudFront). The artha-ai.web.app build points it at CloudFront. */
+export const API_BASE: string = ((import.meta as any).env?.VITE_API_BASE ?? '').replace(/\/$/, '');
+
 async function call<T>(url: string, init?: RequestInit): Promise<T> {
-  const r = await fetch(url, init);
+  const r = await fetch(url.startsWith('/api/') ? API_BASE + url : url, init);
   const j = await r.json().catch(() => ({}));
   if (!r.ok) throw new Error(j.error ?? `Request failed (${r.status})`);
   return j as T;
