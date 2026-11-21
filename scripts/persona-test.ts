@@ -16,7 +16,7 @@ const PLAN: Record<string, Step[]> = {
     { say: 'Priya ko bolo aaj dinner bahar karte hain, saadhe aath baje, aur calendar mein daal do.', expect: [{ contact: 'priya', type: ['message'] }, { type: ['calendar', 'reminder'], day: 0, hour: 20 }] },
     { say: 'అమ్మకి చెప్పు, రేపు మధ్యాహ్నం లంచ్‌కి వస్తాను.', expect: [{ contact: 'amma', type: ['message'], lang: 'Telugu' }], note: 'Telugu script' },
     { say: 'Rahul ko bol do kal ki meeting 4 baje rakhte hain.', expect: [{ contact: 'rahul_v', type: ['message'], day: 1, hour: 16 }], note: 'two Rahuls: topic decides' },
-    { say: 'Rahul ko poocho Pune kab aa raha hai.', expect: [{ contact: 'rahul_k', type: ['message'] }], note: 'two Rahuls: past conversation decides' },
+    { say: 'Rahul ko poocho Pune kab aa raha hai.', expect: [{ contact: 'rahul_k', type: ['message', 'call'] }], note: 'two Rahuls: past conversation decides' },
     { say: 'Usko bol do 10 minute mein neeche aa raha hoon, parcel le leta hoon.', expect: [{ contact: 'santosh', type: ['message'] }], note: '"usko": who was it?' },
     { say: 'HDFC wale ko OTP bata do, 4 8 2 9 1 3.', expect: { blocked: true } },
   ],

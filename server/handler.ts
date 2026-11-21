@@ -51,7 +51,10 @@ export async function handle(req: Req): Promise<Res> {
         const turn = {
           id: turnId, at: nowIso(), said: String(b.transcript ?? '').slice(0, 300),
           people: result.mentions.filter(m => m.kind === 'person' && m.candidates.length).map(m => { const c = [...m.candidates].sort((x, y) => y.score - x.score)[0]; return { mention: m.text, id: c.id, name: c.name }; }),
-          actions: result.actions.map(a => ({ id: a.id!, type: a.type, contact_id: a.contact_id, contact_name: a.contact_name, title: a.title, text: a.text, when_iso: a.when_iso, when_label: a.when_label, amount_inr: a.amount_inr, status: 'proposed' as const })),
+          actions: [
+            ...result.actions.map(a => ({ id: a.id!, type: a.type, contact_id: a.contact_id, contact_name: a.contact_name, title: a.title, text: a.text, when_iso: a.when_iso, when_label: a.when_label, amount_inr: a.amount_inr, status: 'proposed' as 'proposed' | 'done' | 'skipped' })),
+            ...(result.refs ?? []).map((r, i) => ({ id: `${turnId}:ref${i + 1}`, type: r.type, contact_id: r.contact_id, contact_name: who.contacts.find(c => c.id === r.contact_id)?.name ?? '', title: `${r.title} (already in calendar)`, text: '', when_iso: r.when_iso, when_label: '', amount_inr: 0, status: 'done' as const })),
+          ],
           reply: result.reply,
         };
         state.turns = [...(state.turns ?? []).filter(t => !(b.forced && Object.keys(b.forced).length && t.said === turn.said)), turn].slice(-12);

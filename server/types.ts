@@ -50,6 +50,8 @@ export type Result = {
   reply: string;
   /** The reply in the user's native script, for text-to-speech. */
   reply_speech?: string;
+  /** Existing timeline items this note was about (e.g. "already in your calendar"), kept for follow-ups. */
+  refs?: { type: ActionType; title: string; when_iso: string; contact_id: string }[];
   topics?: string[];
   ms: { meaning: number; who: number; plan: number };
 };

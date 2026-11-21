@@ -104,7 +104,7 @@ export function retrieve(roman: string, p: Persona, s: State, now = new Date(), 
     if (!p.contacts.some(c => c.id === id)) return;
     const c = byId.get(id) ?? { id, name: contact(id).name, rel: contact(id).rel, score: 0, why: '' };
     if (pointer) { c.score = Math.max(Math.min(0.99, c.score + 0.1), 0.85 - i * 0.15); note(c, 'Just talked about'); }   // "usko" = who we were just discussing
-    else if (c.score > 0) { c.score = Math.min(0.99, c.score + 0.1); note(c, 'Just talked about'); }
+    else if (c.score > 0) { c.score = Math.min(0.99, c.score + 0.03); note(c, 'Just talked about'); }   // only a tie-breaker: what the note says wins
     else if (byId.size === 0) { c.score = 0.7 - i * 0.1; note(c, 'Just talked about'); }
     else return;
     byId.set(id, c);

@@ -66,8 +66,10 @@ Also
 - reply: one short line to the user, in their own language mix, Roman script, saying what is READY for them ("Amma ke liye message ready hai"). Never say something was sent, paid or done: the user confirms with one tap.
 - reply_speech: the same reply written for reading aloud, in the NATIVE script of the user's language (Devanagari for Hindi, Hinglish, Marathi and Urdu; Telugu script; Tamil script; English stays English). Keep English words like "appointment" in that script too (अपॉइंटमेंट). Short and warm.
 - If the user ASKS something (their schedule, a khata balance, what they told you), answer it in "reply" and return NO actions.
-- If the requested calendar entry or reminder ALREADY EXISTS in TIMELINE at that time, do not add it again: say in "reply" that it is already there.
-- FOLLOW-UPS: short notes often continue the CONVERSATION. "Calendar mein daal do / add karo / add it" = add the latest proposed thing as a calendar entry with the same time and person. "Time 5 baje kar do / change to Monday" = the same action again with the new time. "Usko / unko bhi bata do / tell him too" = the people in the latest turn. "Cancel karo / rehne do" = cancel what was just set up. Use the people, times and amounts from CONVERSATION; do not ask again for things it already has.
+- If the requested calendar entry or reminder ALREADY EXISTS in TIMELINE at that time, do not add it again: say in "reply" that it is already there. This never removes a message: "bol do / bolo / sang / sanga / cheppu / sollu / tell" ALWAYS means a message to that person.
+- CANCEL: if the user cancels something that is still PROPOSED (not done), just confirm it is dropped and return NO actions. Only if it was DONE, create what undoes it (for example a call or message to cancel).
+- A follow-up that changes one thing (time, day, person) re-plans ONLY that action. Do not repeat other actions from earlier turns.
+- FOLLOW-UPS: short notes often continue the CONVERSATION. "Calendar mein daal do / add karo / add it" = add the latest proposed thing as a calendar entry with the same time and person; if that thing is marked "already in calendar", say it is already there. "Time 5 baje kar do / change to Monday" = the same action again with the new time. "Usko / unko bhi bata do / tell him too" = the people in the latest turn. "Cancel karo / rehne do" = cancel what was just set up. Use the people, times and amounts from CONVERSATION; do not ask again for things it already has.
 - mentions: list ONLY people mentioned, using the exact words from the transcript.
 - Keep every "why" under 10 words. Be brief everywhere: speed matters.`;
 
@@ -121,12 +123,15 @@ export async function understand(args: { persona: Persona; state: State; transcr
   const norm = normalise(roman, now);
   {
     // A follow-up that changes only the time keeps the day (and morning/evening) of the plan being discussed.
-    const prev = (state.turns ?? []).filter(x => now.getTime() - Date.parse(x.at) < 3 * 3600e3).flatMap(x => x.actions).reverse().find(a => a.when_iso);
+    const recentActs = (state.turns ?? []).filter(x => now.getTime() - Date.parse(x.at) < 3 * 3600e3).flatMap(x => x.actions).reverse();
+    const prev = recentActs.find(a => a.when_iso && !a.id.includes(':ref')) ?? recentActs.find(a => a.when_iso);   // what was just asked for beats what was already there
     const hasDay = norm.entities.some(e => e.kind === 'date');
-    if (norm.when && !hasDay && prev && norm.entities.some(e => e.kind === 'time')) {
+    const changing = /\b(badal|badlo|badla|badlaa|badalna|change|shift|instead|nahi|nako|vel|vela|velaa|time|waqt|samay|maathu|maathunga|reschedule|postpone|prepone|pudhe|aage|peeche|kar ?do)\b/.test(roman.toLowerCase());
+    const saidPart = /\b(subah|savere|morning|sakali|kaalai|dopahar|dupari|madhyanam|afternoon|shaam|sham|evening|sandhyakali|maalai|raat|ratri|raatri|night)\b/.test(roman.toLowerCase());
+    if (norm.when && !hasDay && prev && changing && norm.entities.some(e => e.kind === 'time')) {
       const [hh, mm] = norm.when.iso.slice(11, 16).split(':').map(Number);
       const prevH = Number(new Date(prev.when_iso).toLocaleString('en-GB', { hour: '2-digit', hourCycle: 'h23', timeZone: 'Asia/Kolkata' }));
-      const h = [hh % 12, (hh % 12) + 12].sort((a, b) => Math.abs(a - prevH) - Math.abs(b - prevH))[0];
+      const h = saidPart ? hh : [hh % 12, (hh % 12) + 12].sort((a, b) => Math.abs(a - prevH) - Math.abs(b - prevH))[0];
       const iso = `${prev.when_iso.slice(0, 10)}T${String(h).padStart(2, '0')}:${String(mm).padStart(2, '0')}:00+05:30`;
       norm.when = { iso, label: labelOf(iso) };
       norm.entities.push({ text: '(same day as the plan being discussed)', kind: 'date', label: labelOf(iso, false), iso });
@@ -167,7 +172,16 @@ export async function understand(args: { persona: Persona; state: State; transcr
   ].filter(Boolean).join('\n\n');
 
   t = Date.now();
-  const out = await jsonCall<PlanOut>({ name: 'artha_plan', instructions: ARTHA_INSTRUCTIONS, input, schema: planSchema(null) }); // fixed schema = cached by OpenAI; ids are validated in code below
+  let out = await jsonCall<PlanOut>({ name: 'artha_plan', instructions: ARTHA_INSTRUCTIONS, input, schema: planSchema(null) });
+  {
+    const tell = /\b(bol ?do|bolo|bolna|bata ?do|batao|sang|sanga|sangaa|saang|cheppu|cheppandi|sollu|sollunga|tell|message|msg)\b/i.test(roman);
+    const named = shortlist.filter(c => c.score >= 0.8).map(c => c.id);
+    const toldTo = new Set(out.actions.filter(a => a.type === 'message' || a.type === 'call').map(a => a.contact_id));
+    const missing = named.filter(id => !toldTo.has(id));
+    if (tell && named.length && missing.length === named.length && (!out.clarify_question || named.length === 1)) {
+      out = await jsonCall<PlanOut>({ name: 'artha_plan', instructions: ARTHA_INSTRUCTIONS, input: `${input}\n\nCHECK: the user asked to TELL ${missing.map(id => p.contacts.find(c => c.id === id)?.name).join(', ')} something. Include a message action to them with their exact words in their language.`, schema: planSchema(null) });
+    }
+  } // fixed schema = cached by OpenAI; ids are validated in code below
   const msPlan = Date.now() - t;
 
   // Make every mention's candidates readable and honour forced picks
@@ -182,15 +196,41 @@ export async function understand(args: { persona: Persona; state: State; transcr
     .filter(a => (a.text || a.goal || a.title || a.amount_inr > 0))                 // no empty cards
     .filter(a => !((a.type === 'calendar' || a.type === 'reminder') && !a.when_iso)) // a reminder needs a time
     .filter(a => !sameAsCalendar(a));                                               // never duplicate what is already there
+  const refs: NonNullable<Result['refs']> = [];
   // one message per person per note
   for (let i = planned.length - 1; i >= 0; i--) { const a = planned[i]; if (a.type === 'message' && planned.findIndex(x => x.type === 'message' && x.contact_id === a.contact_id) !== i) planned.splice(i, 1); }
   // if everything asked for is already in the calendar, say so plainly instead of "ready"
   const dupes = out.actions.filter(a => (a.type === 'calendar' || a.type === 'reminder') && a.when_iso && state.calendar.some(c => Math.abs(Date.parse(c.when_iso) - Date.parse(a.when_iso)) < 60e3));
-  if (!planned.length && dupes.length) {
-    const c = state.calendar.find(x => Math.abs(Date.parse(x.when_iso) - Date.parse(dupes[0].when_iso)) < 60e3)!;
-    const lang = p.speaks[0];
-    const say = lang === 'Marathi' ? `हे आधीच तुमच्या कॅलेंडरमध्ये आहे: ${c.title}, ${c.when_label}.` : lang === 'Tamil' ? `இது ஏற்கனவே உங்கள் காலெண்டரில் உள்ளது: ${c.title}, ${c.when_label}.` : lang === 'English' ? `That's already in your calendar: ${c.title}, ${c.when_label}.` : `Ye pehle se aapke calendar mein hai: ${c.title}, ${c.when_label}.`;
-    out.reply = say; out.reply_speech = say;
+  const already = (c: { title: string; when_iso: string; when_label?: string; contact?: string }) => {
+    const lang = p.speaks[0], when = c.when_label || labelOf(c.when_iso);
+    const say = lang === 'Marathi' ? `हे आधीच तुमच्या कॅलेंडरमध्ये आहे: ${c.title}, ${when}.` : lang === 'Tamil' ? `இது ஏற்கனவே உங்கள் காலெண்டரில் உள்ளது: ${c.title}, ${when}.` : lang === 'English' ? `That's already in your calendar: ${c.title}, ${when}.` : `Ye pehle se aapke calendar mein hai: ${c.title}, ${when}.`;
+    out.reply = say; out.reply_speech = say; out.clarify_question = '';
+    if (!refs.some(r => r.when_iso === c.when_iso)) refs.push({ type: 'calendar', title: c.title, when_iso: c.when_iso, contact_id: c.contact ?? '' });
+  };
+  if (!planned.length && dupes.length) already(state.calendar.find(x => Math.abs(Date.parse(x.when_iso) - Date.parse(dupes[0].when_iso)) < 60e3)!);
+  // FOLLOW-UP "add it to the calendar" with no new person, day or time: it means the thing just discussed.
+  // Resolved in code from the conversation record, so the model never has to ask "add what?".
+  const addFollowUp = /calend|kalend|kailend|kaelend|कॅलेंडर|कैलेंडर|कलेंडर|క్యాలెండర్|காலெண்டர்/i.test(`${transcript} ${roman}`)
+    && !norm.entities.some(e => e.kind === 'date' || e.kind === 'time') && !planned.some(a => a.type === 'calendar');
+  const last = [...(state.turns ?? [])].reverse().find(x => now.getTime() - Date.parse(x.at) < 3 * 3600e3 && x.actions.some(a => a.when_iso));
+  if (addFollowUp && last) {
+    const src = [...last.actions].reverse().find(a => a.when_iso && !a.id.includes(':ref') && a.status !== 'skipped' && a.type !== 'calendar');
+    const ref = [...last.actions].reverse().find(a => a.when_iso && (a.id.includes(':ref') || a.type === 'calendar'));
+    const inCal = src && state.calendar.find(c => Math.abs(Date.parse(c.when_iso) - Date.parse(src.when_iso)) < 60e3);
+    if (src && !inCal) {
+      const title = src.type === 'call' ? `Call ${src.contact_name}` : src.title && !/already/i.test(src.title) ? src.title : `${src.contact_name}`;
+      planned.push({ type: 'calendar', contact_id: src.contact_id, contact_name: '', language: '', text: '', gloss: '', goal: '', title, when_iso: src.when_iso, when_label: src.when_label, amount_inr: 0, predicted: false, why: 'From what you just asked for' } as any);
+      out.clarify_question = '';
+      if (!out.reply || /\?\s*$/.test(out.reply)) { const s = p.speaks[0] === 'Marathi' ? `कॅलेंडरमध्ये टाकलं: ${title}, ${src.when_label}.` : p.speaks[0] === 'English' ? `Added to your calendar: ${title}, ${src.when_label}.` : `Calendar mein daal diya: ${title}, ${src.when_label}.`; out.reply = s; out.reply_speech = s; }
+    } else if (inCal || ref) {
+      planned.length = 0;
+      already(inCal ?? { title: ref!.title.replace(/\s*\(already in calendar\)/i, '') || ref!.contact_name, when_iso: ref!.when_iso, when_label: ref!.when_label, contact: ref!.contact_id });
+    }
+  }
+  for (const m of mentions.filter(x => x.kind === 'person')) {
+    const top = [...m.candidates].sort((a, b) => b.score - a.score)[0];
+    const c = top && state.calendar.filter(x => x.contact === top.id && Date.parse(x.when_iso) > now.getTime()).sort((a, b) => Date.parse(a.when_iso) - Date.parse(b.when_iso))[0];
+    if (c && !refs.some(r => r.when_iso === c.when_iso)) refs.push({ type: 'calendar', title: c.title, when_iso: c.when_iso, contact_id: c.contact ?? '' });
   }
   let clarify = needsClarify(mentions, forced, out.clarify_question, planned);
   // The model asked "which one?" in words: give the user buttons, from the code shortlist.
@@ -212,6 +252,6 @@ export async function understand(args: { persona: Persona; state: State; transcr
 
   return {
     mode, transcript, roman, language: out.language, entities: norm.entities, candidates: shortlist, mentions, actions, clarify, blocked: false, checks,
-    learn: clarify ? [] : out.learn.filter(l => l && l.length < 160).slice(0, 2), reply: clarify ? '' : out.reply, reply_speech: clarify ? '' : out.reply_speech, topics: kb.topics, ms: { meaning: msMeaning, who: msWho, plan: msPlan },
+    learn: clarify ? [] : out.learn.filter(l => l && l.length < 160).slice(0, 2), reply: clarify ? '' : out.reply, reply_speech: clarify ? '' : out.reply_speech, refs, topics: kb.topics, ms: { meaning: msMeaning, who: msWho, plan: msPlan },
   };
 }
