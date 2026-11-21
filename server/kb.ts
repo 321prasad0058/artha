@@ -3,6 +3,8 @@
 // and what the user taught Artha before. Retrieval is code (fast, explainable); the model only sees the result.
 import type { Candidate, Persona, State } from './types.js';
 import { findCandidates, soundKey } from './pipeline/candidates.js';
+import { normalise } from './pipeline/normalize.js';
+import { romanize } from './pipeline/translit.js';
 
 export type Topic = 'work' | 'health' | 'delivery' | 'transport' | 'family' | 'home' | 'shop_credit' | 'shop_supply' | 'money' | 'fitness' | 'risk';
 
@@ -40,6 +42,8 @@ export type Retrieved = {
   facts: KbFact[];
   recent: string[];
   taught: { mention: string; id: string }[];
+  /** Amounts people asked for in their own recent messages ("₹1,850 baki aahet"), found by code. */
+  pending: { id: string; name: string; amount: number; said: string }[];
 };
 
 export function tagsOf(rel: string): Topic[] {
@@ -111,6 +115,13 @@ export function retrieve(roman: string, p: Persona, s: State, now = new Date()):
   const sorted = [...p.events].sort((a, b) => b.day - a.day || b.time.localeCompare(a.time));
   const recent = [...sorted.filter(e => top.has(e.contact)).slice(0, 5), ...sorted.filter(e => !top.has(e.contact)).slice(0, 3)].map(fmt);
 
+  // Amounts the likely people asked for in their recent messages, so "uske paise bhej do" has a number.
+  const pending: Retrieved['pending'] = [];
+  for (const id of top) for (const e of p.events.filter(x => x.contact === id && x.day >= -3)) {
+    const m = /₹\s?(\d[\d,]*)/.exec(e.text) ?? /(\d[\d,]*)\s*(rupaye|rupees|rupaiye|rs)\b/i.exec(e.text);
+    const amt = m ? Number(m[1].replace(/,/g, '')) : normalise(romanize(e.text)).entities.find(x => x.kind === 'money')?.amount;
+    if (amt) pending.push({ id, name: contact(id).name, amount: amt, said: e.text });
+  }
   void now;
-  return { topics, candidates, facts: factsOut, recent, taught };
+  return { topics, candidates, facts: factsOut, recent, taught, pending };
 }

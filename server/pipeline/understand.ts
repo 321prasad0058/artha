@@ -3,6 +3,7 @@
 import { jsonCall } from '../openai.js';
 import type { Action, Candidate, Mention, Mode, Persona, Result, State } from '../types.js';
 import { retrieve } from '../kb.js';
+import { linksFor } from '../connectors.js';
 import { isoOf, labelOf, normalise } from './normalize.js';
 import { checkActions, needsClarify, secretCheck } from './rules.js';
 import { romanize } from './translit.js';
@@ -50,11 +51,11 @@ Values
 - Use CODE_VALUES exactly for dates, times and amounts when they apply. Write when_iso as ISO 8601 with +05:30, and when_label in plain words like "Mon 23 Nov, 6:00 PM".
 
 Actions
-- message: write "text" in the RECIPIENT's preferred language (their "lang"), in Roman script, short, natural and respectful for the relationship. Put the English meaning in "gloss".
-- call: when something must be arranged or changed with someone (rescheduling, asking, booking). Put the outcome wanted in "goal".
+- message: write "text" as the exact words the RECIPIENT will read, in their preferred language (their "lang"): Telugu in Telugu script, Tamil in Tamil script, Hindi, Marathi and Urdu in simple Roman script, English in English. Short, natural, respectful for the relationship, addressed to them ("Anna, ..."). Put the English meaning in "gloss".
+- call: when something must be arranged or changed with someone (rescheduling, asking, booking). Put the outcome wanted in "goal" (for Artha), AND in "text" a short message to that person in their language that could be sent instead of calling.
 - reminder or calendar: for times the user must remember or plans they made.
-- payment: only when the user asks to pay or send money; set amount_inr.
-- ledger: credit (udhaar/khata) entries for a shop; set amount_inr and contact.
+- payment: only when the user asks to pay or send money; set amount_inr. If the user gives no amount, use the amount that person asked for in AMOUNTS THEY ASKED FOR. Payments always wait for the user's confirmation, so don't hold back for that.
+- ledger: ONLY when the user says to write or add an amount to someone's khata ("likh do", "khate mein daal do", "add karo"). Set amount_inr and contact. "Yaad dilao" / "remind them they owe" is NOT a ledger entry: it is a message to that person about the amount already due.
 - suggestion: at most one helpful next step predicted from a clear habit in MEMORY (for example, a reminder 1 hour before appointments). Mark predicted=true. Do not invent habits.
 - Never put an OTP, PIN, password, card or Aadhaar number into any action.
 - Fill fields that don't apply with "" , 0 or false. contact_id is "none" when no person applies.
@@ -134,6 +135,7 @@ export async function understand(args: { persona: Persona; state: State; transcr
     `TOPIC (from code): ${kb.topics.join(', ') || 'unclear'}`,
     `CODE_VALUES: ${norm.entities.length ? norm.entities.map(e => `"${e.text}" = ${e.label}`).join('; ') : 'none'}${norm.when ? `; combined when = ${norm.when.iso} (${norm.when.label})` : ''}`,
     `CANDIDATES (code_score comes from name sound, topic fit, recency and past corrections; trust it unless the note clearly says otherwise): ${JSON.stringify(contactInfo)}`,
+    kb.pending.length ? `AMOUNTS THEY ASKED FOR (code found these in their own messages): ${kb.pending.map(x => `${x.name}: ₹${x.amount.toLocaleString('en-IN')} ("${x.said}")`).join('; ')}` : '',
     `RELEVANT FACTS:\n${kb.facts.map(f => `- ${f.text}`).join('\n') || '- none'}`,
     `RECENT ACTIVITY:\n${kb.recent.join('\n')}`,
     `CALENDAR: ${state.calendar.map(c => `${c.title} (${c.when_label})`).join('; ') || 'empty'}`,
@@ -157,6 +159,7 @@ export async function understand(args: { persona: Persona; state: State; transcr
   const { actions, checks } = clarify ? { actions: [], checks: [{ rule: 'A true tie between two people, so Artha asks once', ok: true }] } : checkActions(planned, p, now);
   // A time said in the note belongs on the action, even if the model only wrote it into the message text.
   if (norm.when) for (const a of actions) if (!a.when_iso && ['message', 'call', 'reminder', 'calendar'].includes(a.type)) { a.when_iso = norm.when.iso; a.when_label = norm.when.label; }
+  for (const a of actions) a.links = linksFor(a, p);
   // Fewer questions: attach the runner-up to each action as a one-tap "change".
   for (const a of actions) {
     const m = mentions.find(x => x.kind === 'person' && x.candidates.some(c => c.id === a.contact_id));

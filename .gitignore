@@ -12,3 +12,4 @@ dist/
 eval/results/*.tmp
 film/build/
 film/out/*.mp4
+docs/demos/*.mp4

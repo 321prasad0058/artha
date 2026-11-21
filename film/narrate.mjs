@@ -4,12 +4,18 @@
 // Output: film/build/vo/<id>.wav, film/build/timeline.json, film/out/artha-demo.srt
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
+import { provider, speakLine } from './tts.mjs';
 
 process.loadEnvFile('.env');
 const KEY = process.env.OPENAI_API_KEY;
-const S = JSON.parse(fs.readFileSync('film/script.json', 'utf8'));
+const LANG = process.env.FILM_LANG || 'en';
+const SUF = LANG === 'en' ? '' : `-${LANG}`;
+const S = JSON.parse(fs.readFileSync(`film/script${SUF}.json`, 'utf8'));
+const VO = LANG === 'en' ? 'film/build/vo' : `film/build/${LANG}/vo`;
+const TEMPO = Number(process.env.FILM_TEMPO || (provider() === 'gemini' ? 1.06 : LANG === 'en' ? 1.15 : 1.12));
+console.log('narrator:', provider() === 'gemini' ? 'Gemini TTS · Kore (same as Kosha)' : 'OpenAI gpt-4o-mini-tts', '· tempo', TEMPO);
 const B = 'film/build';
-fs.mkdirSync(`${B}/vo`, { recursive: true });
+fs.mkdirSync(VO, { recursive: true });
 const force = process.argv.includes('--force');
 const dur = f => Number(execFileSync('ffprobe', ['-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', f]).toString());
 
@@ -39,10 +45,10 @@ const lines = [], clips = [], scenes = [];
 let t = 0.8, scene = null;
 const jobs = [];
 for (const b of S.beats) {
-  if (b.text && (force || !fs.existsSync(`${B}/vo/${b.id}.wav`))) jobs.push(b);
+  if (b.text && (force || !fs.existsSync(`${VO}/${b.id}.wav`))) jobs.push(b);
 }
-for (let i = 0; i < jobs.length; i += 5) {
-  await Promise.all(jobs.slice(i, i + 5).map(b => tts(b.say ?? b.text, S.narrator.voice, S.narrator.instructions, `${B}/vo/${b.id}.wav`, 1.15).then(() => console.log('vo', b.id))));
+for (let i = 0; i < jobs.length; i += 3) {
+  await Promise.all(jobs.slice(i, i + 3).map(b => speakLine(b.say ?? b.text, `${VO}/${b.id}.wav`, { lang: LANG, tempo: TEMPO, voice: S.narrator.voice, instructions: S.narrator.instructions }).then(() => console.log('vo', b.id))));
 }
 for (const b of S.beats) {
   if (b.scene) {
@@ -56,16 +62,16 @@ for (const b of S.beats) {
     clips.push({ id: b.id, clip: b.clip, file: b.file, start: t, end: t + d, scene: scene.id, caption: b.caption, gloss: b.gloss });
     t += d + (b.gap ?? 0.4);
   } else {
-    const d = dur(`${B}/vo/${b.id}.wav`);
-    lines.push({ id: b.id, text: b.text, start: t, end: t + d, scene: scene.id, file: `${B}/vo/${b.id}.wav` });
+    const d = dur(`${VO}/${b.id}.wav`);
+    lines.push({ id: b.id, text: b.text, en: b.en, start: t, end: t + d, scene: scene.id, file: `${VO}/${b.id}.wav` });
     t += d + (b.gap ?? 0.35);
   }
 }
 scene.end = t;
 const total = t + 0.4;
-fs.writeFileSync(`${B}/timeline.json`, JSON.stringify({ total, lines, clips, scenes }, null, 1));
+fs.writeFileSync(`${B}/timeline${SUF}.json`, JSON.stringify({ total, lines, clips, scenes }, null, 1));
 const ts = s => { const ms = Math.round(s * 1000); const h = Math.floor(ms / 3600000), m = Math.floor(ms / 60000) % 60, sec = Math.floor(ms / 1000) % 60; return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')},${String(ms % 1000).padStart(3, '0')}`; };
-const subs = [...lines.map(l => ({ start: l.start, end: l.end, text: l.text })), ...clips.filter(c => c.caption).map(c => ({ start: c.start, end: c.end + .3, text: `${c.caption}\n${c.gloss}` }))].sort((a, b) => a.start - b.start);
-fs.writeFileSync('film/out/artha-demo.srt', subs.map((l, i) => `${i + 1}\n${ts(l.start)} --> ${ts(l.end)}\n${l.text}\n`).join('\n'));
+const subs = [...lines.map(l => ({ start: l.start, end: l.end, text: l.en ? `${l.text}\n${l.en}` : l.text })), ...clips.filter(c => c.caption).map(c => ({ start: c.start, end: c.end + .3, text: `${c.caption}\n${c.gloss}` }))].sort((a, b) => a.start - b.start);
+fs.writeFileSync(`film/out/artha-demo${SUF}.srt`, subs.map((l, i) => `${i + 1}\n${ts(l.start)} --> ${ts(l.end)}\n${l.text}\n`).join('\n'));
 console.log(`timeline: ${total.toFixed(1)}s, ${lines.length} lines, ${clips.length} clips, ${scenes.length} scenes`);
 for (const s of scenes) console.log(`  ${s.id.padEnd(8)} ${s.start.toFixed(1).padStart(6)} → ${s.end.toFixed(1)}`);

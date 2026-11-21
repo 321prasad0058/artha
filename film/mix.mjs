@@ -2,7 +2,9 @@
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 
-const TL = JSON.parse(fs.readFileSync('film/build/timeline.json', 'utf8'));
+const LANG = process.env.FILM_LANG || 'en';
+const SUF = LANG === 'en' ? '' : `-${LANG}`;
+const TL = JSON.parse(fs.readFileSync(`film/build/timeline${SUF}.json`, 'utf8'));
 const MUSIC = `${process.env.HOME}/Desktop/SahiCar-content/promo/music-candidates/634.mp3`; // Mixkit "Your Breath", free licence
 const SFX = `${process.env.HOME}/Desktop/SahiCar-content/promo/sfx/chime.mp3`;
 const total = TL.total;
@@ -21,6 +23,6 @@ parts.push(`[${n}]aresample=48000,aformat=channel_layouts=mono,atrim=0:${total.t
 parts.push(`[mu][sc]sidechaincompress=threshold=0.015:ratio=6:attack=20:release=600:makeup=1[duck]`);
 chimes.forEach((at, k) => parts.push(`[${n + 1 + k}]aresample=48000,aformat=channel_layouts=mono,volume=0.22,adelay=${Math.round(at * 1000)}:all=1,apad=whole_dur=${total.toFixed(2)},atrim=0:${total.toFixed(2)}[c${k}]`));
 parts.push(`[vo][duck]${chimes.map((_, k) => `[c${k}]`).join('')}amix=inputs=${2 + chimes.length}:normalize=0,volume=1.5dB,alimiter=limit=0.89:level=false,aformat=channel_layouts=stereo[out]`);
-args.push('-filter_complex', parts.join(';'), '-map', '[out]', '-ar', '48000', 'film/build/mix.wav');
+args.push('-filter_complex', parts.join(';'), '-map', '[out]', '-ar', '48000', `film/build/mix${SUF}.wav`);
 execFileSync('ffmpeg', args);
 console.log('mix ready', total.toFixed(1), 's');

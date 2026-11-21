@@ -1,0 +1,174 @@
+1
+00:00:00,800 --> 00:00:02,762
+भारत वॉइस नोट्स पर चलता है।
+India runs on voice notes.
+
+2
+00:00:03,112 --> 00:00:08,667
+और एक अरब से ज़्यादा भारतीयों ने आज तक किसी एआई से एक सवाल भी टाइप नहीं किया।
+And over a billion Indians have never typed a question to an AI.
+
+3
+00:00:09,017 --> 00:00:10,975
+उनके लिए, आवाज़ ही रास्ता है।
+For them, voice is the way in.
+
+4
+00:00:12,075 --> 00:00:13,704
+एक असली वॉइस नोट सुनिए।
+Listen to a real one.
+
+5
+00:00:14,054 --> 00:00:18,156
+मेहता जी वाला अपॉइंटमेंट परसों शाम को शिफ्ट करवा दो।
+Get the Mehta ji appointment moved to the day after tomorrow, evening.
+
+6
+00:00:18,456 --> 00:00:23,030
+छह सेकंड। एक डॉक्टर, एक दिन, एक समय, और एक काम।
+Six seconds. A doctor, a day, a time, and a job to do.
+
+7
+00:00:23,380 --> 00:00:30,230
+स्पीच मॉडल हर शब्द सुन लेता है। पर मेहता जी कौन हैं? परसों कब है? और शिफ्ट करवा दो का मतलब क्या है?
+A speech model hears every word. But who is Mehta ji? When is parso? What does 'shift karwa do' mean?
+
+8
+00:00:30,580 --> 00:00:35,677
+बेस मॉडल का जवाब: एक धुंधला सा सुझाव। न डॉक्टर, न कॉल, न कोई काम।
+The base model's answer: a vague suggestion. No doctor, no call, nothing done.
+
+9
+00:00:36,777 --> 00:00:39,059
+हमने अर्थ चार लोगों के लिए बनाया।
+We built Artha for four people.
+
+10
+00:00:39,409 --> 00:00:43,927
+हैदराबाद में आदित्य। फ़ोन में दो राहुल, और माँ जो तेलुगु बोलती हैं।
+Aditya, in Hyderabad. Two Rahuls in his phone, and a mother who speaks Telugu.
+
+11
+00:00:44,277 --> 00:00:49,122
+पुणे में सुनीता। उनके लिए ताई का मतलब कामवाली भी हो सकता है, और बहन भी।
+Sunita, in Pune. To her, 'tai' could mean her house help, or her sister.
+
+12
+00:00:49,472 --> 00:00:54,068
+लखनऊ में इमरान। उनके ग्राहक और सप्लायर, दोनों का नाम शर्मा है।
+Imran, in Lucknow. His customer and his supplier are both called Sharma.
+
+13
+00:00:54,418 --> 00:00:58,622
+और चेन्नई में मीनाक्षी, जिन्हें लगभग हर हफ़्ते एक स्कैम कॉल आता है।
+And Meenakshi, in Chennai, who gets a scam call almost every week.
+
+14
+00:00:58,972 --> 00:01:02,633
+चार भाषाएँ। एक आदत। ये इशारों में बात करते हैं।
+Four languages. One habit. They speak in hints.
+
+15
+00:01:03,733 --> 00:01:08,897
+इक्वल आपकी कॉल्स पहले से संभालता है। अगला कदम: वॉइस नोट्स को काम में बदलना।
+Equal already answers your calls. Next, it turns voice notes into actions.
+
+16
+00:01:09,247 --> 00:01:15,238
+इसके लिए चाहिए एक परत, जो समझे कि लोग असल में कहना क्या चाहते हैं। वो परत है अर्थ।
+That needs a layer that understands what people mean. That's Artha.
+
+17
+00:01:15,588 --> 00:01:16,810
+बस इशारा काफ़ी है।
+Bas ishaara kaafi hai. A hint is enough.
+
+18
+00:01:17,910 --> 00:01:19,692
+आदित्य वही वॉइस नोट भेजते हैं।
+Aditya sends the same note.
+
+19
+00:01:20,042 --> 00:01:25,682
+अर्थ जानता है कि मेहता जी उनके डॉक्टर हैं, और परसों शाम का मतलब है सोमवार, शाम छह बजे।
+Artha knows Mehta ji is his doctor, and 'parso shaam' is Monday at 6 PM.
+
+20
+00:01:26,032 --> 00:01:31,730
+इसलिए वो क्लिनिक को कॉल करने को तैयार है, और एक घंटा पहले का रिमाइंडर भी, क्योंकि यही उनकी आदत है।
+So it offers to call the clinic, with a reminder an hour before. That's his habit.
+
+21
+00:01:32,830 --> 00:01:36,824
+जब एक नाम दो लोगों पर फिट हो, तो अर्थ सवालों की झड़ी नहीं लगाता।
+When a name fits two people, Artha doesn't interrogate you.
+
+22
+00:01:37,174 --> 00:01:42,143
+मीटिंग यानी काम, तो वो राहुल वर्मा को चुनता है, और कज़िन बस एक टैप दूर रहता है।
+Meeting means work, so it picks Rahul Verma, and keeps the cousin one tap away.
+
+23
+00:01:43,243 --> 00:01:49,560
+आदित्य माँ को बताते हैं कि वो लंच पर आएँगे। अर्थ माँ को तेलुगु में लिखता है, और आदित्य को बोलकर जवाब देता है।
+He tells his mother he'll come for lunch. Artha writes to her in Telugu, and answers him out loud.
+
+24
+00:01:49,910 --> 00:01:53,064
+అమ్మ కోసం తెలుగు మెసేజ్ సిద్ధంగా ఉంది.
+The message for Amma is ready, in Telugu.
+
+25
+00:01:53,864 --> 00:02:00,766
+इमरान के लिए, ढाई हज़ार लिख दो का मतलब है शर्मा जी के खाते में ढाई हज़ार रुपये। ग्राहक वाले शर्मा, सप्लायर वाले नहीं।
+For Imran, 'dhai hazaar likh do' means Rs 2,500 on Sharma ji's account. The customer, not the supplier.
+
+26
+00:02:01,866 --> 00:02:09,241
+और जब कोई कॉलर मीनाक्षी से ओटीपी माँगता है, तो अर्थ उसे वहीं रोक देता है, किसी भी एआई के अंक देखने से पहले।
+And when a caller asks Meenakshi for her OTP, Artha stops it before any AI sees the digits.
+
+27
+00:02:10,341 --> 00:02:16,556
+अब देखिए ये काम कैसे करता है। सबसे पहले, आपके कॉन्टैक्ट्स के नामों की मदद से आवाज़ पहचानना।
+Here's how it works. Speech recognition, hinted with your contacts' names.
+
+28
+00:02:16,906 --> 00:02:22,409
+फिर कोड, जो परसों, ढाई सौ और रेपु मध्याह्नम को सही तारीख़ और रकम में बदलता है।
+Code that turns parso, dhai sau and repu madhyanam into exact dates and amounts.
+
+29
+00:02:22,759 --> 00:02:26,960
+एक पर्सनल नॉलेज बेस, जो सिर्फ़ ज़रूरी लोग और बातें सामने लाता है।
+A personal knowledge base that pulls up only the people and facts that matter.
+
+30
+00:02:27,310 --> 00:02:33,669
+एक मॉडल कॉल, जो सिर्फ़ असली कॉन्टैक्ट्स चुन सकता है। और पैसे और ओटीपी के लिए, कोड में बने नियम।
+One model call that can only pick real contacts. And rules, in code, for money and OTPs.
+
+31
+00:02:34,769 --> 00:02:40,229
+हमने सात भाषाओं में ट्वेंटी-नाइन रिकॉर्डिंग्स टेस्ट कीं, हर सही जवाब पहले से लिखकर।
+We tested 29 recordings in 7 languages, with every answer written first.
+
+32
+00:02:40,579 --> 00:02:48,322
+बेस मॉडल ने सिर्फ़ सेवेंटीन परसेंट नोट्स पूरी तरह सही किए। पूरी प्रोफ़ाइल प्रॉम्प्ट में डालने पर, सेवेंटी-नाइन परसेंट।
+The base model got 17% completely right. With the whole profile pasted in, 79%.
+
+33
+00:02:48,672 --> 00:02:51,284
+और अर्थ ने, नाइंटी-सेवन परसेंट।
+Artha got 97%.
+
+34
+00:02:52,784 --> 00:02:59,445
+आज कॉल्स। फिर मैसेजिंग। फिर एक्सपर्ट्स। अर्थ हर कदम को देता है, शब्दों के पीछे का मतलब।
+Calls today. Messaging next. Experts after. Artha gives each the meaning behind the words.
+
+35
+00:02:59,795 --> 00:03:01,913
+अर्थ। बस इशारा काफ़ी है।
+Artha. Bas ishaara kaafi hai.

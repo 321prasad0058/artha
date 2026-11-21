@@ -1,0 +1,257 @@
+{
+ "narrator": {
+  "voice": "sage",
+  "instructions": "You are the narrator of a short product film made in Hyderabad. Speak natural, warm, conversational Hindi the way educated people in Indian cities speak it, with common English words said the Indian way. Confident documentary tone, clear and unhurried but never slow. Native Hindi pronunciation for every word. The product name is अर्थ, written \"Artha\" in English. Say it the Hindi and Marathi way: \"ur-tha\", a short \"a\" as in \"about\", then a soft dental aspirated \"th\" exactly like Hindi थ, ending on a light short \"a\". Never say \"earth\", \"aurat\", \"aarta\" or \"arsa\"."
+ },
+ "beats": [
+  {
+   "scene": "hook",
+   "label": "Voice is the way in",
+   "id": "L1",
+   "text": "भारत वॉइस नोट्स पर चलता है।",
+   "en": "India runs on voice notes.",
+   "say": "भारत वॉइस नोट्स पर चलता है।"
+  },
+  {
+   "id": "L2",
+   "text": "और एक अरब से ज़्यादा भारतीयों ने आज तक किसी एआई से एक सवाल भी टाइप नहीं किया।",
+   "en": "And over a billion Indians have never typed a question to an AI.",
+   "say": "और एक अरब से ज़्यादा भारतीयों ने आज तक किसी एआई से एक सवाल भी टाइप नहीं किया।"
+  },
+  {
+   "id": "L3",
+   "text": "उनके लिए, आवाज़ ही रास्ता है।",
+   "gap": 0.6,
+   "en": "For them, voice is the way in.",
+   "say": "उनके लिए, आवाज़ ही रास्ता है।"
+  },
+  {
+   "scene": "problem",
+   "label": "The problem",
+   "id": "L4",
+   "text": "एक असली वॉइस नोट सुनिए।",
+   "en": "Listen to a real one.",
+   "say": "एक असली वॉइस नोट सुनिए।"
+  },
+  {
+   "clip": "a2",
+   "file": "web/public/clips/a2.mp3",
+   "id": "C1",
+   "gap": 0.6,
+   "caption": "मेहता जी वाला अपॉइंटमेंट परसों शाम को शिफ्ट करवा दो।",
+   "gloss": "Get the Mehta ji appointment moved to the day after tomorrow, evening."
+  },
+  {
+   "id": "L5",
+   "text": "छह सेकंड। एक डॉक्टर, एक दिन, एक समय, और एक काम।",
+   "en": "Six seconds. A doctor, a day, a time, and a job to do.",
+   "say": "छह सेकंड। एक डॉक्टर, एक दिन, एक समय, और एक काम।"
+  },
+  {
+   "id": "L6",
+   "text": "स्पीच मॉडल हर शब्द सुन लेता है। पर मेहता जी कौन हैं? परसों कब है? और शिफ्ट करवा दो का मतलब क्या है?",
+   "say": "स्पीच मॉडल हर शब्द सुन लेता है। पर मेहता जी कौन हैं? परसों कब है? और शिफ्ट करवा दो का मतलब क्या है?",
+   "en": "A speech model hears every word. But who is Mehta ji? When is parso? What does 'shift karwa do' mean?"
+  },
+  {
+   "id": "L7",
+   "text": "बेस मॉडल का जवाब: एक धुंधला सा सुझाव। न डॉक्टर, न कॉल, न कोई काम।",
+   "gap": 0.6,
+   "en": "The base model's answer: a vague suggestion. No doctor, no call, nothing done.",
+   "say": "बेस मॉडल का जवाब: एक धुंधला सा सुझाव। न डॉक्टर, न कॉल, न कोई काम।"
+  },
+  {
+   "scene": "people",
+   "label": "Who it is for",
+   "id": "L8",
+   "text": "हमने अर्थ चार लोगों के लिए बनाया।",
+   "say": "हमने अर्थ चार लोगों के लिए बनाया।",
+   "en": "We built Artha for four people."
+  },
+  {
+   "id": "L9",
+   "text": "हैदराबाद में आदित्य। फ़ोन में दो राहुल, और माँ जो तेलुगु बोलती हैं।",
+   "en": "Aditya, in Hyderabad. Two Rahuls in his phone, and a mother who speaks Telugu.",
+   "say": "हैदराबाद में आदित्य। फ़ोन में दो राहुल, और माँ जो तेलुगु बोलती हैं।"
+  },
+  {
+   "id": "L10",
+   "text": "पुणे में सुनीता। उनके लिए ताई का मतलब कामवाली भी हो सकता है, और बहन भी।",
+   "say": "पुणे में सुनीता। उनके लिए ताई का मतलब कामवाली भी हो सकता है, और बहन भी।",
+   "en": "Sunita, in Pune. To her, 'tai' could mean her house help, or her sister."
+  },
+  {
+   "id": "L11",
+   "text": "लखनऊ में इमरान। उनके ग्राहक और सप्लायर, दोनों का नाम शर्मा है।",
+   "en": "Imran, in Lucknow. His customer and his supplier are both called Sharma.",
+   "say": "लखनऊ में इमरान। उनके ग्राहक और सप्लायर, दोनों का नाम शर्मा है।"
+  },
+  {
+   "id": "L12",
+   "text": "और चेन्नई में मीनाक्षी, जिन्हें लगभग हर हफ़्ते एक स्कैम कॉल आता है।",
+   "en": "And Meenakshi, in Chennai, who gets a scam call almost every week.",
+   "say": "और चेन्नई में मीनाक्षी, जिन्हें लगभग हर हफ़्ते एक स्कैम कॉल आता है।"
+  },
+  {
+   "id": "L13",
+   "text": "चार भाषाएँ। एक आदत। ये इशारों में बात करते हैं।",
+   "gap": 0.6,
+   "en": "Four languages. One habit. They speak in hints.",
+   "say": "चार भाषाएँ। एक आदत। ये इशारों में बात करते हैं।"
+  },
+  {
+   "scene": "where",
+   "label": "Where Artha comes in",
+   "id": "L14",
+   "text": "इक्वल आपकी कॉल्स पहले से संभालता है। अगला कदम: वॉइस नोट्स को काम में बदलना।",
+   "en": "Equal already answers your calls. Next, it turns voice notes into actions.",
+   "say": "इक्वल आपकी कॉल्स पहले से संभालता है। अगला कदम: वॉइस नोट्स को काम में बदलना।"
+  },
+  {
+   "id": "L15",
+   "text": "इसके लिए चाहिए एक परत, जो समझे कि लोग असल में कहना क्या चाहते हैं। वो परत है अर्थ।",
+   "say": "इसके लिए चाहिए एक परत, जो समझे कि लोग असल में कहना क्या चाहते हैं। वो परत है अर्थ।",
+   "en": "That needs a layer that understands what people mean. That's Artha."
+  },
+  {
+   "id": "L16",
+   "text": "बस इशारा काफ़ी है।",
+   "say": "बस इशारा काफ़ी है।",
+   "gap": 0.6,
+   "en": "Bas ishaara kaafi hai. A hint is enough."
+  },
+  {
+   "scene": "demo1",
+   "label": "Live demo · Aditya",
+   "id": "L17",
+   "text": "आदित्य वही वॉइस नोट भेजते हैं।",
+   "en": "Aditya sends the same note.",
+   "say": "आदित्य वही वॉइस नोट भेजते हैं।"
+  },
+  {
+   "id": "L18",
+   "text": "अर्थ जानता है कि मेहता जी उनके डॉक्टर हैं, और परसों शाम का मतलब है सोमवार, शाम छह बजे।",
+   "say": "अर्थ जानता है कि मेहता जी उनके डॉक्टर हैं, और परसों शाम का मतलब है सोमवार, शाम छह बजे।",
+   "en": "Artha knows Mehta ji is his doctor, and 'parso shaam' is Monday at 6 PM."
+  },
+  {
+   "id": "L19",
+   "text": "इसलिए वो क्लिनिक को कॉल करने को तैयार है, और एक घंटा पहले का रिमाइंडर भी, क्योंकि यही उनकी आदत है।",
+   "gap": 0.6,
+   "en": "So it offers to call the clinic, with a reminder an hour before. That's his habit.",
+   "say": "इसलिए वो क्लिनिक को कॉल करने को तैयार है, और एक घंटा पहले का रिमाइंडर भी, क्योंकि यही उनकी आदत है।"
+  },
+  {
+   "scene": "demo2",
+   "label": "Live demo · Which Rahul?",
+   "id": "L20",
+   "text": "जब एक नाम दो लोगों पर फिट हो, तो अर्थ सवालों की झड़ी नहीं लगाता।",
+   "say": "जब एक नाम दो लोगों पर फिट हो, तो अर्थ सवालों की झड़ी नहीं लगाता।",
+   "en": "When a name fits two people, Artha doesn't interrogate you."
+  },
+  {
+   "id": "L21",
+   "text": "मीटिंग यानी काम, तो वो राहुल वर्मा को चुनता है, और कज़िन बस एक टैप दूर रहता है।",
+   "gap": 0.6,
+   "en": "Meeting means work, so it picks Rahul Verma, and keeps the cousin one tap away.",
+   "say": "मीटिंग यानी काम, तो वो राहुल वर्मा को चुनता है, और कज़िन बस एक टैप दूर रहता है।"
+  },
+  {
+   "scene": "demo3",
+   "label": "Live demo · Telugu",
+   "id": "L22",
+   "text": "आदित्य माँ को बताते हैं कि वो लंच पर आएँगे। अर्थ माँ को तेलुगु में लिखता है, और आदित्य को बोलकर जवाब देता है।",
+   "say": "आदित्य माँ को बताते हैं कि वो लंच पर आएँगे। अर्थ माँ को तेलुगु में लिखता है, और आदित्य को बोलकर जवाब देता है।",
+   "en": "He tells his mother he'll come for lunch. Artha writes to her in Telugu, and answers him out loud."
+  },
+  {
+   "clip": "reply",
+   "file": "film/build/reply-a6.mp3",
+   "id": "C2",
+   "gap": 0.6,
+   "caption": "అమ్మ కోసం తెలుగు మెసేజ్ సిద్ధంగా ఉంది.",
+   "gloss": "The message for Amma is ready, in Telugu."
+  },
+  {
+   "scene": "demo4",
+   "label": "Live demo · Imran",
+   "id": "L23",
+   "text": "इमरान के लिए, ढाई हज़ार लिख दो का मतलब है शर्मा जी के खाते में ढाई हज़ार रुपये। ग्राहक वाले शर्मा, सप्लायर वाले नहीं।",
+   "say": "इमरान के लिए, ढाई हज़ार लिख दो का मतलब है शर्मा जी के खाते में ढाई हज़ार रुपये। ग्राहक वाले शर्मा, सप्लायर वाले नहीं।",
+   "gap": 0.6,
+   "en": "For Imran, 'dhai hazaar likh do' means Rs 2,500 on Sharma ji's account. The customer, not the supplier."
+  },
+  {
+   "scene": "demo5",
+   "label": "Live demo · Meenakshi",
+   "id": "L24",
+   "text": "और जब कोई कॉलर मीनाक्षी से ओटीपी माँगता है, तो अर्थ उसे वहीं रोक देता है, किसी भी एआई के अंक देखने से पहले।",
+   "gap": 0.6,
+   "say": "और जब कोई कॉलर मीनाक्षी से ओटीपी माँगता है, तो अर्थ उसे वहीं रोक देता है, किसी भी एआई के अंक देखने से पहले।",
+   "en": "And when a caller asks Meenakshi for her OTP, Artha stops it before any AI sees the digits."
+  },
+  {
+   "scene": "how",
+   "label": "How it works",
+   "id": "L25",
+   "text": "अब देखिए ये काम कैसे करता है। सबसे पहले, आपके कॉन्टैक्ट्स के नामों की मदद से आवाज़ पहचानना।",
+   "en": "Here's how it works. Speech recognition, hinted with your contacts' names.",
+   "say": "अब देखिए ये काम कैसे करता है। सबसे पहले, आपके कॉन्टैक्ट्स के नामों की मदद से आवाज़ पहचानना।"
+  },
+  {
+   "id": "L26",
+   "text": "फिर कोड, जो परसों, ढाई सौ और रेपु मध्याह्नम को सही तारीख़ और रकम में बदलता है।",
+   "say": "फिर कोड, जो परसों, ढाई सौ और रेपु मध्याह्नम को सही तारीख़ और रकम में बदलता है।",
+   "en": "Code that turns parso, dhai sau and repu madhyanam into exact dates and amounts."
+  },
+  {
+   "id": "L27",
+   "text": "एक पर्सनल नॉलेज बेस, जो सिर्फ़ ज़रूरी लोग और बातें सामने लाता है।",
+   "en": "A personal knowledge base that pulls up only the people and facts that matter.",
+   "say": "एक पर्सनल नॉलेज बेस, जो सिर्फ़ ज़रूरी लोग और बातें सामने लाता है।"
+  },
+  {
+   "id": "L28",
+   "text": "एक मॉडल कॉल, जो सिर्फ़ असली कॉन्टैक्ट्स चुन सकता है। और पैसे और ओटीपी के लिए, कोड में बने नियम।",
+   "gap": 0.6,
+   "en": "One model call that can only pick real contacts. And rules, in code, for money and OTPs.",
+   "say": "एक मॉडल कॉल, जो सिर्फ़ असली कॉन्टैक्ट्स चुन सकता है। और पैसे और ओटीपी के लिए, कोड में बने नियम।"
+  },
+  {
+   "scene": "proof",
+   "label": "Proof",
+   "id": "L29",
+   "text": "हमने सात भाषाओं में ट्वेंटी-नाइन रिकॉर्डिंग्स टेस्ट कीं, हर सही जवाब पहले से लिखकर।",
+   "en": "We tested 29 recordings in 7 languages, with every answer written first.",
+   "say": "हमने सात भाषाओं में ट्वेंटी-नाइन रिकॉर्डिंग्स टेस्ट कीं, हर सही जवाब पहले से लिखकर।"
+  },
+  {
+   "id": "L30",
+   "text": "बेस मॉडल ने सिर्फ़ सेवेंटीन परसेंट नोट्स पूरी तरह सही किए। पूरी प्रोफ़ाइल प्रॉम्प्ट में डालने पर, सेवेंटी-नाइन परसेंट।",
+   "en": "The base model got 17% completely right. With the whole profile pasted in, 79%.",
+   "say": "बेस मॉडल ने सिर्फ़ सेवेंटीन परसेंट नोट्स पूरी तरह सही किए। पूरी प्रोफ़ाइल प्रॉम्प्ट में डालने पर, सेवेंटी-नाइन परसेंट।"
+  },
+  {
+   "id": "L31",
+   "text": "और अर्थ ने, नाइंटी-सेवन परसेंट।",
+   "gap": 1,
+   "say": "और अर्थ ने, नाइंटी-सेवन परसेंट।",
+   "en": "Artha got 97%."
+  },
+  {
+   "scene": "close",
+   "label": "Artha",
+   "id": "L32",
+   "text": "आज कॉल्स। फिर मैसेजिंग। फिर एक्सपर्ट्स। अर्थ हर कदम को देता है, शब्दों के पीछे का मतलब।",
+   "say": "आज कॉल्स। फिर मैसेजिंग। फिर एक्सपर्ट्स। अर्थ हर कदम को देता है, शब्दों के पीछे का मतलब।",
+   "en": "Calls today. Messaging next. Experts after. Artha gives each the meaning behind the words."
+  },
+  {
+   "id": "L33",
+   "text": "अर्थ। बस इशारा काफ़ी है।",
+   "say": "अर्थ। बस इशारा काफ़ी है।",
+   "gap": 2.2,
+   "en": "Artha. Bas ishaara kaafi hai."
+  }
+ ]
+}

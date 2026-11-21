@@ -376,8 +376,15 @@ function ActionCard({ a, done, busy, confirming, contact, onDo, onConfirm, onSki
       {alts && !done && <div className="alts"><span>Not {first(who)}?</span>{a.alternatives!.map(x => <button key={x.id} className="pill" onClick={() => { setAlts(false); onChange(x.id); }}>{x.name}</button>)}</div>}
       {body && <p className="act-body">{body}{a.gloss && a.type === 'message' && <small>{a.gloss}</small>}</p>}
       {why && a.why && <p className="act-why">{a.why}</p>}
+      {(a.links?.filter(l => l.kind !== 'upi').length ?? 0) > 0 && (
+        <div className="opens">{a.links!.filter(l => l.kind !== 'upi').map(l => (
+          <a key={l.href} className={`open ${l.kind}`} href={l.href} target="_blank" rel="noopener noreferrer" onClick={() => { if (!done && a.type !== 'payment') onDo(); }}>
+            <I n={{ whatsapp: 'chat', sms: 'chat', call: 'call', gcal: 'cal', maps: 'eye', upi: 'rupee' }[l.kind] ?? 'send'} s={{ width: 14, height: 14 }} />{l.label}
+          </a>))}</div>)}
       {done ? <div className="ok"><I n="check" />{done}</div>
-        : confirming ? <div className="act-btns"><span className="confirm">Pay ₹{a.amount_inr.toLocaleString('en-IN')} to {who}? Demo only.</span><button className="btn btn-primary btn-sm" onClick={onConfirm} disabled={busy}>Confirm</button><button className="btn btn-ghost btn-sm" onClick={onSkip}>Cancel</button></div>
+        : confirming ? <div className="act-btns"><span className="confirm">Pay ₹{a.amount_inr.toLocaleString('en-IN')} to {who}? Your UPI app opens; you enter the PIN there.</span>
+            {a.links?.filter(l => l.kind === 'upi').map(l => <a key={l.href} className="btn btn-primary btn-sm" href={l.href} onClick={onConfirm}>{l.label}</a>)}
+            <button className="btn btn-ghost btn-sm" onClick={onConfirm} disabled={busy}>Mark paid</button><button className="btn btn-ghost btn-sm" onClick={onSkip}>Cancel</button></div>
         : <div className="act-btns"><button className="btn btn-primary btn-sm" onClick={onDo} disabled={busy}>{busy ? '…' : verb}</button>{a.why && <button className="icon-btn sm" onClick={() => setWhy(x => !x)} aria-label="Why?"><I n="info" /></button>}<button className="link" onClick={onSkip}>{a.type === 'suggestion' ? 'No' : 'Skip'}</button></div>}
     </div>
   );
@@ -459,6 +466,7 @@ function Knows({ persona, state, fresh, onReset }: { persona?: PersonaInfo; stat
       <div key={m.fact} className={`fact ${m.learned ? 'learned' : ''} ${fresh.has(m.fact) ? 'fresh' : ''}`}><I n={m.kind === 'alias' ? 'swap' : m.learned ? 'spark' : 'brain'} /><span>{m.fact}</span></div>))}
       {facts.length > 6 && <button className="link" onClick={() => setAll(x => !x)}>{all ? 'Show less' : `+${facts.length - 6} more`}</button>}
     </div>
+    <div className="mini"><h4>Connected on this phone</h4><div className="conns">{[['chat', 'WhatsApp'], ['call', 'Phone'], ['cal', 'Google Calendar'], ['rupee', 'UPI apps'], ['brain', 'Contacts · sample'], ['call', 'Equal calls · simulated']].map(([ic, l]) => <span key={l} className="conn"><I n={ic} s={{ width: 13, height: 13 }} />{l}</span>)}</div></div>
     {upcoming.length > 0 && <div className="mini"><h4>Coming up</h4>{upcoming.map((c, i) => <div key={i} className={c.added ? 'added' : ''}><span>{c.title}</span><span>{c.when_label}</span></div>)}</div>}
     {owed.length > 0 && <div className="mini"><h4>Khata</h4>{owed.map(([c, amt]) => <div key={c}><span>{persona.contacts.find(x => x.id === c)?.name}</span><span>₹{amt.toLocaleString('en-IN')}</span></div>)}</div>}
     <button className="link reset" onClick={onReset}><I n="refresh" />Start {first(persona.name)} over</button>

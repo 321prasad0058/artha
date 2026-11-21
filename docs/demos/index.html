@@ -1,0 +1,58 @@
+<title>Artha Demos</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: a simple screening room. Two live demos first (the proof it works), then the two films. */
+:root{ --bg:#f5f3ee; --surface:#ffffff; --ink:#15171b; --muted:#5d6168; --line:#e4e0d7; --accent:#2c46c2; --accent-soft:#e8ecfb;
+  --font:'Instrument Sans','Helvetica Neue',Arial,system-ui,sans-serif; }
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){ --bg:#0f1013; --surface:#1a1c20; --ink:#eeede8; --muted:#a4a7ad; --line:#2a2d33; --accent:#93a6ff; --accent-soft:#232a4c; color-scheme:dark }}
+:root[data-theme="dark"]{ --bg:#0f1013; --surface:#1a1c20; --ink:#eeede8; --muted:#a4a7ad; --line:#2a2d33; --accent:#93a6ff; --accent-soft:#232a4c; color-scheme:dark }
+body{background:var(--bg);color:var(--ink);font-family:var(--font);font-size:16px;line-height:1.5}
+.wrap{max-width:1100px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:40px 64px;display:grid;gap:40px}
+h1{font-size:clamp(32px,5vw,52px);letter-spacing:-.04em;line-height:1.05;margin:0}
+h2{font-size:22px;letter-spacing:-.02em;margin:0}
+p{margin:0}
+.lead{color:var(--muted);font-size:17px;max-width:62ch;margin-top:10px}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:16px;display:grid;gap:10px;min-width:0}
+.card video{width:100%;border-radius:12px;background:#000;display:block;aspect-ratio:16/10}
+.film video{aspect-ratio:16/9}
+.meta{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font-size:12.5px;font-weight:600;padding:3px 10px;border-radius:999px;background:var(--accent-soft);color:var(--accent)}
+.card ul{margin:0;padding-left:18px;color:var(--muted);font-size:14.5px;display:grid;gap:3px}
+.eyebrow{font-size:13px;font-weight:600;color:var(--accent);text-transform:uppercase;letter-spacing:.06em}
+@media (max-width:760px){.grid{grid-template-columns:minmax(0,1fr)}}
+</style>
+<div class="wrap">
+  <header>
+    <p class="eyebrow">Builders 2026 · Artha</p>
+    <h1>Bas ishaara kaafi hai.</h1>
+    <p class="lead">Two live, unedited recordings of the working app, then the full films in English and Hindi. Turn the sound on.</p>
+  </header>
+
+  <section style="display:grid;gap:16px">
+    <h2>Live demos · the real app</h2>
+    <div class="grid">
+      <div class="card">
+        <video controls preload="metadata" src="aditya.mp4"></video>
+        <h2>Aditya, Hyderabad</h2>
+        <div class="meta"><span class="chip">Hinglish</span><span class="chip">Telugu</span><span class="chip">1:16</span></div>
+        <ul><li>Mehta ji’s appointment → call the clinic, Mon 6 PM, reminder 1 hr before</li><li>Telugu note → message to Amma in Telugu, sent to her chat</li><li>Two Rahuls → “meeting” picks Rahul Verma, cousin one tap away</li><li>OTP scam → blocked before any AI sees it</li></ul>
+      </div>
+      <div class="card">
+        <video controls preload="metadata" src="imran.mp4"></video>
+        <h2>Imran, Lucknow</h2>
+        <div class="meta"><span class="chip">Hindi</span><span class="chip">Kirana shop</span><span class="chip">1:04</span></div>
+        <ul><li>“dhai hazaar likh do” → ₹2,500 on Sharma ji’s khata, the customer</li><li>“Sharma wale” → the supplier, for tomorrow 4 PM</li><li>“Gupta ji ko yaad dilao” → a reminder of ₹650, not a new entry</li><li>Ammi’s medicine → a Hindi message to the chemist</li></ul>
+      </div>
+    </div>
+  </section>
+
+  <section style="display:grid;gap:16px">
+    <h2>The films · Kore voice, as in the Kosha film</h2>
+    <div class="grid">
+      <div class="card film"><video controls preload="metadata" src="film-en.mp4"></video><h2>English</h2><div class="meta"><span class="chip">2:52</span><span class="chip">Indian English</span></div></div>
+      <div class="card film"><video controls preload="metadata" src="film-hi.mp4"></video><h2>Hindi</h2><div class="meta"><span class="chip">3:05</span><span class="chip">Hindi + English subtitles</span></div></div>
+    </div>
+  </section>
+</div>

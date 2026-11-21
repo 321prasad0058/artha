@@ -6,7 +6,10 @@ import fs from 'node:fs';
 import puppeteer from 'puppeteer-core';
 
 const [mode = 'stills', arg] = process.argv.slice(2);
-const PORT = 8890;
+const LANG = process.env.FILM_LANG || 'en';
+const FR = LANG === 'en' ? 'film/build/frames' : `film/build/frames-${LANG}`;
+const ST = LANG === 'en' ? 'film/build/stills' : `film/build/stills-${LANG}`;
+const PORT = Number(process.env.FILM_PORT || (process.env.FILM_LANG === 'hi' ? 8891 : 8890));
 const server = spawn('python3', ['-m', 'http.server', String(PORT), '--bind', '127.0.0.1'], { cwd: process.cwd(), stdio: 'ignore' });
 await new Promise(r => setTimeout(r, 900));
 const browser = await puppeteer.launch({
@@ -18,14 +21,14 @@ try {
   page.on('pageerror', e => console.log('PAGE ERROR', e.message));
   page.on('console', m => { if (m.type() === 'error') console.log('console:', m.text()); });
   await page.setViewport({ width: 1920, height: 1080, deviceScaleFactor: 1 });
-  await page.goto(`http://127.0.0.1:${PORT}/film/film.html`, { waitUntil: 'networkidle0', timeout: 120000 });
+  await page.goto(`http://127.0.0.1:${PORT}/film/film.html?lang=${LANG}`, { waitUntil: 'networkidle0', timeout: 120000 });
   await page.waitForFunction('window.__ready === true', { timeout: 120000 });
   const total = await page.evaluate('window.__duration');
   if (mode === 'stills') {
-    fs.mkdirSync('film/build/stills', { recursive: true });
+    fs.mkdirSync(ST, { recursive: true });
     for (const s of (arg ?? '5').split(',').map(Number)) {
       await page.evaluate(t => window.__seek(t), s);
-      await page.screenshot({ path: `film/build/stills/t${s}.jpg`, type: 'jpeg', quality: 85 });
+      await page.screenshot({ path: `${ST}/t${s}.jpg`, type: 'jpeg', quality: 85 });
       console.log('still', s);
     }
   } else if (mode === 'range') {
@@ -35,13 +38,13 @@ try {
       const [a, b] = w.split('-').map(Number);
       for (let i = Math.floor(a * fps); i <= Math.ceil(b * fps); i++) {
         await page.evaluate(t => window.__seek(t), i / fps);
-        await page.screenshot({ path: `film/build/frames/f${String(i).padStart(5, '0')}.jpg`, type: 'jpeg', quality: 92, optimizeForSpeed: true });
+        await page.screenshot({ path: `${FR}/f${String(i).padStart(5, '0')}.jpg`, type: 'jpeg', quality: 92, optimizeForSpeed: true });
       }
       console.log('re-rendered', w);
     }
   } else {
     const fps = Number(arg ?? 30);
-    const dir = 'film/build/frames';
+    const dir = FR;
     fs.rmSync(dir, { recursive: true, force: true }); fs.mkdirSync(dir, { recursive: true });
     const n = Math.ceil(total * fps);
     const t0 = Date.now();

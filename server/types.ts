@@ -25,6 +25,8 @@ export type Action = {
   /** Other people this could have meant, offered as one-tap "change" instead of a question. */
   alternatives?: { id: string; name: string }[];
   mention?: string;
+  /** One-tap links that open the right app on a phone (WhatsApp, dialler, Google Calendar, UPI). */
+  links?: { kind: string; label: string; href: string }[];
 };
 
 export type Check = { rule: string; ok: boolean; note?: string };

@@ -1,7 +1,7 @@
 {
  "narrator": {
   "voice": "sage",
-  "instructions": "You are the narrator of a short product film made in Hyderabad. Speak warm, confident Indian English, like a thoughtful documentary narrator. Natural, unhurried but never slow. Pronounce every Hindi, Marathi, Telugu and Tamil word natively."
+  "instructions": "You are the narrator of a short product film made in Hyderabad. Speak warm, confident Indian English, like a thoughtful documentary narrator. Natural, unhurried but never slow. Pronounce every Hindi, Marathi, Telugu and Tamil word natively. The product name is अर्थ, written \"Artha\" in English. Say it the Hindi and Marathi way: \"ur-tha\", a short \"a\" as in \"about\", then a soft dental aspirated \"th\" exactly like Hindi थ, ending on a light short \"a\". Never say \"earth\", \"aurat\", \"aarta\" or \"arsa\"."
  },
  "beats": [
   {
@@ -52,7 +52,7 @@
    "label": "Who it is for",
    "id": "L8",
    "text": "We built Artha for four people.",
-   "say": "We built अर्थ for four people."
+   "say": "We built Artha for four people."
   },
   {
    "id": "L9",
@@ -85,7 +85,7 @@
   {
    "id": "L15",
    "text": "That needs a layer that understands what people mean. That's Artha.",
-   "say": "That needs a layer that understands what people mean. That's अर्थ."
+   "say": "That needs a layer that understands what people mean. That's Artha."
   },
   {
    "id": "L16",
@@ -102,7 +102,7 @@
   {
    "id": "L18",
    "text": "Artha knows Mehta ji is his doctor, and parso shaam is Monday at six.",
-   "say": "अर्थ knows मेहता जी is his doctor, and परसों शाम is Monday at six."
+   "say": "Artha knows मेहता जी is his doctor, and परसों शाम is Monday at six."
   },
   {
    "id": "L19",
@@ -114,7 +114,7 @@
    "label": "Live demo · Which Rahul?",
    "id": "L20",
    "text": "When a name fits two people, Artha doesn't interrogate you.",
-   "say": "When a name fits two people, अर्थ doesn't interrogate you."
+   "say": "When a name fits two people, Artha doesn't interrogate you."
   },
   {
    "id": "L21",
@@ -126,7 +126,7 @@
    "label": "Live demo · Telugu",
    "id": "L22",
    "text": "He tells his mother he'll come for lunch. Artha writes to her in Telugu, and answers him out loud.",
-   "say": "He tells his mother he'll come for lunch. अर्थ writes to her in Telugu, and answers him out loud."
+   "say": "He tells his mother he'll come for lunch. Artha writes to her in Telugu, and answers him out loud."
   },
   {
    "clip": "reply",
@@ -150,7 +150,7 @@
    "id": "L24",
    "text": "And when a caller asks Meenakshi for her OTP, Artha stops it before any AI sees the digits.",
    "gap": 0.6,
-   "say": "And when a caller asks Meenakshi for her OTP, अर्थ stops it before any AI sees the digits."
+   "say": "And when a caller asks Meenakshi for her OTP, Artha stops it before any AI sees the digits."
   },
   {
    "scene": "how",
@@ -186,14 +186,14 @@
    "id": "L31",
    "text": "Artha got ninety-seven.",
    "gap": 1,
-   "say": "अर्थ got ninety-seven."
+   "say": "Artha got ninety-seven."
   },
   {
    "scene": "close",
    "label": "Artha",
    "id": "L32",
    "text": "Calls today. Messaging next. Experts after. Artha gives each of them the meaning behind the words.",
-   "say": "Calls today. Messaging next. Experts after. अर्थ gives each of them the meaning behind the words."
+   "say": "Calls today. Messaging next. Experts after. Artha gives each of them the meaning behind the words."
   },
   {
    "id": "L33",
