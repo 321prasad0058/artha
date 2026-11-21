@@ -2,7 +2,7 @@ import gsap from 'gsap';
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { romanize } from '../../server/pipeline/translit';
 import type { Action, Result, State } from '../../server/types';
-import { api, type PersonaInfo, type Sample } from './api';
+import { api, type PersonaInfo, type Sample, type Scan } from './api';
 import { Orb, type OrbMode } from './Orb';
 import { startRecording, type Recording } from './recorder';
 
@@ -16,6 +16,8 @@ const P: Record<string, string> = {
   x: 'M6 6l12 12M18 6L6 18', shield: 'M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z', refresh: 'M20 11a8 8 0 1 0-2.3 5.7M20 5v6h-6',
   eye: 'M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12zM12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6', swap: 'M7 4 3 8l4 4M3 8h14M17 20l4-4-4-4M21 16H7', keyboard: 'M3 6h18v12H3zM7 10h.5M11 10h.5M15 10h.5M7 14h10',
   speak: 'M4 10v4h4l5 4V6L8 10zM16 9a4 4 0 0 1 0 6M18.5 6.5a8 8 0 0 1 0 11', mute: 'M4 10v4h4l5 4V6L8 10zM17 9l5 6M22 9l-5 6',
+  user: 'M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8M4 21a8 8 0 0 1 16 0', box: 'M3 7l9-4 9 4-9 4zM3 7v10l9 4 9-4V7M12 11v10', pin: 'M12 21s-7-6-7-11a7 7 0 0 1 14 0c0 5-7 11-7 11zM12 8a2 2 0 1 0 0 4 2 2 0 0 0 0-4',
+  camera: 'M3 8h4l2-3h6l2 3h4v12H3zM12 10a4 4 0 1 0 0 8 4 4 0 0 0 0-8', alert: 'M12 3l10 18H2zM12 10v5M12 18v.5', chev: 'M6 9l6 6 6-6', ask: 'M9 9a3 3 0 1 1 4 2.8c-.7.3-1 .8-1 1.5V14M12 17.5v.5',
   vs: 'M4 5l4 14 4-14M14 17c1 1.5 2.5 2 4 2 2 0 3-1 3-2.5 0-3.5-7-2-7-6 0-1.5 1.2-2.5 3-2.5 1.4 0 2.6.5 3.5 1.5',
 };
 const I = ({ n, s }: { n: string; s?: React.CSSProperties }) => <svg className="ico" viewBox="0 0 24 24" style={s} aria-hidden="true"><path d={P[n]} /></svg>;
@@ -24,7 +26,8 @@ const ACT_ICON: Record<string, string> = { message: 'chat', call: 'call', remind
 /* ---------------- types & helpers ---------------- */
 type Tab = 'artha' | 'chats' | 'memory' | 'results' | 'about';
 type Run = {
-  id: number; source: 'mic' | 'sample' | 'typed'; label?: string; audio?: Blob; audioUrl?: string; synthetic?: boolean;
+  image?: string; scan?: Scan;
+  id: number; source: 'mic' | 'sample' | 'typed' | 'photo'; label?: string; audio?: Blob; audioUrl?: string; synthetic?: boolean;
   stage: number; transcript?: string; hearMs?: number; result?: Result; error?: string; startedAt: number; endedAt?: number; replyUrl?: string;
   done: Record<number, string>; busy?: number | null; confirm?: number | null; working?: boolean;
   compare?: { loading: boolean; baseHeard?: string; base?: Result; ctx?: Result; error?: string };
@@ -55,6 +58,124 @@ function origOf(orig: string, phrase: string): string {
 }
 
 /** Underline the words Artha understood, inside the sentence. */
+/** Shrink a photo on the phone before upload: long side <= max px, JPEG. A 4 MB camera photo becomes ~250 KB. */
+function shrink(file: File, max: number, q: number): Promise<string> {
+  return new Promise((res, rej) => {
+    const img = new Image();
+    img.onload = () => {
+      const k = Math.min(1, max / Math.max(img.width, img.height));
+      const c = document.createElement('canvas'); c.width = Math.round(img.width * k); c.height = Math.round(img.height * k);
+      c.getContext('2d')!.drawImage(img, 0, 0, c.width, c.height);
+      URL.revokeObjectURL(img.src); res(c.toDataURL('image/jpeg', q));
+    };
+    img.onerror = () => rej(new Error('Could not open that photo'));
+    img.src = URL.createObjectURL(file);
+  });
+}
+const POINT_ICON: Record<string, string> = { person: 'user', when: 'cal', money: 'rupee', item: 'box', task: 'check', place: 'pin', question: 'ask' };
+const inr = (n: number) => `₹${n.toLocaleString('en-IN')}`;
+
+/** What you said: a one-line gist and labelled points. The full transcript, with what Artha understood marked, is one tap away. */
+function Heard({ run, res, shown, marks }: { run: Run; res?: Result; shown: string; marks: { text: string; cls: string; label: string }[] }) {
+  const [full, setFull] = useState(false);
+  const chips = useRef<HTMLDivElement>(null);
+  const audio = useRef<HTMLAudioElement | null>(null);
+  const play = () => { if (!run.audioUrl) return; audio.current?.pause(); audio.current = new Audio(run.audioUrl); audio.current.play().catch(() => {}); };
+  const h = res?.heard;
+  useLayoutEffect(() => { if (h && chips.current) gsap.from(chips.current.children, { y: 8, opacity: 0, scale: .96, duration: .45, stagger: .06, ease: 'power3.out' }); }, [!!h]);
+  return (
+    <div className={`me ${h ? 'has-gist' : ''} ${run.image ? 'photo' : ''}`}>
+      <div className="me-top">
+        {run.image && <img className="thumb" src={run.image} alt="Your photo" />}
+        {!run.image && run.source !== 'typed' && <button className="play" onClick={play} aria-label="Play the voice note"><I n="play" /></button>}
+        <div className="me-text">
+          <span className="me-k">{run.image ? 'Your photo' : run.source === 'typed' ? 'You typed' : 'You said'}</span>
+          {h ? <b className="gist">{h.gist}</b> : <span className="said">{shown || (run.image ? 'Reading the photo…' : run.source === 'sample' ? run.label : '…')}</span>}
+        </div>
+      </div>
+      {h && h.points.length > 0 && <div className="points" ref={chips}>{h.points.map((p, i) => <span key={i} className={`pt ${p.kind}`}><I n={POINT_ICON[p.kind] ?? 'spark'} />{p.text}</span>)}</div>}
+      {h && !run.image && shown && <>
+        <button className="full-t" onClick={() => setFull(f => !f)} aria-expanded={full}>{full ? 'Hide full note' : 'Full note'}<I n="chev" s={{ transform: full ? 'rotate(180deg)' : 'none' }} /></button>
+        {full && <p className="understood"><Highlight text={shown} marks={marks} /></p>}
+      </>}
+    </div>
+  );
+}
+
+const KIND_UI: Record<string, [string, string]> = { sale: ['Sold', 'sale'], purchase: ['Bought', 'paid'], to_receive: ['To receive', 'received'], to_pay: ['To pay', 'paid'], received: ['Received', 'received'], paid: ['Paid', 'paid'], credit: ['Udhaar', 'credit'] };
+/** Several khata lines from one note: one compact card, one tap to add them all. */
+function KhataGroup({ run, idx, onAct, onSkip, onAll }: { run: Run; idx: number[]; onAct: (i: number) => void; onSkip: (i: number) => void; onAll: () => void }) {
+  const acts = run.result!.actions;
+  const left = idx.filter(i => !run.done[i]);
+  const ref = useEnter<HTMLDivElement>(true);
+  return (
+    <div className="kgroup" ref={ref}>
+      <div className="scan-h"><span className="act-i ledger"><I n="book" /></span><div><b>Khata · {idx.length} entries</b><span>Not saved until you add them</span></div></div>
+      {idx.map(i => { const a = acts[i]; const [lbl, cls] = KIND_UI[a.entry_kind || 'credit'] ?? ['Entry', 'credit']; const who = a.contact_name && !['Sales', 'Purchases'].includes(a.contact_name) ? a.contact_name : a.item || a.title;
+        return (
+          <div key={i} className={`krow ${run.done[i] ? 'done' : ''}`}>
+            <span className={`kk ${cls}`}>{lbl}</span>
+            <span className="who">{who}{a.contact_name === 'Name not given' && <small>Say the name and Artha fills it in</small>}{a.item && who !== a.item && <small>{a.item}</small>}</span>
+            <b>{inr(a.amount_inr)}</b>
+            {run.done[i] ? <span className="kd">{run.done[i] === 'Skipped' ? 'Skipped' : <I n="check" />}</span>
+              : <span className="kb"><button className="icon-btn" onClick={() => onSkip(i)} aria-label="Skip"><I n="x" /></button><button className="icon-btn add" onClick={() => onAct(i)} aria-label="Add"><I n="check" /></button></span>}
+          </div>); })}
+      {left.length > 0 ? <button className="btn btn-primary" onClick={onAll} disabled={!!run.working}><I n="check" />Add {left.length === idx.length ? 'all' : left.length} to khata · {inr(left.reduce((s, i) => s + acts[i].amount_inr, 0))}</button>
+        : <span className="ok"><I n="check" />Saved in your khata</span>}
+    </div>
+  );
+}
+
+const ISSUE_ICON = { error: 'alert', warn: 'alert', info: 'info' } as const;
+/** A scanned page, the Kosha way: totals by section first, then what to check, then every line grouped. */
+function ScanCard({ scan, run, onAll }: { scan: Scan; run: Run; onAll: () => void }) {
+  const [focus, setFocus] = useState<number[]>([]);
+  const [open, setOpen] = useState<string | null>(null);
+  const ref = useEnter<HTMLDivElement>(true);
+  const tiles = useRef<HTMLDivElement>(null);
+  useLayoutEffect(() => {
+    if (!tiles.current) return;
+    tiles.current.querySelectorAll<HTMLElement>('[data-n]').forEach(el => { const o = { v: 0 }; gsap.to(o, { v: Number(el.dataset.n), duration: 1.1, ease: 'power2.out', onUpdate: () => { el.textContent = inr(Math.round(o.v)); } }); });
+  }, []);
+  const acts = run.result?.actions ?? [];
+  const added = acts.filter((_, i) => run.done[i]).length;
+  const flagged = new Set(scan.issues.filter(i => i.level !== 'info').flatMap(i => i.lines));
+  const errs = scan.issues.filter(i => i.level === 'error').length, warns = scan.issues.filter(i => i.level === 'warn').length;
+  const line = (n: number) => scan.lines.find(l => l.n === n)!;
+  return (
+    <div className="scan" ref={ref}>
+      <div className="scan-h">
+        <span className="act-i ledger"><I n="book" /></span>
+        <div><b>{scan.title}</b><span>{scan.date} · {scan.lines.length} lines read</span></div>
+        <span className={`chip ${errs ? 'red' : warns ? 'amber' : 'green'}`}>{errs + warns ? `${errs + warns} to check` : 'All correct'}</span>
+      </div>
+      {scan.sections.length > 0 && <div className="tiles" ref={tiles}>{scan.sections.map(s => (
+        <button key={s.kind} className={`tile ${s.kind} ${open === s.kind ? 'on' : ''}`} onClick={() => setOpen(o => (o === s.kind ? null : s.kind))}>
+          <span className="tile-l">{s.label.split(' (')[0]}</span><b data-n={s.total}>{inr(0)}</b><small>{s.lines.length} {s.lines.length === 1 ? 'line' : 'lines'}</small>
+        </button>))}</div>}
+      {scan.issues.length > 0 && <div className="issues">{scan.issues.map((x, i) => (
+        <button key={i} className={`issue ${x.level} ${focus.join() === x.lines.join() ? 'on' : ''}`} onClick={() => setFocus(f => (f.join() === x.lines.join() ? [] : x.lines))}>
+          <I n={ISSUE_ICON[x.level]} /><span><b>{x.title}</b><small>{x.detail}</small></span>
+          <span className="ln">{x.lines.map(n => <em key={n}>L{n}</em>)}</span>
+        </button>))}</div>}
+      <div className="lines">{scan.sections.filter(s => !open || s.kind === open).map(s => (
+        <div key={s.kind} className="sec"><div className="sec-h"><span>{s.label}</span><b>{inr(s.total)}</b></div>
+          {s.lines.map(n => { const l = line(n); return (
+            <div key={n} className={`ln-r ${flagged.has(n) ? 'flag' : ''} ${focus.includes(n) ? 'focus' : ''}`}>
+              <em>L{n}</em><span className="who">{l.party || l.item || '—'}{l.party && l.item && <small>{l.item}{l.qty ? ` · ${l.qty}` : ''}</small>}</span>
+              <b>{inr(l.amount)}</b>
+            </div>); })}
+        </div>))}</div>
+      {acts.length > 0 && <div className="scan-f">
+        {added < acts.length
+          ? <button className="btn btn-primary" onClick={onAll} disabled={!!run.working}><I n="check" />Add {acts.length - added} {acts.length - added === 1 ? 'entry' : 'entries'} to khata</button>
+          : <span className="ok"><I n="check" />All {acts.length} entries in your khata</span>}
+        <span className="dim small">Lines already in your khata are skipped</span>
+      </div>}
+    </div>
+  );
+}
+
 function Highlight({ text, marks }: { text: string; marks: { text: string; cls: string; label: string }[] }) {
   const out: React.ReactNode[] = []; let rest = text; let k = 0;
   const lower = text.toLowerCase();
@@ -160,6 +281,21 @@ export default function App() {
   const fromAudio = (audio: Blob, source: Run['source'], label?: string, synthetic?: boolean) =>
     process({ id: ++seq, source, label, audio, audioUrl: URL.createObjectURL(audio), synthetic, stage: 0, done: {}, startedAt: Date.now() });
   const fromText = (text: string) => process({ id: ++seq, source: 'typed', transcript: text, stage: 0, done: {}, startedAt: Date.now() });
+  /** A photo: shrink it on the phone (fast upload), then read, check and file it. */
+  async function fromPhoto(file: File) {
+    if (!file.type.startsWith('image/')) { say('That is not a photo.'); return; }
+    const image = await shrink(file, 1600, 0.82);
+    const run: Run = { id: ++seq, source: 'photo', image, stage: 0, done: {}, startedAt: Date.now() };
+    setRuns(all => ({ ...all, [pid]: [...(all[pid] ?? []), run] }));
+    setTab('artha'); scrollDown();
+    const timers = [1, 2, 3].map(s => setTimeout(() => update(run.id, r => (r.stage < s ? { stage: s } : {})), s * 1800));
+    try {
+      const out = await api.scan(pid, image);
+      update(run.id, { result: out.result, scan: out.scan, stage: 4, endedAt: Date.now() });
+      applyState(out.state); scrollDown(); speakReply(run.id, out.result);
+    } catch (e: any) { update(run.id, { error: e.message, stage: 4, endedAt: Date.now() }); }
+    finally { timers.forEach(clearTimeout); }
+  }
   async function playSample(s: Sample) {
     try { const b = await (await fetch(`/clips/${s.file}`)).blob(); fromAudio(b, 'sample', s.label, s.synthetic); } catch { say('Could not load that sample.'); }
   }
@@ -232,7 +368,7 @@ export default function App() {
             <Chats persona={persona} state={pstate} open={openChat} setOpen={setOpenChat} onSwitch={() => setMenu(true)} />
           </section>
 
-          <section className={`pane pane-thread ${empty ? 'is-empty' : ''}`} aria-label="Artha">
+          <section className={`pane pane-thread ${empty ? 'is-empty' : ''}`} aria-label="Artha" onDragOver={e => e.preventDefault()} onDrop={e => { e.preventDefault(); const f = e.dataTransfer.files?.[0]; if (f && !busy) fromPhoto(f); }}>
             <div className="feed" ref={feed}>
               {empty && (
                 <div className="hero-copy">
@@ -251,7 +387,7 @@ export default function App() {
                 <span className="halo" /><Orb mode={orbMode} level={level} />
               </button>
             </div>
-            <TypeBar onText={fromText} disabled={busy} />
+            <TypeBar onText={fromText} onPhoto={fromPhoto} disabled={busy} />
           </section>
 
           <aside className="pane pane-side" aria-label="What Artha knows">
@@ -288,45 +424,43 @@ function Note({ run, persona, onAct, onSkip, onAll, onChoose, onCompare, onRepla
   const res = run.result;
   const [how, setHow] = useState(false);
   const ref = useEnter<HTMLElement>(!!res);
-  const audio = useRef<HTMLAudioElement | null>(null);
-  const play = () => { if (!run.audioUrl) return; audio.current?.pause(); audio.current = new Audio(run.audioUrl); audio.current.play().catch(() => {}); };
   const heard = res?.transcript ?? run.transcript ?? '';
   const shown = res?.transcript ?? heard;
   const marks = res ? [
     ...res.mentions.filter(m => m.kind === 'person' && m.candidates.length).map(m => ({ text: m.text, cls: 'person', label: [...m.candidates].sort((a, b) => b.score - a.score)[0].name })),
     ...res.entities.map(e => ({ text: nonLatin(res.transcript) ? origOf(res.transcript, e.text) : e.text, cls: e.kind, label: e.label.replace(/^.*→ /, '') })),
   ] : [];
+  const ledgerIdx = res?.actions.flatMap((a, i) => (a.type === 'ledger' ? [i] : [])) ?? [];
   const safeLeft = res?.actions.filter((a, i) => ['message', 'calendar', 'reminder', 'ledger'].includes(a.type) && !run.done[i]).length ?? 0;
   const secs = run.endedAt ? ((run.endedAt - run.startedAt) / 1000).toFixed(1) : null;
   const contact = (id: string) => persona?.contacts.find(x => x.id === id);
 
   return (
     <article className="note" ref={ref}>
-      <div className="me">
-        {run.source !== 'typed' && <button className="play" onClick={play} aria-label="Play the voice note"><I n="play" /></button>}
-        <span className="said">{heard ? shown : run.source === 'sample' ? run.label : '…'}</span>
-      </div>
+      <Heard run={run} res={res} shown={heard ? shown : ''} marks={marks} />
 
-      {!res && !run.error && <Progress stage={run.stage} />}
+      {!res && !run.error && <Progress stage={run.stage} labels={run.image ? ['Photo', 'Reading', 'Checking', 'Filing'] : undefined} />}
       {run.error && <p className="err">{run.error}</p>}
 
       {res && <>
         {res.blocked ? (
           <div className="card blocked"><I n="shield" /><div><b>Never shared. An OTP stays with you.</b><span>Hidden before any AI saw it.</span></div></div>
-        ) : (
+        ) : !res.heard && !run.scan ? (
           <p className="understood"><Highlight text={shown} marks={marks} /></p>
-        )}
+        ) : null}
+        {run.scan && <ScanCard scan={run.scan} run={run} onAll={() => onAll(run)} />}
 
         {res.clarify && (
           <div className="clar"><b>{res.clarify.question}</b>
             <div className="opts">{res.clarify.options.map(o => <button key={o.id} className="btn btn-ghost" disabled={run.working} onClick={() => onChoose(run, res.clarify!.mention, o.id, 'asked')}>{o.label}<small>{contact(o.id)?.rel}</small></button>)}</div>
           </div>)}
 
-        {res.actions.length > 0 && (
+        {res.actions.length > 0 && !run.scan && (
           <div className="acts">
-            {res.actions.map((a, i) => <ActionCard key={`${i}-${a.contact_id}`} a={a} done={run.done[i]} busy={run.busy === i || !!run.working} confirming={run.confirm === i} contact={contact(a.contact_id)}
+            {ledgerIdx.length >= 2 && <KhataGroup run={run} idx={ledgerIdx} onAct={i => onAct(run, i)} onSkip={i => onSkip(run, i)} onAll={() => onAll(run)} />}
+            {res.actions.map((a, i) => ledgerIdx.length >= 2 && a.type === 'ledger' ? null : <ActionCard key={`${i}-${a.contact_id}`} a={a} done={run.done[i]} busy={run.busy === i || !!run.working} confirming={run.confirm === i} contact={contact(a.contact_id)}
               onDo={() => onAct(run, i)} onConfirm={() => onAct(run, i, true)} onSkip={() => onSkip(run, i)} onChange={id => onChoose(run, a.mention ?? a.contact_name, id, 'changed')} />)}
-            {safeLeft > 1 && <button className="btn btn-primary doall" onClick={() => onAll(run)}><I n="check" />Do all</button>}
+            {safeLeft > 1 && !(ledgerIdx.length >= 2 && ledgerIdx.length === res.actions.length) && <button className="btn btn-primary doall" onClick={() => onAll(run)}><I n="check" />Do all</button>}
           </div>)}
 
         {(res.reply_speech || res.reply) && <button className="say" onClick={onReplay} aria-label="Hear Artha’s reply"><span className="say-i"><I n="speak" /></span><span>{res.reply_speech || res.reply}</span></button>}
@@ -342,13 +476,13 @@ function Note({ run, persona, onAct, onSkip, onAll, onChoose, onCompare, onRepla
   );
 }
 
-function Progress({ stage }: { stage: number }) {
+function Progress({ stage, labels = ['Heard', 'Meaning', 'Who', 'Plan'] }: { stage: number; labels?: string[] }) {
   const bar = useRef<HTMLDivElement>(null);
   useEffect(() => { if (bar.current) gsap.to(bar.current, { scaleX: Math.min(1, (stage + 0.6) / 4), duration: 0.9, ease: 'power2.out' }); }, [stage]);
   return (
     <div className="progress" aria-label="Working">
       <div className="track"><div className="fill" ref={bar} /></div>
-      <div className="labels">{['Heard', 'Meaning', 'Who', 'Plan'].map((l, i) => <span key={l} className={i < stage ? 'done' : i === stage ? 'now' : ''}>{l}</span>)}</div>
+      <div className="labels">{labels.map((l, i) => <span key={l} className={i < stage ? 'done' : i === stage ? 'now' : ''}>{l}</span>)}</div>
     </div>
   );
 }
@@ -415,12 +549,14 @@ function How({ run, res }: { run: Run; res: Result }) {
   return <div className="how" ref={ref}>{rows.map(([n, k, v]) => <div key={n} className="how-r"><b>{n}<span className={`chip ${k === 'Code' ? '' : 'accent'}`}>{k}</span></b><span>{v}</span></div>)}</div>;
 }
 
-function TypeBar({ onText, disabled }: { onText: (t: string) => void; disabled: boolean }) {
+function TypeBar({ onText, onPhoto, disabled }: { onText: (t: string) => void; onPhoto: (f: File) => void; disabled: boolean }) {
   const [text, setText] = useState('');
+  const file = useRef<HTMLInputElement>(null);
   return (
     <form className="typebar" onSubmit={e => { e.preventDefault(); if (text.trim() && !disabled) { onText(text.trim()); setText(''); } }}>
-      <I n="keyboard" s={{ color: 'var(--dim)' }} />
-      <input value={text} onChange={e => setText(e.target.value)} placeholder="Or type: “Rahul ko bolo kal 4 baje”" aria-label="Type a note" />
+      <button type="button" className="cam" onClick={() => file.current?.click()} disabled={disabled} aria-label="Send a photo: khata page, bill, prescription"><I n="camera" /></button>
+      <input ref={file} type="file" accept="image/*" hidden onChange={e => { const f = e.target.files?.[0]; if (f) onPhoto(f); e.target.value = ''; }} />
+      <input value={text} onChange={e => setText(e.target.value)} placeholder="Type, or send a photo of your khata" aria-label="Type a note" />
       {text.trim() && <button className="send" aria-label="Send" disabled={disabled}><I n="send" /></button>}
     </form>
   );

@@ -59,6 +59,8 @@ export type Result = {
   /** Existing timeline items this note was about (e.g. "already in your calendar"), kept for follow-ups. */
   refs?: { type: ActionType; title: string; when_iso: string; contact_id: string }[];
   topics?: string[];
+  /** What the user said, short and structured: a one-line gist and a few labelled points. */
+  heard?: { gist: string; points: { kind: string; text: string }[] };
   ms: { meaning: number; who: number; plan: number };
 };
 

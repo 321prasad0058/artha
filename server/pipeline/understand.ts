@@ -29,9 +29,11 @@ function actionSchema(contactIds: string[] | null) {
 function planSchema(contactIds: string[] | null) {
   const cand = contactIds ? { type: 'string', enum: [...contactIds, 'none'] } : { type: 'string' };
   return {
-    type: 'object', additionalProperties: false, required: ['language', 'mentions', 'actions', 'clarify_question', 'learn', 'reply', 'reply_speech'],
+    type: 'object', additionalProperties: false, required: ['language', 'heard_gist', 'heard_points', 'mentions', 'actions', 'clarify_question', 'learn', 'reply', 'reply_speech'],
     properties: {
       language: { type: 'string' },
+      heard_gist: { type: 'string' },
+      heard_points: { type: 'array', items: { type: 'object', additionalProperties: false, required: ['kind', 'text'], properties: { kind: { type: 'string', enum: ['person', 'when', 'money', 'item', 'task', 'place', 'question'] }, text: { type: 'string' } } } },
       mentions: { type: 'array', items: { type: 'object', additionalProperties: false, required: ['text', 'kind', 'value', 'candidates'], properties: {
         text: { type: 'string' }, kind: { type: 'string', enum: ['person', 'time', 'money', 'event', 'place', 'secret'] }, value: { type: 'string' },
         candidates: { type: 'array', items: { type: 'object', additionalProperties: false, required: ['id', 'score', 'why'], properties: { id: cand, score: { type: 'number' }, why: { type: 'string' } } } } } } },
@@ -83,10 +85,11 @@ Also
 - A follow-up that changes one thing (time, day, person) re-plans ONLY that action. Do not repeat other actions from earlier turns.
 - FOLLOW-UPS: short notes often continue the CONVERSATION. "Calendar mein daal do / add karo / add it" = add the latest proposed thing as a calendar entry with the same time and person; if that thing is marked "already in calendar", say it is already there. "Time 5 baje kar do / change to Monday" = the same action again with the new time. "Usko / unko bhi bata do / tell him too" = the people in the latest turn. "Cancel karo / rehne do" = cancel what was just set up. Use the people, times and amounts from CONVERSATION; do not ask again for things it already has.
 - PEOPLE CARDS "habits" come from what the user actually confirmed before (for example "reach by: call (3×)"): prefer them when the note does not say. FROM MEMORY is background: use it to understand references to older things ("wahi jo pichle hafte bola tha").
+- heard_gist: what the USER said, as a short headline of at most 8 words, in the language and script they spoke ("Pawar doctor appointment, kal 11 baje"). heard_points: 1 to 6 key facts from the note, each at most 5 words, in that same language, with kind: person (who, as the user named them), when (day/time from CODE_VALUES), money ("₹1,200 lene hain"), item (goods, quantity), task (what to do), place, question (what they asked). Long rambling notes get the SAME short treatment: only what matters.
 - mentions: list ONLY people mentioned, using the exact words from the transcript.
 - Keep every "why" under 10 words. Be brief everywhere: speed matters.`;
 
-const BASE_INSTRUCTIONS = `Turn this transcribed voice note into a list of actions (message, call, reminder, calendar, payment, ledger, suggestion). Use contact_id for the person's name as you understand it. Fill fields that don't apply with "", 0 or false. reply: a one-line confirmation. reply_speech: "". mentions: people, times and amounts mentioned, with empty candidates. learn: empty. clarify_question: "".`;
+const BASE_INSTRUCTIONS = `Turn this transcribed voice note into a list of actions (message, call, reminder, calendar, payment, ledger, suggestion). Use contact_id for the person's name as you understand it. Fill fields that don't apply with "", 0 or false. reply: a one-line confirmation. reply_speech: "". mentions: people, times and amounts mentioned, with empty candidates. learn: empty. clarify_question: "". heard_gist: "". heard_points: [].`;
 
 function istNowLabel(now: Date) {
   return now.toLocaleString('en-IN', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', hour: 'numeric', minute: '2-digit', timeZone: 'Asia/Kolkata' });
@@ -113,7 +116,7 @@ function bookSection(state: State, now: Date) {
   return `KHATA BOOK (every entry the user dictated, structured; "day" is the business day the entry is for, "recorded" is when they told Artha; correct an entry by returning it with updates = its id):\n${JSON.stringify(book.map(e => ({ id: e.id, day: e.day, kind: e.kind, party: e.party || '(name not given yet)', item: e.item || undefined, inr: e.amount, status: e.status === 'saved' ? 'saved' : 'not confirmed yet', recorded: e.at.slice(0, 16) })))}\nTOTALS BY DAY (code): ${totals.join(' | ')}`;
 }
 
-type PlanOut = { language: string; mentions: Mention[]; actions: Action[]; clarify_question: string; learn: string[]; reply: string; reply_speech: string };
+type PlanOut = { language: string; heard_gist?: string; heard_points?: { kind: string; text: string }[]; mentions: Mention[]; actions: Action[]; clarify_question: string; learn: string[]; reply: string; reply_speech: string };
 
 export async function understand(args: { persona: Persona; state: State; transcript: string; mode: Mode; forced?: Record<string, string>; now?: Date; ctx?: { db: DatabaseSync; query: Promise<Float32Array | null> } }): Promise<Result> {
   const { persona: p, state, transcript, mode } = args;
@@ -322,6 +325,7 @@ export async function understand(args: { persona: Persona; state: State; transcr
 
   return {
     mode, transcript, roman, language: out.language, entities: norm.entities, candidates: shortlist, mentions, actions, clarify, blocked: false, checks,
+    heard: out.heard_gist ? { gist: out.heard_gist, points: (out.heard_points ?? []).filter(x => x.text).slice(0, 6) } : undefined,
     learn: clarify ? [] : out.learn.filter(l => l && l.length < 160).slice(0, 2), reply: clarify ? '' : out.reply, reply_speech: clarify ? '' : out.reply_speech, refs, topics: kb.topics, ms: { meaning: msMeaning, who: msWho, plan: msPlan },
   };
 }

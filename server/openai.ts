@@ -25,7 +25,7 @@ export async function transcribe(audio: Buffer, mime: string, prompt?: string): 
   return String(j.text ?? '').trim();
 }
 
-export async function jsonCall<T>(opts: { instructions: string; input: string; schema: object; name: string; model?: string; effort?: string }): Promise<T> {
+export async function jsonCall<T>(opts: { instructions: string; input: string | unknown[]; schema: object; name: string; model?: string; effort?: string }): Promise<T> {
   const body: any = {
     model: opts.model ?? MODELS.plan,
     instructions: opts.instructions,

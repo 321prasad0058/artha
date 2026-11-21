@@ -1,4 +1,6 @@
 import type { Action, Contact, Mode, Result, State } from '../../server/types';
+import type { Scan } from '../../server/pipeline/scan';
+export type { Scan };
 
 export type PersonaInfo = { id: string; name: string; age: number; about: string; city: string; speaks: string[]; avatar: string; contacts: Contact[] };
 export type Sample = { id: string; persona: string; text: string; lang: string; label: string; file: string; synthetic: boolean };
@@ -22,6 +24,7 @@ export const api = {
   answer: (p: string, mention: string, contactId: string, topic?: string, how?: 'asked' | 'changed') => post<{ state: State }>('/api/answer', { p, mention, contactId, topic, how }),
   act: (p: string, action: Action, confirmed = false) => post<{ done: string; state: State }>('/api/act', { p, action, confirmed }),
   skip: (p: string, id?: string, updates?: string) => (id ? post<{ ok: boolean }>('/api/skip', { p, id, updates }) : Promise.resolve({ ok: true })),
+  scan: (p: string, image: string) => post<{ result: Result; scan: Scan; state: State }>('/api/scan', { p, image }),
   reset: (p: string) => post<{ state: State }>('/api/reset', { p }),
   results: () => call<any>('/api/results'),
 };

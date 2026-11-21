@@ -8,7 +8,8 @@ import { loadState, persona, personas, resetState, saveState } from './store.js'
 import { file, habitsOf, learnHabit, personCard, space, voicePeople, TTL_MS } from './context/space.js';
 import { embedQuery } from './context/embed.js';
 import { romanize } from './pipeline/translit.js';
-import type { Action, BookEntry, Mode, Persona } from './types.js';
+import type { Action, BookEntry, Mode, Persona, Result, State } from './types.js';
+import { scanImage } from './pipeline/scan.js';
 
 /** The person's contacts plus everyone first heard in their voice notes, so "Anand Patil" is known next time. */
 function withKnownPeople(p: Persona): Persona {
@@ -23,6 +24,40 @@ const voiceCache = new Map<string, Buffer>();
 const json = (status: number, data: unknown): Res => ({ status, headers: { 'content-type': 'application/json' }, body: JSON.stringify(data) });
 const parse = (b: Buffer) => (b.length ? JSON.parse(b.toString('utf8')) : {});
 const nowIso = () => new Date().toISOString();
+
+/** Remember one turn (a voice note or a photo): the conversation record, khata entries, learned facts. */
+function recordTurn(state: State, who: Persona, result: Result, said: string, forced?: Record<string, string>, opts: { merge?: boolean; src?: string } = {}) {
+  state.notes += 1;
+  // Remember this turn of the conversation (a re-plan after "which one?" replaces the previous turn).
+  const turnId = `t${state.notes}`;
+  result.actions.forEach((a, i) => (a.id = `${turnId}:${i + 1}`));
+  const turn = {
+    id: turnId, at: nowIso(), said: said.slice(0, 300),
+    people: result.mentions.filter(m => m.kind === 'person' && m.candidates.length).map(m => { const c = [...m.candidates].sort((x, y) => y.score - x.score)[0]; return { mention: m.text, id: c.id, name: c.name }; }),
+    actions: [
+      ...result.actions.map(a => ({ id: a.id!, type: a.type, contact_id: a.contact_id, contact_name: a.contact_name, title: a.title, text: a.text, when_iso: a.when_iso, when_label: a.when_label, amount_inr: a.amount_inr, status: 'proposed' as 'proposed' | 'done' | 'skipped' })),
+      ...(result.refs ?? []).map((r, i) => ({ id: `${turnId}:ref${i + 1}`, type: r.type, contact_id: r.contact_id, contact_name: who.contacts.find(c => c.id === r.contact_id)?.name ?? '', title: `${r.title} (already in calendar)`, text: '', when_iso: r.when_iso, when_label: '', amount_inr: 0, status: 'done' as const })),
+    ],
+    reply: result.reply,
+  };
+  // The khata book: every ledger line is written down now (not confirmed yet), so later notes can ask about it or correct it.
+  const book = (state.book ??= []);
+  const today = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
+  for (const a of result.actions.filter(x => x.type === 'ledger')) {
+    const kind = (a.entry_kind || (a.contact_id ? 'credit' : 'sale')) as BookEntry['kind'];
+    const whenDay = a.when_iso ? new Date(a.when_iso).toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' }) : '';
+    const day = whenDay && whenDay <= today ? whenDay : today;
+    const party = (a.contact_name && !['Sales', 'Purchases', 'Name not given'].includes(a.contact_name) ? a.contact_name : a.party ?? '').replace(/\s*\(?(सप्लायर|supplier|wale|wala|वाले|वाला|यांच्याकडून|kadun)\)?$/i, '').trim();
+    // a correction points at its entry; a repeat of an open entry (same kind and amount, recent) is the same entry, never a copy
+    let e = book.find(x => x.id === a.updates && x.status !== 'dropped')
+      ?? (opts.merge === false ? undefined : book.find(x => x.status === 'proposed' && x.kind === kind && x.amount === a.amount_inr && Date.now() - Date.parse(x.at) < 3 * 3600e3 && (!x.party || !party || x.party === party)));
+    if (e) { Object.assign(e, { kind, party: party || e.party, contact_id: a.contact_id || e.contact_id, item: a.item || e.item, amount: a.amount_inr, day: whenDay ? day : e.day }); a.updates = e.id; }
+    else { e = { id: a.id!, turn: turnId, at: nowIso(), day, kind, party, contact_id: a.contact_id || undefined, item: a.item ?? '', amount: a.amount_inr, status: 'proposed', said: turn.said }; book.push(e); a.updates = e.id; }
+  }
+  state.turns = [...(state.turns ?? []).filter(t => !(forced && Object.keys(forced).length && t.said === turn.said)), turn].slice(-12);
+  // Stage 6: Learn
+  for (const f of result.learn) if (!state.memory.some(m => m.fact.toLowerCase() === f.toLowerCase())) state.memory.push({ fact: f, src: opts.src ?? 'from a voice note', at: nowIso(), learned: true });
+}
 
 export async function handle(req: Req): Promise<Res> {
   try {
@@ -57,39 +92,23 @@ export async function handle(req: Req): Promise<Res> {
       const ctx = mode === 'artha' ? { db: space(who.id), query: embedQuery(transcript) } : undefined;
       const result = await understand({ persona: who, state, transcript, mode, forced: b.forced ?? {}, ctx });
       if (result.mode === 'artha') {
-        state.notes += 1;
-        // Remember this turn of the conversation (a re-plan after "which one?" replaces the previous turn).
-        const turnId = `t${state.notes}`;
-        result.actions.forEach((a, i) => (a.id = `${turnId}:${i + 1}`));
-        const turn = {
-          id: turnId, at: nowIso(), said: String(b.transcript ?? '').slice(0, 300),
-          people: result.mentions.filter(m => m.kind === 'person' && m.candidates.length).map(m => { const c = [...m.candidates].sort((x, y) => y.score - x.score)[0]; return { mention: m.text, id: c.id, name: c.name }; }),
-          actions: [
-            ...result.actions.map(a => ({ id: a.id!, type: a.type, contact_id: a.contact_id, contact_name: a.contact_name, title: a.title, text: a.text, when_iso: a.when_iso, when_label: a.when_label, amount_inr: a.amount_inr, status: 'proposed' as 'proposed' | 'done' | 'skipped' })),
-            ...(result.refs ?? []).map((r, i) => ({ id: `${turnId}:ref${i + 1}`, type: r.type, contact_id: r.contact_id, contact_name: who.contacts.find(c => c.id === r.contact_id)?.name ?? '', title: `${r.title} (already in calendar)`, text: '', when_iso: r.when_iso, when_label: '', amount_inr: 0, status: 'done' as const })),
-          ],
-          reply: result.reply,
-        };
-        // The khata book: every ledger line is written down now (not confirmed yet), so later notes can ask about it or correct it.
-        const book = (state.book ??= []);
-        const today = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
-        for (const a of result.actions.filter(x => x.type === 'ledger')) {
-          const kind = (a.entry_kind || (a.contact_id ? 'credit' : 'sale')) as BookEntry['kind'];
-          const whenDay = a.when_iso ? new Date(a.when_iso).toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' }) : '';
-          const day = whenDay && whenDay <= today ? whenDay : today;
-          const party = (a.contact_name && !['Sales', 'Purchases', 'Name not given'].includes(a.contact_name) ? a.contact_name : a.party ?? '').replace(/\s*\(?(सप्लायर|supplier|wale|wala|वाले|वाला|यांच्याकडून|kadun)\)?$/i, '').trim();
-          // a correction points at its entry; a repeat of an open entry (same kind and amount, recent) is the same entry, never a copy
-          let e = book.find(x => x.id === a.updates && x.status !== 'dropped')
-            ?? book.find(x => x.status === 'proposed' && x.kind === kind && x.amount === a.amount_inr && Date.now() - Date.parse(x.at) < 3 * 3600e3 && (!x.party || !party || x.party === party));
-          if (e) { Object.assign(e, { kind, party: party || e.party, contact_id: a.contact_id || e.contact_id, item: a.item || e.item, amount: a.amount_inr, day: whenDay ? day : e.day }); a.updates = e.id; }
-          else { e = { id: a.id!, turn: turnId, at: nowIso(), day, kind, party, contact_id: a.contact_id || undefined, item: a.item ?? '', amount: a.amount_inr, status: 'proposed', said: turn.said }; book.push(e); a.updates = e.id; }
-        }
-        state.turns = [...(state.turns ?? []).filter(t => !(b.forced && Object.keys(b.forced).length && t.said === turn.said)), turn].slice(-12);
-        // Stage 6: Learn
-        for (const f of result.learn) if (!state.memory.some(m => m.fact.toLowerCase() === f.toLowerCase())) state.memory.push({ fact: f, src: 'from a voice note', at: nowIso(), learned: true });
+        recordTurn(state, who, result, String(b.transcript ?? ''), b.forced);
         await saveState(state);
       }
       return json(200, { result, state });
+    }
+
+    // A photo: read it, check it, file it. Same memory as a voice note.
+    if (p === '/api/scan' && method === 'POST') {
+      const b = parse(req.body);
+      const image = String(b.image ?? '');
+      if (!/^data:image\/(jpeg|png|webp);base64,/.test(image) || image.length > 8e6) return json(400, { error: 'Send a JPEG, PNG or WebP photo under 6 MB' });
+      const state = await loadState(persona(b.p).id);
+      const who = withKnownPeople(persona(b.p));
+      const { scan, result } = await scanImage({ persona: who, state, image });
+      recordTurn(state, who, result, `(photo) ${scan.title}: ${scan.lines.map(l => `${l.party || l.item} ${l.amount}`).join(', ')}`, undefined, { merge: false, src: 'from a photo' });
+      await saveState(state);
+      return json(200, { result, scan, state });
     }
 
     // The user answered "which one?": remember it.

@@ -34,7 +34,7 @@ const cap = async text => page.evaluate(x => { document.getElementById('demo-cap
 const click = async (text, scope = 'button') => { const [b] = await page.$$(`xpath/.//${scope}[contains(., "${text}")]`); if (!b) throw new Error(`no ${scope} "${text}"`); await b.click(); };
 const count = () => page.$$eval('.note', n => n.length);
 async function result(n) {   // wait until note n has its answer, then record Artha's spoken reply for the soundtrack
-  await page.waitForFunction(k => { const notes = document.querySelectorAll('.note'); const x = notes[k - 1]; return x && x.querySelector('.act, .blocked, .clar'); }, { timeout: 60000 }, n);
+  await page.waitForFunction(k => { const notes = document.querySelectorAll('.note'); const x = notes[k - 1]; return x && x.querySelector('.act, .blocked, .clar, .kgroup, .scan'); }, { timeout: 60000 }, n);
   const at = now();
   const reply = await page.evaluate(k => document.querySelectorAll('.note')[k - 1].querySelector('.say span:last-child')?.textContent ?? '', n);
   if (reply) {
