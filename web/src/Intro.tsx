@@ -48,7 +48,10 @@ export function Intro({ onDone }: { onDone: () => void }) {
   useEffect(() => {
     const host = canvasHost.current!, el = root.current!;
     const w = () => host.clientWidth, h = () => host.clientHeight;
-    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    // no WebGL (old devices, GPU-less or headless browsers): skip the intro instead of leaving a blank screen
+    let renderer: THREE.WebGLRenderer;
+    try { renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true }); }
+    catch { try { sessionStorage.setItem('artha.intro', 'seen'); } catch { /* */ } onDone(); return; }
     renderer.setPixelRatio(Math.min(2, window.devicePixelRatio));
     renderer.setSize(w(), h(), false);
     host.appendChild(renderer.domElement);
