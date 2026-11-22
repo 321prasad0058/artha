@@ -129,14 +129,16 @@ const INSTRUCTIONS = `You turn a person's emails into structured memory for Arth
 - amount_inr and money: bills due → to_pay; money the user paid → paid; money someone owes the user → to_receive; money received → received. Else 0 and "".
 Never copy passwords, OTPs, card or account numbers into any field.`;
 
-export async function extract(mails: Mail[], p: Persona, now = new Date()): Promise<Item[]> {
+export async function extract(mails: Mail[], p: Persona, now = new Date(), onBatch?: (done: number, total: number) => void): Promise<Item[]> {
   const contacts = p.contacts.map(c => ({ id: c.id, name: c.name, relation: c.rel, called: c.aliases }));
   const batches: Mail[][] = []; for (let i = 0; i < mails.length; i += 8) batches.push(mails.slice(i, i + 8));
   const today = now.toLocaleString('en-IN', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Asia/Kolkata' });
   const plans = (p.calendar ?? []).map(c => `${c.title} at ${c.time}`).join('; ');
   const sent = (m: Mail) => new Date(Number(m.date) || Date.parse(m.date)).toLocaleString('en-IN', { weekday: 'long', day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit', timeZone: 'Asia/Kolkata' });
+  let finished = 0; onBatch?.(0, batches.length);
   const out = await pool(batches, 3, b => jsonCall<{ items: Item[] }>({ name: 'mail', instructions: INSTRUCTIONS, schema,
-    input: `TODAY: ${today}\nUSER: ${p.name}, ${p.city}. ${p.about}\nKNOWN PLANS: ${plans || 'none'}\nCONTACTS: ${JSON.stringify(contacts)}\nEMAILS:\n${b.map(m => JSON.stringify({ id: m.id, from: `${m.fromName} <${m.from}>`, sent: sent(m), subject: m.subject, body: (m.body ?? '').slice(0, 1800) })).join('\n')}` }));
+    input: `TODAY: ${today}\nUSER: ${p.name}, ${p.city}. ${p.about}\nKNOWN PLANS: ${plans || 'none'}\nCONTACTS: ${JSON.stringify(contacts)}\nEMAILS:\n${b.map(m => JSON.stringify({ id: m.id, from: `${m.fromName} <${m.from}>`, sent: sent(m), subject: m.subject, body: (m.body ?? '').slice(0, 1800) })).join('\n')}` })
+    .then(r => { onBatch?.(++finished, batches.length); return r; }));
   return out.flatMap(o => o.items);
 }
 
@@ -245,7 +247,17 @@ export async function* syncEvents(state: State, p0: Persona, now = new Date()): 
     yield { t: 'profile', name: p.name, city: p.city, about: p.about, speaks: p.speaks, contacts: p.contacts.length };
   }
   // 3. extraction and filing
-  const items = kept.length ? await extract(kept, p, now) : [];
+  // filing, batch by batch: each finished batch is reported, so the setup screen can show real progress
+  let items: Item[] = [];
+  if (kept.length) {
+    const q: Record<string, unknown>[] = []; let wake: (() => void) | null = null;
+    const run = { done: false, err: null as unknown };
+    extract(kept, p, now, (done, total) => { q.push({ t: 'progress', stage: 'filing', done, total, mails: kept.length }); wake?.(); })
+      .then(r => { items = r; }, e => { run.err = e; }).finally(() => { run.done = true; wake?.(); });
+    for (;;) { while (q.length) yield q.shift()!; if (run.done) break; await new Promise<void>(r => (wake = r)); wake = null; }
+    while (q.length) yield q.shift()!;
+    if (run.err) throw run.err;
+  }
   yield { t: 'progress', stage: 'understood', n: items.filter(x => x.keep).length };
   const stats = file(state, p, kept, items);
   for (const m of mails) seen.add(m.id);
