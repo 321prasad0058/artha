@@ -73,7 +73,9 @@ export function Roadmap({ nodes, target, creep, creepSecs = 12, done }: Props) {
     const uOf = (p: number) => { const i = Math.min(n - 2, Math.max(0, Math.floor(p))); const f = Math.min(1, Math.max(0, p - i)); return stopAt[i] + (stopAt[i + 1] - stopAt[i]) * f; };
 
     // ---- scene and camera
-    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    // no WebGL (GPU-less or headless browsers): skip the road drawing; the setup steps and results still show
+    let renderer: THREE.WebGLRenderer;
+    try { renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true }); } catch { return; }
     renderer.setPixelRatio(Math.min(2, devicePixelRatio)); renderer.setSize(W, H); renderer.setClearColor(0x000000, 0);
     host.appendChild(renderer.domElement);
     const scene = new THREE.Scene(), world = new THREE.Group(); scene.add(world);
