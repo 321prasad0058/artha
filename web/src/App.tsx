@@ -5,6 +5,7 @@ import type { Action, Result, State } from '../../server/types';
 import { API_BASE, api, type PersonaInfo, type Sample, type Scan } from './api';
 import { Orb, type OrbMode } from './Orb';
 import { Intro, shouldShowIntro } from './Intro';
+import { Roadmap, type RoadNode } from './Roadmap';
 import { startRecording, type Recording } from './recorder';
 import { closeGetApp, inAppBrowser, installNow, iosFlow, isSafariMac, openGetApp, platform, standalone, useInstall } from './install';
 
@@ -250,32 +251,59 @@ function Welcome({ me, samples, onPick }: { me: PersonaInfo | null; samples: Per
   );
 }
 /** Right after signing in with Google: read the mail, learn who you are and who's who, file plans and bills. */
+/** A fake sync for demos and screenshots (?setupDemo): the same events a real Gmail read sends, at a realistic pace. */
+function demoSync(onEvent: (e: any) => void) {
+  const plan: [number, any][] = [[900, { t: 'progress', stage: 'list', n: 62 }], [1700, { t: 'progress', stage: 'triage', n: 62, kept: 59, skipped: 3 }], [2600, { t: 'progress', stage: 'read', n: 58, otp: 1 }],
+    [3000, { t: 'progress', stage: 'profile' }], [9000, { t: 'profile', name: 'Aarav Deshmukh', city: 'Pune', about: 'Product engineer at Ledgerly, Pune. From Dhule; Marathi at home, Hindi with friends, English at work.', speaks: ['Marathi', 'Hindi', 'English'], contacts: 21 }],
+    ...Array.from({ length: 9 }, (_, i): [number, any] => [9800 + i * 1500, { t: 'progress', stage: 'filing', done: i, total: 8, mails: 58 }]),
+    [22200, { t: 'progress', stage: 'understood', n: 54 }], [23000, { t: 'done', stats: { plans: 14, money: 27, facts: 31 } }]];
+  return new Promise<void>(res => { plan.forEach(([ms, e]) => setTimeout(() => onEvent(e), ms)); setTimeout(res, 23100); });
+}
+
 function SetupScreen({ pid, onDone }: { pid: string; onDone: (s: State | null) => void }) {
-  const STEPS = ['Reading your mail', 'Learning who you are', 'Learning who\'s who', 'Filing plans, bills and facts'];
-  const [step, setStep] = useState(0); const [line, setLine] = useState(''); const [who, setWho] = useState<{ name: string; city: string; about: string; contacts: number } | null>(null);
+  const TITLES = ['Gmail connected', 'Reading your mail', 'Learning who you are', 'Learning who\'s who', 'Filing plans, bills and facts'];
+  const [subs, setSubs] = useState<string[]>(['Read-only', '', '', '', '']);
+  const sub = (i: number, t: string) => setSubs(x => x.map((v, k) => (k === i ? t : v)));
+  // where the road is: a stop reached (0..4), and how far it may creep while waiting for the next event
+  const [road, setRoad] = useState({ target: 0, creep: 0.8, secs: 8 });
+  const go = (target: number, creep = target, secs = 10) => setRoad(r => ({ target: Math.max(r.target, target), creep: Math.max(target, creep), secs }));
+  const [who, setWho] = useState<{ name: string; city: string; about: string; contacts: number } | null>(null);
   const [stats, setStats] = useState<Record<string, number> | null>(null); const [err, setErr] = useState('');
   const final = useRef<State | null>(null);
   useEffect(() => {
-    api.gmailSync(pid, e => {
+    let profiled = false;
+    const on = (e: any) => {
       if (e.t === 'progress') {
-        if (e.stage === 'list') setLine(`${e.n} mails from the last 90 days`);
-        if (e.stage === 'triage') setLine(`${e.kept} worth reading · ${e.skipped} newsletters and promotions skipped`);
-        if (e.stage === 'read') { setStep(1); setLine(`${e.n} mails read${e.otp ? ` · ${e.otp} OTP mail${e.otp > 1 ? 's' : ''} ignored` : ''}`); }
-        if (e.stage === 'profile') setStep(1);
-        if (e.stage === 'understood') setStep(3);
-      } else if (e.t === 'profile') { setWho(e); setStep(2); }
-      else if (e.t === 'done') setStats(e.stats);
+        if (e.stage === 'list') { sub(1, `${e.n} mails from the last 90 days`); go(0.3, 0.85, 8); }
+        if (e.stage === 'triage') { sub(1, `${e.kept} worth reading · ${e.skipped} skipped`); go(0.6, 0.9, 6); }
+        if (e.stage === 'read') { sub(1, `${e.n} read${e.otp ? ' · OTP never opened' : ''}`); go(1, 1.85, 16); }
+        if (e.stage === 'profile') { profiled = true; sub(2, 'Reading how people write to you'); }
+        if (e.stage === 'filing') {
+          if (!profiled && e.done === 0) { sub(2, 'Already know you'); sub(3, 'Your people are ready'); }
+          const f = e.total ? e.done / e.total : 0;
+          sub(4, e.done === 0 ? `${e.mails} mails to file` : `${Math.min(e.mails, e.done * 8)} of ${e.mails} mails filed`);
+          go(3 + f * 0.92, 3 + Math.min(0.95, (e.done + 1) / Math.max(1, e.total) * 0.92), 9);
+        }
+        if (e.stage === 'understood') { sub(4, `${e.n} useful things found`); go(3.96); }
+      } else if (e.t === 'profile') {
+        setWho(e); sub(2, `${e.name.split(' ')[0]} · ${e.city}`); go(2);
+        setTimeout(() => { sub(3, `${e.contacts} people in your life`); go(3, 3.5, 14); }, 900);
+      } else if (e.t === 'done') { setStats(e.stats); sub(4, `${e.stats.plans} plans · ${e.stats.money} bills · ${e.stats.facts} facts`); }
       else if (e.t === 'state') final.current = e.state;
       else if (e.t === 'error') setErr(e.error);
-    }).catch(e => setErr(e.message));
-  }, [pid]);
+    };
+    (new URLSearchParams(location.search).has('setupDemo') ? demoSync(on) : api.gmailSync(pid, on)).catch(e => setErr(e.message));
+  }, [pid]);   // eslint-disable-line react-hooks/exhaustive-deps
   const done = !!stats;
+  const nodes: RoadNode[] = TITLES.map((title, i) => ({ title, sub: subs[i] }));
+  const now = done ? TITLES.length : Math.min(TITLES.length - 1, Math.ceil(road.target + 0.001));
   return (
     <div className="welcome setup" role="dialog" aria-label="Setting up Artha">
+      <div className="w-aurora" aria-hidden="true"><i /><i /><i /></div>
       <div className="welcome-in">
-        <header className="w-head"><img src="/icon.svg" alt="" className="w-mark-img" /><div><h1>{who ? `Namaste, ${who.name.split(' ')[0]}` : 'Setting up your Artha'}</h1><p>{who?.about || 'This takes about a minute.'}</p></div></header>
-        <ol className="s-steps">{STEPS.map((t, i) => <li key={t} className={done || i < step ? 'ok' : i === step ? 'now' : ''}><span>{done || i < step ? <I n="check" /> : i + 1}</span>{t}</li>)}</ol>
-        {line && !done && <p className="s-line"><span className="g-spin" />{line}</p>}
+        <header className="w-head"><img src="/icon.svg" alt="" className="w-mark-img" /><div><h1>{who ? `Namaste, ${who.name.split(' ')[0]}` : 'Setting up your Artha AI'}</h1><p>{who?.about || 'Reading your Gmail, read-only. This takes about a minute.'}</p></div></header>
+        <Roadmap nodes={nodes} target={road.target} creep={road.creep} creepSecs={road.secs} done={done} />
+        <ol className="sr-only" aria-live="polite">{TITLES.map((t, i) => <li key={t}>{t}: {i < now ? 'done' : i === now ? 'in progress' : 'waiting'}{subs[i] ? `, ${subs[i]}` : ''}</li>)}</ol>
         {done && <div className="s-stats">{[['contacts', who?.contacts ?? 0, 'people in your life'], ['plans', stats!.plans, 'plans'], ['money', stats!.money, 'bills & payments'], ['facts', stats!.facts, 'things remembered']].map(([k, v, l]) => <div key={String(k)}><b>{v as number}</b><span>{l}</span></div>)}</div>}
         {err && <p className="bad">{err}</p>}
         {(done || err) && <button className="btn btn-primary" onClick={() => onDone(final.current)}>{done ? 'Start talking' : 'Continue'}</button>}
