@@ -295,6 +295,15 @@ function SetupScreen({ pid, onDone }: { pid: string; onDone: (s: State | null) =
     (new URLSearchParams(location.search).has('setupDemo') ? demoSync(on) : api.gmailSync(pid, on)).catch(e => setErr(e.message));
   }, [pid]);   // eslint-disable-line react-hooks/exhaustive-deps
   const done = !!stats;
+  // once every stop is reached: a beat to see the finish, then the road folds away and only the results stay
+  const [road2, setRoad2] = useState<'on' | 'leaving' | 'gone'>('on');
+  useEffect(() => {
+    if (!done) return;
+    const calm = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const a = setTimeout(() => setRoad2('leaving'), calm ? 400 : 1700);
+    const b = setTimeout(() => setRoad2('gone'), calm ? 700 : 2500);
+    return () => { clearTimeout(a); clearTimeout(b); };
+  }, [done]);
   const nodes: RoadNode[] = TITLES.map((title, i) => ({ title, sub: subs[i] }));
   const now = done ? TITLES.length : Math.min(TITLES.length - 1, Math.ceil(road.target + 0.001));
   return (
@@ -302,11 +311,11 @@ function SetupScreen({ pid, onDone }: { pid: string; onDone: (s: State | null) =
       <div className="w-aurora" aria-hidden="true"><i /><i /><i /></div>
       <div className="welcome-in">
         <header className="w-head"><img src="/icon.svg" alt="" className="w-mark-img" /><div><h1>{who ? `Namaste, ${who.name.split(' ')[0]}` : 'Setting up your Artha AI'}</h1><p>{who?.about || 'Reading your Gmail, read-only. This takes about a minute.'}</p></div></header>
-        <Roadmap nodes={nodes} target={road.target} creep={road.creep} creepSecs={road.secs} done={done} />
+        {road2 !== 'gone' && <div className={`road-wrap ${road2 === 'leaving' ? 'leaving' : ''}`}><Roadmap nodes={nodes} target={road.target} creep={road.creep} creepSecs={road.secs} done={done} /></div>}
         <ol className="sr-only" aria-live="polite">{TITLES.map((t, i) => <li key={t}>{t}: {i < now ? 'done' : i === now ? 'in progress' : 'waiting'}{subs[i] ? `, ${subs[i]}` : ''}</li>)}</ol>
-        {done && <div className="s-stats">{[['contacts', who?.contacts ?? 0, 'people in your life'], ['plans', stats!.plans, 'plans'], ['money', stats!.money, 'bills & payments'], ['facts', stats!.facts, 'things remembered']].map(([k, v, l]) => <div key={String(k)}><b>{v as number}</b><span>{l}</span></div>)}</div>}
+        {road2 === 'gone' && <div className="s-stats">{[['contacts', who?.contacts ?? 0, 'people in your life'], ['plans', stats!.plans, 'plans'], ['money', stats!.money, 'bills & payments'], ['facts', stats!.facts, 'things remembered']].map(([k, v, l]) => <div key={String(k)}><b>{v as number}</b><span>{l}</span></div>)}</div>}
         {err && <p className="bad">{err}</p>}
-        {(done || err) && <button className="btn btn-primary" onClick={() => onDone(final.current)}>{done ? 'Start talking' : 'Continue'}</button>}
+        {((done && road2 === 'gone') || err) && <button className="btn btn-primary s-go" onClick={() => onDone(final.current)}>{done ? 'Start talking' : 'Continue'}</button>}
       </div>
     </div>
   );
