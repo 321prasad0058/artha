@@ -95,7 +95,7 @@ export function Intro({ onDone }: { onDone: () => void }) {
     const onMove = (e: PointerEvent) => { mouse.x = (e.clientX / innerWidth - .5); mouse.y = (e.clientY / innerHeight - .5); };
     addEventListener('pointermove', onMove);
 
-    let raf = 0; const t0 = performance.now();
+    let raf = 0, lastR = 0; const t0 = performance.now();
     const tick = () => {
       const t = (performance.now() - t0) / 1000;
       if (w() !== lastW || h() !== lastH) { lastW = w(); lastH = h(); renderer.setSize(lastW, lastH, false); camera.aspect = lastW / lastH; camera.updateProjectionMatrix(); }
@@ -112,6 +112,9 @@ export function Intro({ onDone }: { onDone: () => void }) {
         pos[k] = px * scale * ex; pos[k + 1] = (py * scale - (narrow() && s.b < .5 ? 0 : 0)) * ex - s.d * drop; pos[k + 2] = pz * scale * ex;   // shrink depth too, or the spinning orb looks oval on phones
       }
       geo.attributes.position.needsUpdate = true;
+      // the orb's radius on screen: the name sits in its middle, the tagline just below its edge
+      const orbR = Math.round((2.3 * (1 + s.c * .55) * scale) / (Math.tan(camera.fov * Math.PI / 360) * camera.position.z) * (h() / 2));
+      if (orbR !== lastR) { lastR = orbR; el.style.setProperty('--orb-r', `${orbR}px`); }
       const ry = s.spin * t * .28 + mouse.x * .35, rx = mouse.y * .22;
       points.rotation.set(rx, ry, 0); glowPts.rotation.set(rx, ry, 0);
       glow.position.y = -s.d * drop;
@@ -155,7 +158,7 @@ export function Intro({ onDone }: { onDone: () => void }) {
       // 4. the name
       .to(q('.chip-i'), { opacity: 0, scale: .85, x: 0, y: 0, duration: .45, stagger: .04, ease: 'power2.in' }, 6.0)
       .to(q('.b3'), { opacity: 0, duration: .3 }, 6.0)
-      .fromTo(q('.b4 > *'), { opacity: 0, y: 22 }, { opacity: 1, y: 0, duration: .7, stagger: .1 }, 6.25)
+      .fromTo(q('.b4 .in'), { opacity: 0, y: 22 }, { opacity: 1, y: 0, duration: .7, stagger: .1 }, 6.25)
       .fromTo(q('.name'), { backgroundPosition: '120% 0' }, { backgroundPosition: '-20% 0', duration: 1.6, ease: 'power1.inOut' }, 6.3);
     const finish = () => {
       if (done.current) return; done.current = true;
@@ -197,9 +200,9 @@ export function Intro({ onDone }: { onDone: () => void }) {
       <div className="chips-i" aria-hidden="true">{CHIPS.map(c => <span key={c.k} className={`chip-i ${c.k}`}><i /><em>“{c.heard}”</em><span className="arr">→</span><b>{c.got}</b></span>)}</div>
       <div className="beat b3 low"><p>Knows who you mean, and when, and how much.</p></div>
       <div className="beat b4">
-        <span className="mark">A</span>
-        <h1 className="name">Artha AI</h1>
-        <p className="tag">Bas ishaara kaafi hai.</p>
+        <div className="slot above"><img className="mark in" src="/icon.svg" alt="" /></div>
+        <div className="slot mid"><h1 className="name in">Artha AI</h1></div>
+        <div className="slot below"><p className="tag in">Bas ishaara kaafi hai.</p></div>
       </div>
       <button className="skip" onClick={e => { e.stopPropagation(); finish(); }}>Skip</button>
     </div>
