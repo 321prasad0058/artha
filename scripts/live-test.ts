@@ -4,7 +4,7 @@
 //   npx tsx scripts/live-test.ts [baseUrl]      → eval/live-results.json, eval/live-kb.json
 import fs from 'node:fs';
 
-const BASE = (process.argv[2] ?? 'https://djq9jnhg6rg4f.cloudfront.net').replace(/\/$/, '');
+const BASE = (process.argv[2] ?? 'https://heyartha.web.app').replace(/\/$/, '');
 type Exp =
   | { say: string; want: 'action'; type: string[]; contact: string; when?: RegExp; act?: boolean; note?: string }
   | { say: string; want: 'reply'; match: RegExp; note?: string }

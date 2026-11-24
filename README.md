@@ -11,8 +11,8 @@
 </p>
 
 <p align="center">
-  <a href="https://djq9jnhg6rg4f.cloudfront.net"><b>Open the live app</b></a> ·
-  <a href="https://djq9jnhg6rg4f.cloudfront.net/?app">Install it on your phone</a> ·
+  <a href="https://heyartha.web.app"><b>Open the live app</b></a> ·
+  <a href="https://heyartha.web.app/?app">Install it on your phone</a> ·
   OpenAI × Equal AI BUILDERS 2026, Track 2: Voice AI for India
 </p>
 
@@ -260,7 +260,7 @@ flowchart LR
 
 ## Memory and embeddings
 
-Each person has one SQLite file (`node:sqlite`), stored in S3. It has 13 tables: `entity`, `alias`, `fact`, `turn`, `action`, `event`, `cal`, `book`, `ledger`, `balance`, `habit`, `vec` and `meta`. Rows expire after 90 days.
+Each person has one SQLite file (`node:sqlite`), kept on the server's disk. It has 13 tables: `entity`, `alias`, `fact`, `turn`, `action`, `event`, `cal`, `book`, `ledger`, `balance`, `habit`, `vec` and `meta`. Rows expire after 90 days.
 
 Every person and memory has a vector from `text-embedding-3-large`, cut to **256 dimensions** and stored as **int8 plus one float scale**: 260 bytes a row instead of 12 KB.
 
@@ -298,11 +298,11 @@ Rohan says *"Ayush ko bol Sunday cricket pakka, bat leke aana"*. Recall, with `s
 | Understanding | OpenAI `gpt-6-luna` (reasoning off, strict JSON schema, streamed fields); also reads khata photos and Gmail |
 | Text to speech | OpenAI `gpt-4o-mini-tts`, voice "coral", streamed MP3 |
 | Embeddings | OpenAI `text-embedding-3-large`, 256 dims, int8 |
-| Memory | SQLite file per person (`node:sqlite`) in S3, 90-day expiry |
+| Memory | SQLite file per person (`node:sqlite`), 90-day expiry |
 | Frontend | React 18, TypeScript, Vite, three.js (orb, intro, setup road), GSAP; installable PWA with a service worker |
-| Backend | Node 24 on AWS Lambda (arm64, response streaming) |
-| Hosting | CloudFront + S3, us-west-2; EventBridge keeps the Lambda warm |
-| CI/CD | GitHub Actions: typecheck, tests, build, deploy with OIDC (no AWS keys stored) |
+| Backend | Node 24 on Render (free plan, Singapore), streamed responses |
+| Hosting | Website on Firebase Hosting (heyartha.web.app); a scheduled GitHub ping keeps the API awake |
+| CI/CD | GitHub Actions: typecheck, tests, build on every PR; Render redeploys the API from `main` |
 | Gmail | Google OAuth, read-only scope; tokens encrypted with AES-256-GCM |
 
 ## API
@@ -369,7 +369,7 @@ npm run dev               # API on :8787, web on Vite
 | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | Google sign-in and Gmail (optional) |
 | `ARTHA_TOKEN_KEY` | Encrypting Gmail tokens |
 | `ARTHA_PUBLIC_URL` | OAuth callback URL when not on localhost |
-| `ARTHA_BUCKET` | S3 bucket for memory files (Lambda only; local runs use `data/`) |
+| `ARTHA_APP_URL`, `ARTHA_ALLOWED_ORIGINS` | Hosted only: the website's address (Google sign-in returns there) and which sites may call the API |
 | `ARTHA_STT_MODEL`, `ARTHA_PLAN_MODEL`, `ARTHA_PLAN_EFFORT` | Override the default models |
 
 Other scripts:
@@ -378,12 +378,15 @@ Other scripts:
 npm test             # pipeline and streaming tests
 npm run typecheck
 npm run eval         # the 41-note benchmark → eval/results.json
-npm run build        # web build + Lambda bundle
+npm run build        # web build
 ```
 
 ## Deploy
 
-Every merge to `main` runs [.github/workflows/deploy.yml](.github/workflows/deploy.yml): typecheck, tests, build, then [infra/deploy.sh](infra/deploy.sh) uploads the web build to S3, updates the Lambda and invalidates CloudFront. AWS access uses GitHub OIDC; no AWS keys are stored in the repo.
+- **API:** [Render](https://render.com), free plan, from [render.yaml](render.yaml). Every merge to `main` redeploys it. The OpenAI key is set in Render, never in the repo. Address: https://artha-api-mlqj.onrender.com
+- **Website:** Firebase Hosting on the free Spark plan, at **https://heyartha.web.app**. Deploy with `npm run deploy:web`, which builds the app to call the Render API.
+- **Checks:** every PR runs typecheck, tests and build ([.github/workflows/deploy.yml](.github/workflows/deploy.yml)). [keepalive.yml](.github/workflows/keepalive.yml) pings the API every 10 minutes so the free server stays awake.
+- `infra/` holds the earlier AWS (Lambda + CloudFront) setup, kept for reference.
 
 ## Repo layout
 
