@@ -18,3 +18,5 @@ dist-lambda/
 lambda.zip
 data/tokens/
 data/users/
+.firebase/
+firebase-debug.log

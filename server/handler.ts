@@ -174,6 +174,9 @@ export async function* gmailSyncEvents(req: Req): AsyncGenerator<Record<string, 
 /** Routes that answer as a stream of newline-delimited JSON events. */
 export const STREAMS: Record<string, (req: Req) => AsyncGenerator<Record<string, unknown>>> = { '/api/note': noteEvents, '/api/gmail/sync': gmailSyncEvents };
 
+/** Where people land after Google sign-in: the website, which may live apart from the API (ARTHA_APP_URL). */
+const appUrl = (back: string) => (process.env.ARTHA_APP_URL || back).replace(/\/$/, '');
+
 function origin(req: Req) {
   const host = req.headers['x-forwarded-host'] ?? req.headers.host ?? 'localhost:8787';
   return /^(localhost|127\.0\.0\.1)/.test(host) ? `http://${host}` : `https://${host}`;
@@ -263,7 +266,7 @@ export async function handle(req: Req): Promise<Res> {
     }
     if (p === '/api/gmail/callback' && method === 'GET' && checkState(query.get('state') ?? '') === 'new') {
       const back = process.env.ARTHA_PUBLIC_URL || origin(req);
-      if (!query.get('code')) return { status: 302, headers: { location: `${back}/?signup=failed` }, body: '' };
+      if (!query.get('code')) return { status: 302, headers: { location: `${appUrl(back)}/?signup=failed` }, body: '' };
       const tok = await exchangeCode(query.get('code')!, `${back}/api/gmail/callback`);
       const me = await userInfo(tok.access_token);
       const id = `u-${crypto.createHmac('sha256', process.env.ARTHA_TOKEN_KEY ?? 'artha').update(me.email.toLowerCase()).digest('hex').slice(0, 14)}`;
@@ -276,21 +279,21 @@ export async function handle(req: Req): Promise<Res> {
       }
       const prev = await loadToken(id);
       const refresh = tok.refresh_token ?? prev?.refresh;
-      if (!refresh) return { status: 302, headers: { location: `${back}/?signup=failed` }, body: '' };
+      if (!refresh) return { status: 302, headers: { location: `${appUrl(back)}/?signup=failed` }, body: '' };
       await saveToken(id, { refresh, email: me.email, at: nowIso() });
-      return { status: 302, headers: { location: `${back}/?p=${id}&gmail=connected${isNew ? '&new=1' : ''}` }, body: '' };
+      return { status: 302, headers: { location: `${appUrl(back)}/?p=${id}&gmail=connected${isNew ? '&new=1' : ''}` }, body: '' };
     }
     if (p === '/api/gmail/callback' && method === 'GET') {
       const pid = checkState(query.get('state') ?? '');
       const back = process.env.ARTHA_PUBLIC_URL || origin(req);
-      if (!pid || !query.get('code')) return { status: 302, headers: { location: `${back}/?p=${pid ?? ''}&gmail=failed` }, body: '' };
+      if (!pid || !query.get('code')) return { status: 302, headers: { location: `${appUrl(back)}/?p=${pid ?? ''}&gmail=failed` }, body: '' };
       const tok = await exchangeCode(query.get('code')!, `${back}/api/gmail/callback`);
       const prev = await loadToken(pid);
       const refresh = tok.refresh_token ?? prev?.refresh;
-      if (!refresh) return { status: 302, headers: { location: `${back}/?p=${pid}&gmail=failed` }, body: '' };
+      if (!refresh) return { status: 302, headers: { location: `${appUrl(back)}/?p=${pid}&gmail=failed` }, body: '' };
       const me = await profile(tok.access_token);
       await saveToken(pid, { refresh, email: me.emailAddress, at: nowIso() });
-      return { status: 302, headers: { location: `${back}/?p=${pid}&gmail=connected` }, body: '' };
+      return { status: 302, headers: { location: `${appUrl(back)}/?p=${pid}&gmail=connected` }, body: '' };
     }
     if (p === '/api/gmail/disconnect' && method === 'POST') {
       const pid = persona(parse(req.body).p).id;

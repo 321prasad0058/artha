@@ -5,11 +5,12 @@ export type { Scan };
 export type PersonaInfo = { id: string; name: string; age: number; about: string; city: string; speaks: string[]; avatar: string; contacts: Contact[]; source?: string; email?: string };
 export type Sample = { id: string; persona: string; text: string; lang: string; label: string; file: string; synthetic: boolean };
 
-/** Where the API lives: the same site (CloudFront, or the local server). */
-export const API_BASE = '';
+/** Where the API lives: the same site by default (local server), or another host set at build time
+ *  with VITE_API_BASE (the website on Firebase Hosting calls the API on Render). */
+export const API_BASE: string = (import.meta.env.VITE_API_BASE ?? '').replace(/\/$/, '');
 
 async function call<T>(url: string, init?: RequestInit): Promise<T> {
-  const r = await fetch(url, init);
+  const r = await fetch(url.startsWith('/') ? API_BASE + url : url, init);
   const j = await r.json().catch(() => ({}));
   if (!r.ok) throw new Error(j.error ?? `Request failed (${r.status})`);
   return j as T;
