@@ -78,7 +78,7 @@ function recordTurn(state: State, who: Persona, result: Result, said: string, fo
     if (e) { Object.assign(e, { kind, party: party || e.party, contact_id: a.contact_id || e.contact_id, item: a.item || e.item, amount: a.amount_inr, day: whenDay ? day : e.day }); a.updates = e.id; }
     else { e = { id: a.id!, turn: turnId, at: nowIso(), day, kind, party, contact_id: a.contact_id || undefined, item: a.item ?? '', amount: a.amount_inr, status: 'proposed', said: turn.said }; book.push(e); a.updates = e.id; }
   }
-  state.turns = [...(state.turns ?? []).filter(t => !(forced && Object.keys(forced).length && t.said === turn.said)), turn].slice(-12);
+  state.turns = [...(state.turns ?? []).filter(t => !(forced && Object.keys(forced).length && t.said === turn.said)), turn].slice(-60);   // the whole chat stays available for follow-ups
   // Stage 6: Learn
   for (const f of result.learn) if (!state.memory.some(m => m.fact.toLowerCase() === f.toLowerCase())) state.memory.push({ fact: f, src: opts.src ?? 'from a voice note', at: nowIso(), learned: true });
 }

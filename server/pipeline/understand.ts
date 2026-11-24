@@ -1,7 +1,7 @@
 // The pipeline. Artha mode: code stages + one model call that can only choose saved people.
 // Base modes exist so the same recording can be compared: plain model, and plain model + pasted context.
 import { jsonCall, jsonStream } from '../openai.js';
-import type { Action, Candidate, Mention, Mode, Persona, Result, State } from '../types.js';
+import type { Action, Candidate, Contact, Mention, Mode, Persona, Result, State } from '../types.js';
 import { retrieve } from '../kb.js';
 import { linksFor } from '../connectors.js';
 import { isoOf, labelOf, normalise } from './normalize.js';
@@ -88,6 +88,9 @@ Also
 - A follow-up that changes one thing (time, day, person) re-plans ONLY that action. Do not repeat other actions from earlier turns.
 - REPEAT OR TRANSLATE: if the user asks to hear the previous answer again, in another language ("English mein batao", "इंग्लिश में बताइए", "Marathit sang", "say it in Hindi"), slower, shorter or in more detail, redo Artha's LAST answer from CONVERSATION (its reply AND its answer points, same facts, same order) in the asked language and script. Never reply only "Sure, I'll speak in English": give the answer itself. "language" = the asked language. No actions.
 - FOLLOW-UPS: short notes often continue the CONVERSATION. "Calendar mein daal do / add karo / add it" = add the latest proposed thing as a calendar entry with the same time and person; if that thing is marked "already in calendar", say it is already there. "Time 5 baje kar do / change to Monday" = the same action again with the new time. "Usko / unko / uska / unka / unki / tyala / tyancha / avanga / him / her / their" = the person in the latest turn ("Unka kitna baaki hai?" right after a note about Salma Begum = Salma Begum's balance; do not ask). "Cancel karo / rehne do" = cancel what was just set up. Use the people, times and amounts from CONVERSATION; do not ask again for things it already has.
+- THE LAST TOPIC: a short note with a new day or time but no subject ("kal 5 baje shift karo", "उद्या पाच वाजता शेड्यूल", "make it Monday", "move it to 5 tomorrow") is about the thing in the LATEST turn, even when that turn was only an ANSWER (Artha said "the dentist is today at 7:30 PM" → this note moves the dentist appointment). Moving or rescheduling = a calendar action with the same title at the new time (plus a call or message to that person or place if they are a contact). Do not ask "which schedule?".
+- ANSWERING ARTHA: if Artha's LAST reply in CONVERSATION asked the user for something (a question, or a request like "tell me what to schedule", "काय शेड्यूल करायचं ते सांगा", "kisko bolna hai batao"), this note is the answer to it. Combine the two and finish the original request ("Dentist appointment" after "which schedule should I put at 5 tomorrow?" = move the dentist appointment to tomorrow 5 PM). Never treat the answer as a brand-new question.
+- REMIND ME with no subject ("remind me when I go", "jaane se pehle yaad dila dena", "निघताना आठवण कर") = a reminder for the latest appointment or plan in CONVERSATION, 1 hour before it (or the user's habit from PREFERENCES). If the latest turn just proposed a NEW time for it (a move), use that new time, not the old one. Do not ask what or when.
 - PEOPLE CARDS "habits" come from what the user actually confirmed before (for example "reach by: call (3×)"): prefer them when the note does not say. FROM MEMORY is background: use it to understand references to older things ("wahi jo pichle hafte bola tha").
 - heard_gist: what the USER said, as a short headline of at most 8 words, in the language and script they spoke ("Pawar doctor appointment, kal 11 baje"). heard_points: 1 to 6 key facts from the note, each at most 5 words, in that same language, with kind: person (who, as the user named them), when (day/time from CODE_VALUES), money ("₹1,200 lene hain"), item (goods, quantity), task (what to do), place, question (what they asked). Long rambling notes get the SAME short treatment: only what matters.
 - mentions: list ONLY people mentioned, using the exact words from the transcript.
@@ -176,6 +179,8 @@ export type NoteEvent = { t: 'gist'; heard: { gist: string; points: { kind: stri
 
 type PlanOut = { reply_points?: { label: string; text: string }[]; language: string; heard_gist?: string; heard_points?: { kind: string; text: string }[]; mentions: Mention[]; actions: Action[]; clarify_question: string; learn: string[]; reply: string; reply_speech: string };
 
+const ago = (at: string, now = Date.now()) => { const m = Math.max(0, Math.round((now - Date.parse(at)) / 60000)); return m < 60 ? `${m} min ago` : m < 1440 ? `${Math.round(m / 60)} h ago` : `${Math.round(m / 1440)} d ago`; };
+
 export async function understand(args: { persona: Persona; state: State; transcript: string; mode: Mode; forced?: Record<string, string>; now?: Date; ctx?: { db: DatabaseSync; query: Promise<Float32Array | null> }; onEvent?: (e: NoteEvent) => void }): Promise<Result> {
   const { persona: p, state, transcript, mode } = args;
   const forced = args.forced ?? {};
@@ -211,7 +216,7 @@ export async function understand(args: { persona: Persona; state: State; transcr
   const norm = normalise(roman, now);
   {
     // A follow-up that changes only the time keeps the day (and morning/evening) of the plan being discussed.
-    const recentActs = (state.turns ?? []).filter(x => now.getTime() - Date.parse(x.at) < 3 * 3600e3).flatMap(x => x.actions).reverse();
+    const recentActs = (state.turns ?? []).slice(-12).flatMap(x => x.actions).reverse();
     const prev = recentActs.find(a => a.when_iso && !a.id.includes(':ref')) ?? recentActs.find(a => a.when_iso);   // what was just asked for beats what was already there
     const hasDay = norm.entities.some(e => e.kind === 'date');
     const changing = /\b(badal|badlo|badla|badlaa|badalna|change|shift|instead|nahi|nako|vel|vela|velaa|time|waqt|samay|maathu|maathunga|reschedule|postpone|prepone|pudhe|aage|peeche|kar ?do)\b/.test(roman.toLowerCase());
@@ -238,10 +243,20 @@ export async function understand(args: { persona: Persona; state: State; transcr
 
   t = Date.now();
   // Knowledge base retrieval: likely people, facts about them, the topic, what the user taught before.
-  const turns = (state.turns ?? []).filter(t => now.getTime() - Date.parse(t.at) < 3 * 3600e3).slice(-6);
+  const allTurns = (state.turns ?? []).slice(-60);   // the whole chat, so any follow-up can refer back
+  const turns = allTurns.slice(-8);                  // the latest notes, in full detail
+  const olderTurns = allTurns.slice(0, -8);
   const talkedAbout = [...new Set(turns.slice().reverse().flatMap(t => [...t.people.map(x => x.id), ...t.actions.map(a => a.contact_id)]).filter(Boolean))];
   const kb = retrieve(roman, p, state, now, talkedAbout);
   const shortlist = kb.candidates;
+  // people whose FIRST name is a word of the note ("rohit" → Rohit Sharma and Rohit Patil), whatever nicknames mail gave them
+  const noteWords = roman.toLowerCase().split(/[^a-z]+/).filter(Boolean);
+  const byFirst = new Map<string, Contact[]>();
+  for (const c of p.contacts) { const f = c.name.split(/\s+/)[0].toLowerCase(); if (noteWords.includes(f)) byFirst.set(f, [...(byFirst.get(f) ?? []), c]); }
+  const sameName = [...byFirst.entries()].find(([, g]) => g.length >= 2 && !g.some(c => c.name.toLowerCase().split(/\s+/).slice(1).some(w => noteWords.includes(w))))?.[1];
+  // nothing to tell beyond the name: "Rohit ko bolo", "Rohit la sang", "tell Rohit"
+  const filler = new Set(['ko', 'ku', 'kku', 'la', 'na', 'nu', 'ne', 'ki', 'ka', 'ke', 'se', 'to', 'ji', 'bhai', 'bhaiya', 'please', 'zara', 'jara', 'bol', 'bolo', 'bolna', 'boldo', 'do', 'de', 'dena', 'batao', 'bata', 'sang', 'sanga', 'saang', 'cheppu', 'sollu', 'tell', 'message', 'msg', 'kar', 'karo']);
+  const bareNote = !!sameName && noteWords.every(w => filler.has(w) || sameName.some(c => c.name.toLowerCase().split(/\s+/)[0] === w));
   const filled: Candidate[] = [...shortlist];
   for (const c of p.contacts) if (filled.length < 12 && !filled.some(x => x.id === c.id)) filled.push({ id: c.id, name: c.name, rel: c.rel, score: 0, why: 'No match in the note' });
   const msWho = Date.now() - t;
@@ -253,15 +268,38 @@ export async function understand(args: { persona: Persona; state: State; transcr
     cards = ids.map(id => personCard(args.ctx!.db, id, now.getTime())).filter(Boolean);
     const q = await Promise.race([args.ctx.query, new Promise<null>(r => setTimeout(() => r(null), 250))]);   // never hold planning up: memories join only if ready
     if (q) {
-      const shown = new Set([...turns.map(x => x.id), ...(state.book ?? []).map(b => b.id)]);   // already in CONVERSATION / KHATA BOOK
+      const shown = new Set([...allTurns.map(x => x.id), ...(state.book ?? []).map(b => b.id)]);   // already in CONVERSATION / KHATA BOOK
       const hits = recall(args.ctx.db, q, { people: ids, exclude: shown, k: 6, now: now.getTime() });
       touchFacts(args.ctx.db, hits.filter(h => h.kind === 'fact').map(h => h.ref));
       memories = hits.map(h => `- [${h.kind}${h.at ? `, ${Math.max(0, Math.round((now.getTime() - h.at) / 864e5))}d ago` : ''}, match ${h.sim.toFixed(2)}] ${h.text.replace(/\n/g, ' · ').slice(0, 220)}`);
     }
   }
   const contactInfo = filled.map(c => { const k = p.contacts.find(x => x.id === c.id)!; return { id: k.id, name: k.name, relation: k.rel, ...(k.about ? { about: k.about } : {}), lang: k.lang, called: k.aliases, code_score: Number(c.score.toFixed(2)), code_reason: c.why }; });
+  // What Artha's latest answers were about: the upcoming plan whose time they mention (in any digits), or the plan they set up.
+  // "Uddya 5 vajta schedule" right after "the dentist is today at 7:30" then means the dentist, decided here, not guessed.
+  const latin = (x: string) => x.replace(/[०-९]/g, d => String('०१२३४५६७८९'.indexOf(d))).replace(/[০-৯]/g, d => String('০১২৩৪৫৬৭৮৯'.indexOf(d)));
+  const upcoming = state.calendar.filter(c => Date.parse(c.when_iso) > now.getTime() - 3600e3);
+  let discussed: { title: string; when_iso: string } | null = null, discussedAnswer = '';
+  const latestTurn = allTurns[allTurns.length - 1];   // only the LATEST note can be "just discussed"; older ones never are
+  if (latestTurn) {
+    const own = latestTurn.actions.find(a => (a.type === 'calendar' || a.type === 'reminder' || a.type === 'call') && a.when_iso && a.status !== 'skipped');
+    const said = latin(`${latestTurn.reply ?? ''} ${(latestTurn.reply_points ?? []).map(x => `${x.label} ${x.text}`).join(' ')}`);
+    const hit = own ? null : upcoming.find(c => {
+      const [h, m] = new Date(c.when_iso).toLocaleTimeString('en-GB', { hour: 'numeric', minute: '2-digit', hourCycle: 'h23', timeZone: 'Asia/Kolkata' }).split(':').map(Number);
+      const h12 = h % 12 || 12;
+      return m ? said.includes(`${h12}:${String(m).padStart(2, '0')}`) || said.includes(`${h12}.${String(m).padStart(2, '0')}`) : new RegExp(`\\b${h12}\\b`).test(said);
+    });
+    if (own) discussed = { title: own.title || own.text || own.contact_name, when_iso: own.when_iso };
+    else if (hit) discussed = { title: hit.title, when_iso: hit.when_iso };
+    else if (!latestTurn.actions.length && latestTurn.reply && !/[?？]\s*$/.test(latestTurn.reply.trim())) discussedAnswer = `Artha's latest answer "${latestTurn.reply.slice(0, 160)}" (to the user's "${latestTurn.said.slice(0, 80)}")`;
+  }
+  const lastTurn = allTurns[allTurns.length - 1];
+  const askedBack = !!lastTurn && !lastTurn.actions.length && !!lastTurn.reply
+    && (/[?？]\s*$/.test(lastTurn.reply.trim()) || /\b(batao|bataiye|bataiye|bolo|tell me|which|what|kaun|kaunsa|kya)\b|सांगा|सांग|बताइए|बताओ|कौन|कोण|काय|क्या|எது|என்ன|ఏది|ఏమి/i.test(lastTurn.reply));
   const input = [
     `TODAY: ${istNowLabel(now)} (Asia/Kolkata)`,
+    discussed || discussedAnswer ? `JUST DISCUSSED (code): ${discussed ? `"${discussed.title}" at ${discussed.when_iso}` : `${discussedAnswer}; find that item in TIMELINE`}. A follow-up with a new day or time and no other subject ("kal 5 baje", "उद्या पाच वाजता शेड्यूल", "move it", "remind me when I go") is about THIS: move it, or remind before it.` : '',
+    askedBack ? `ARTHA JUST ASKED: "${lastTurn!.reply}" after the user said "${lastTurn!.said}". THIS NOTE IS THE ANSWER: combine it with that earlier note into ONE complete request and plan it (do not treat this note as a new question, do not ask again for what either note already says).` : '',
     `USER: ${p.name}, ${p.age}, ${p.city}. ${p.about}`,
     `TRANSCRIPT: "${transcript}"`,
     `ROMAN: "${roman}"`,
@@ -271,7 +309,8 @@ export async function understand(args: { persona: Persona; state: State; transcr
     cards.length ? `PEOPLE CARDS (structured, from the user's context space: who they are, what the user calls them, last contact, money, next plan, habits learned from what the user confirmed):\n${cards.map(c => JSON.stringify(c)).join('\n')}` : '',
     memories.length ? `FROM MEMORY (older things that mean the same as this note, found by meaning; use if relevant, ignore if not):\n${memories.join('\n')}` : '',
     kb.pending.length ? `AMOUNTS THEY ASKED FOR (code found these in their own messages): ${kb.pending.map(x => `${x.name}: ₹${x.amount.toLocaleString('en-IN')} ("${x.said}")`).join('; ')}` : '',
-    `CONVERSATION (latest last; follow-ups refer to this):\n${turns.length ? turns.map(t => `- ${Math.round((now.getTime() - Date.parse(t.at)) / 60000)} min ago, user said: "${t.said}"\n  people: ${t.people.map(x => `${x.name} [${x.id}]`).join(', ') || 'none'}\n  actions: ${t.actions.map(a => `${a.id} ${a.type} ${a.contact_id ? `→ ${a.contact_name} [${a.contact_id}] ` : ''}${a.title || a.text ? `"${(a.title || a.text).slice(0, 80)}" ` : ''}${a.when_iso ? `at ${a.when_iso} ` : ''}${a.amount_inr ? `₹${a.amount_inr} ` : ''}· ${a.status.toUpperCase()}`).join(' | ') || 'none'}${t.reply ? `\n  Artha replied: "${t.reply.slice(0, 200)}"` : ''}${t.reply_points?.length ? `\n  answer points: ${t.reply_points.map(x => `${x.label}: ${x.text}`).join(' | ').slice(0, 600)}` : ''}`).join('\n') : '- (new conversation)'}`,
+    olderTurns.length ? `EARLIER IN THIS CHAT (oldest first, short; follow-ups can refer back to any of it):\n${olderTurns.map(t => `- ${ago(t.at)}: user said "${t.said.slice(0, 120)}"${t.actions.length ? ` → ${t.actions.map(a => `${a.type}${a.contact_name ? ` ${a.contact_name}` : ''}${a.title ? ` "${a.title.slice(0, 40)}"` : ''}${a.when_iso ? ` at ${a.when_iso}` : ''}${a.amount_inr ? ` ₹${a.amount_inr}` : ''} (${a.status})`).join('; ')}` : ''}${t.reply ? ` · Artha: "${t.reply.slice(0, 120)}"` : ''}`).join('\n')}` : '',
+    `CONVERSATION (the latest notes in full, latest last; follow-ups refer to this first):\n${turns.length ? turns.map(t => `- ${ago(t.at)}, user said: "${t.said}"\n  people: ${t.people.map(x => `${x.name} [${x.id}]`).join(', ') || 'none'}\n  actions: ${t.actions.map(a => `${a.id} ${a.type} ${a.contact_id ? `→ ${a.contact_name} [${a.contact_id}] ` : ''}${a.title || a.text ? `"${(a.title || a.text).slice(0, 80)}" ` : ''}${a.when_iso ? `at ${a.when_iso} ` : ''}${a.amount_inr ? `₹${a.amount_inr} ` : ''}· ${a.status.toUpperCase()}`).join(' | ') || 'none'}${t.reply ? `\n  Artha replied: "${t.reply.slice(0, 200)}"` : ''}${t.reply_points?.length ? `\n  answer points: ${t.reply_points.map(x => `${x.label}: ${x.text}`).join(' | ').slice(0, 600)}` : ''}`).join('\n') : '- (new conversation)'}`,
     `TIMELINE (structured, upcoming): ${JSON.stringify([...state.calendar.filter(c => Date.parse(c.when_iso) > now.getTime() - 3600e3).map(c => ({ what: c.title, with: c.contact ?? null, at: c.when_iso })), ...state.reminders.map(r => ({ what: `reminder: ${r.title}`, at: r.when_iso }))].slice(0, 12))}`,
     `PREFERENCES AND HABITS:\n${state.memory.filter(m => !m.learned).map(m => `- ${m.fact}`).join('\n') || '- none'}`,
     `CORRECTIONS THE USER MADE (always follow): ${JSON.stringify(state.memory.filter(m => m.kind === 'alias').map(m => ({ said: m.mention, topic: m.topic ?? 'any', means: m.about })))}`,
@@ -310,16 +349,18 @@ export async function understand(args: { persona: Persona; state: State; transcr
     : await jsonCall<PlanOut>({ name: 'artha_plan', instructions: ARTHA_INSTRUCTIONS, input, schema: planSchema(null) }), p);
   {
     const tell = /\b(bol ?do|bolo|bolna|bata ?do|batao|sang|sanga|sangaa|saang|cheppu|cheppandi|sollu|sollunga|tell|message|msg)\b/i.test(roman);
+    if (tell && sameName && bareNote) { /* only a shared first name and "tell": ask which one first (below), never guess */ } else {
     const named = shortlist.filter(c => c.score >= 0.8).map(c => c.id);
     const toldTo = new Set(out.actions.filter(a => a.type === 'message' || a.type === 'call').map(a => a.contact_id));
     const missing = named.filter(id => !toldTo.has(id));
     if (tell && named.length && missing.length === named.length && (!out.clarify_question || named.length === 1)) {
       out = expand(await jsonCall<PlanOut>({ name: 'artha_plan', instructions: ARTHA_INSTRUCTIONS, input: `${input}\n\nCHECK: the user asked to TELL ${missing.map(id => p.contacts.find(c => c.id === id)?.name).join(', ')} something. Include a message action to them with their exact words in their language.`, schema: planSchema(null) }), p);
     }
+    }
     // The model hedged ("which Rahul?") but the code's evidence clearly favours one (a shared topic, a past correction):
     // ask the model once more with that evidence instead of asking the user.
     const top = [...shortlist].sort((x, y) => y.score - x.score);
-    if (out.clarify_question && !out.actions.length && top.length >= 2 && top[0].score - top[1].score >= .1 && !Object.keys(forced).length) {
+    if (out.clarify_question && !out.actions.length && top.length >= 2 && top[0].score - top[1].score >= .1 && !Object.keys(forced).length && !(sameName && bareNote)) {
       const retry = expand(await jsonCall<PlanOut>({ name: 'artha_plan', instructions: ARTHA_INSTRUCTIONS, input: `${input}\n\nCHECK: the evidence clearly points to ${top[0].name} (${top[0].why}). Do not ask; plan the note for ${top[0].name}.`, schema: planSchema(null) }), p);
       if (retry.actions.length && !retry.clarify_question) out = retry;
     }
@@ -366,7 +407,7 @@ export async function understand(args: { persona: Persona; state: State; transcr
   // Resolved in code from the conversation record, so the model never has to ask "add what?".
   const addFollowUp = /calend|kalend|kailend|kaelend|कॅलेंडर|कैलेंडर|कलेंडर|క్యాలెండర్|காலெண்டர்/i.test(`${transcript} ${roman}`)
     && !norm.entities.some(e => e.kind === 'date' || e.kind === 'time') && !planned.some(a => a.type === 'calendar');
-  const last = [...(state.turns ?? [])].reverse().find(x => now.getTime() - Date.parse(x.at) < 3 * 3600e3 && x.actions.some(a => a.when_iso));
+  const last = [...(state.turns ?? [])].slice(-12).reverse().find(x => x.actions.some(a => a.when_iso));
   if (addFollowUp && last) {
     const src = [...last.actions].reverse().find(a => a.when_iso && !a.id.includes(':ref') && a.status !== 'skipped' && a.type !== 'calendar');
     const ref = [...last.actions].reverse().find(a => a.when_iso && (a.id.includes(':ref') || a.type === 'calendar'));
@@ -391,6 +432,24 @@ export async function understand(args: { persona: Persona; state: State; transcr
   if (!clarify && !planned.length && out.clarify_question) {
     const opts = shortlist.filter(c => c.score >= 0.5).slice(0, 3);
     if (opts.length >= 2) clarify = { mention: out.mentions.find(m => m.kind === 'person')?.text ?? opts[0].name, question: out.clarify_question, options: opts.map(c => ({ id: c.id, label: c.name })) };
+  }
+  // "Rohit ko bolo" with two Rohits: the model may ask WHAT to say before WHO. Who comes first, decided in code:
+  // nothing planned, Artha is about to ask a question, and two people fit the name about equally -> ask which one, with buttons.
+  if (!clarify && !Object.keys(forced).length && ((!planned.length && /[?？]\s*$/.test(out.reply.trim())) || (sameName && bareNote))) {
+    if (sameName && bareNote) planned.length = 0;
+    const score = (id: string) => shortlist.find(c => c.id === id)?.score ?? 0;
+    const scored = shortlist.filter(c => c.score >= 0.5).sort((x, y) => y.score - x.score);
+    const top = sameName ? sameName.map(c => ({ id: c.id, name: c.name, score: score(c.id) })).sort((x, y) => y.score - x.score)
+      : scored.length >= 2 && scored[0].score - scored[1].score < 0.1 ? scored : [];
+    if (top.length >= 2) {
+      const [a, b] = top, first = a.name.split(/\s+/)[0];
+      const lang = (out.language || p.speaks[0] || '').toLowerCase();
+      const question = lang.startsWith('marathi') ? `कोणते ${first}: ${a.name} की ${b.name}?`
+        : lang.startsWith('english') ? `Which ${first}: ${a.name} or ${b.name}?`
+        : lang.startsWith('hindi') ? `कौन से ${first}: ${a.name} या ${b.name}?`
+        : `Kaunse ${first}: ${a.name} ya ${b.name}?`;
+      clarify = { mention: out.mentions.find(m => m.kind === 'person')?.text ?? first, question, options: top.slice(0, 3).map(c => ({ id: c.id, label: c.name })) };
+    }
   }
   const { actions, checks } = clarify ? { actions: [], checks: [{ rule: 'A true tie between two people, so Artha asks once', ok: true }] } : checkActions(planned, p, now);
   // A time said in the note belongs on the action, even if the model only wrote it into the message text.
