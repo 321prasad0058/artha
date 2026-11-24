@@ -2,7 +2,7 @@
 
 Artha AI turns Indian voice notes (Hinglish, Hindi, Marathi, Telugu, Tamil, Urdu, Punjabi, Bengali, English) into the right action: a message, call, UPI payment, reminder or khata (credit ledger) entry. It uses each person's own context to work out who, when and how much. When two people share a name and nothing tells them apart, it asks one short question.
 
-- Live app (already deployed, nothing to set up): https://djq9jnhg6rg4f.cloudfront.net
+- Live app (already deployed, nothing to set up): https://heyartha.web.app (the API behind it runs on Render's free plan; the first request after a long idle can take up to a minute)
 - Code: https://github.com/321prasad0058/artha
 - Overview with screenshots: [README.md](README.md)
 
@@ -78,7 +78,7 @@ There is one service: a Node server that serves both the web app and the API on 
 
 ```bash
 npm ci              # install exact dependencies (an "install-scripts" warning is harmless)
-npm run build       # builds the web app into dist/ (and a Lambda bundle, unused locally)
+npm run build       # builds the web app into dist/
 npm start           # app + API on http://localhost:8787
 npm run demo-user   # seed: builds the Gmail-style new user (optional, 1–2 min, uses the OpenAI key; run while the server is up or before)
 ```
@@ -116,7 +116,7 @@ There is **no password login**. Three ways in:
 |---|---|---|
 | **8 sample people** | open `http://localhost:8787/?p=<id>`, or on the first screen click **"Or explore a sample person, no sign-in needed"** | ids: `aditya`, `sunita`, `imran`, `meenakshi`, `rohan`, `fatima`, `gurpreet`, `ananya` |
 | **New user built from Gmail (offline)** | run `npm run demo-user` (about 1–2 minutes), then open `http://localhost:8787/?p=u-demo-aarav` | builds "Aarav Deshmukh" from 62 fictional mails in `data/mock-mail/aarav.ts`, exactly as Google sign-in would. No Google account needed |
-| Real Google sign-in | only on the live app: **Continue with Google** | needs the team's demo Gmail; Google shows "unverified app", choose Advanced → Go to Artha AI. Optional |
+| Real Google sign-in | not enabled on the current live site | optional; `npm run demo-user` runs the same Gmail learning offline |
 
 Switch person any time: click your name (top right) → Sample people. Start a person over: **Knows** panel → "Start … over", or:
 
@@ -272,7 +272,7 @@ data/personas/   the 8 sample people     data/mock-mail/   the demo inboxes (fic
 eval/            benchmark cases, results, clips list, khata photo
 scripts/         demo-user.ts, eval.ts, live and persona tests, build
 tests/           unit tests (npm test)
-infra/, .github/ AWS deploy (Lambda + CloudFront), not needed locally
+render.yaml, firebase.json  hosting (API on Render, website on Firebase); infra/ is the earlier AWS setup. Not needed locally
 ```
 
 ## 11. Troubleshooting

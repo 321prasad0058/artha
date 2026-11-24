@@ -4,7 +4,7 @@
 import fs from 'node:fs';
 
 const who = process.argv[2] ?? 'rohan';
-const BASE = (process.argv[3] ?? 'https://djq9jnhg6rg4f.cloudfront.net').replace(/\/$/, '');
+const BASE = (process.argv[3] ?? 'https://heyartha.web.app').replace(/\/$/, '');
 type Step = { say?: string; photo?: string; answer?: string; confirm?: boolean };
 const CHAINS: Record<string, Step[]> = {
   rohan: [

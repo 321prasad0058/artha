@@ -10,8 +10,8 @@ A story-style walkthrough of the full product, recorded from the real app:
 | 0:29 | A new user, Aarav from Pune, signs in with Google (read-only; the OTP mail is never opened). The setup road learns his people (including two different Rohits), plans and bills, then folds into what it learned |
 | 1:06 | Same-name conflict: Rohan has two friends called Ayush. "Ayush ko bol, kal baat karte hain" is a true tie, so Artha asks one short question with both names as buttons |
 | 1:26 | Usually it doesn't need to ask: "Sunday cricket pakka" points to Ayush Sharma, and six clues (sound, nicknames, topic, last conversation…) decide |
-| 1:53 | What runs underneath: browser-installed app → CloudFront → AWS Lambda; gpt-transcribe hears, our code pins dates and amounts, gpt-6-luna plans, gpt-4o-mini-tts speaks |
+| 1:53 | What runs underneath: browser-installed app → the Artha server (AWS Lambda in the film; now Firebase + Render); gpt-transcribe hears, our code pins dates and amounts, gpt-6-luna plans, gpt-4o-mini-tts speaks |
 | 2:16 | Private memory per person: a small database plus 256-number vectors. Rohan's real memory shows the two Ayushes only 0.62 alike in meaning; recall blends meaning, person and recency |
 | 2:50 | Results on 41 voice notes in 9 languages, and the close |
 
-Live app: https://djq9jnhg6rg4f.cloudfront.net · Code: https://github.com/321prasad0058/artha
+Live app: https://heyartha.web.app · Code: https://github.com/321prasad0058/artha
