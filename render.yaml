@@ -1,0 +1,28 @@
+# Render Blueprint: the Artha AI API (and a full copy of the app) on Render's free plan.
+# The website itself is on Firebase Hosting (https://heyartha.web.app) and calls this API.
+services:
+  - type: web
+    name: artha-api
+    runtime: node
+    plan: free
+    region: singapore
+    branch: main
+    autoDeploy: true
+    buildCommand: npm ci && npm run build
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_VERSION
+        value: "24"
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: ARTHA_TOKEN_KEY
+        generateValue: true
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+      - key: ARTHA_APP_URL
+        value: https://heyartha.web.app
+      - key: ARTHA_ALLOWED_ORIGINS
+        value: https://heyartha.web.app,https://getartha.web.app

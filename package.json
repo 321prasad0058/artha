@@ -13,7 +13,8 @@
     "eval": "tsx scripts/eval.ts",
     "typecheck": "tsc --noEmit",
     "demo-user": "tsx scripts/demo-user.ts",
-    "start": "tsx server/index.ts"
+    "start": "tsx server/index.ts",
+    "deploy:web": "VITE_API_BASE=${ARTHA_API_URL:-https://artha-api.onrender.com} vite build && npx -y firebase-tools@latest deploy --only hosting --project artha-ai-app"
   },
   "dependencies": {
     "gsap": "^3.12.5",
